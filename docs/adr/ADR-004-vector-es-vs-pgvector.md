@@ -55,7 +55,7 @@ linked_reqs: [REQ-002]
 实现要点：
 - chunk 表：`(id, family_member_id, doc_id, subject_tags, content, content_tsv, embedding halfvec(1024))`，HNSW 索引 + GIN(tsv) 索引，RLS 启用
 - 检索函数：向量 top-k ∪ FTS top-k → RRF 融合 → 可选 rerank（低价 LLM 或 API reranker）
-- 嵌入模型经 LiteLLM（ADR-002）调 API；MacMini 上线后可切本地 BGE-M3（嵌入维度与表结构解耦：记录 model+dim 版本列）
+- 嵌入模型经 LiteLLM（ADR-002）调 API；MacMini 上线后可切本地 BGE-M3（嵌入维度与表结构解耦：记录 model+dim 版本列）。**v1 固定 BGE-M3 / 1024 维**——版本列只能识别来源、不能让不同维度共用同一向量列；更换到**不同维度**的 embedding 模型必须走 REQ，采用新向量列或新 `chunk_embedding` 表 + 双写/灰度切换（涉及重嵌入与索引重建；裁决 2026-06-14，见 Review Notes codex-011）
 
 ## Trade-off
 
@@ -76,4 +76,4 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [codex-011][2026-06-14] 称 BGE-M3 维度非 1024、halfvec(1024) 写死会导致换模型“切不动库”。Claude **驳回事实前提**：BGE-M3 dense 向量确为 **1024 维**，halfvec(1024) 与之一致；且本 ADR §Decision 实现要点已写“记录 model+dim 版本列”。**保留防御性内核**：按 embedding model 版本化列/索引，换模型走 REQ。human-001 裁决：accept 防御性内核（“BGE-M3 非 1024”事实驳回成立）——ADR 正文已补：v1 固定 BGE-M3/1024 维；换到不同维度模型必须走 REQ，采用新向量列或新 chunk_embedding 表 + 双写/灰度切换

@@ -63,4 +63,5 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [gemini-005][2026-06-14] 02 部署图显示 CF Tunnel 直连 Pi5(ingress) 但未画 Pi5→Mac Mini/K3s 集群的安全路由；若用 Subnet Router 需明确 ACL，否则 Pi5 被攻破 → 内网全穿透 → 已立 BUG-008（02 SVG 补 Tailscale 网段与 K3s ingress 交互连线，正文补 subnet-router ACL）。human-001 裁决：accept（2026-06-14, BUG-008）
+- [gemini-r2][2026-06-14] 再次：02 图示 CF Tunnel 直连 RPi，但未画 RPi→Mac Mini（K3s Ingress/外部 runtime）的路由，正文缺 Subnet Router ACL——强化 BUG-008（混合编排下尤其要明确 Pi5 作 ingress 到 Mac 的 ACL 最小化，防 Pi5 被攻破后内网全穿透）。human-001 裁决：accept（2026-06-14, 强化 BUG-008）

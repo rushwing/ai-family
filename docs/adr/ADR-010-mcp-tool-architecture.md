@@ -71,4 +71,7 @@ LangGraph Agent ──(MCP client)──► MCP Gateway ──► 各域 FastMCP
 
 ## Review Notes
 
-（待评审追加）
+- [codex-005][2026-06-14] “每个 tool 首行校验 JWT”无共享 auth 库/强制中间件/注册门禁，会退化为作者自觉；36 个 goal tools 迁移漏一个即越权口 → 已立 REQ-004（工具侧鉴权做成 FastMCP decorator + 注册门禁：无 auth metadata 或无测试的 tool 拒绝注册）。human-001 裁决：accept（2026-06-14, REQ-004）
+- [gemini-002][2026-06-14] 工具返回外部数据（网页/API）未过滤直入 LLM 上下文，提示注入可绕 output filter 破 kid 红线 → 已立 BUG-005（网关层强制 Input Sanitization 中间件）。Claude：本 ADR 约定 2 已有“untrusted_output 过 Compliance 注入检测”，G2 要求把它从约定升为强制中间件，采纳为强化。human-001 裁决：accept（2026-06-14, BUG-005）
+- [gemini-反驳][2026-06-14] 强制反驳：单体内把本地函数包成 MCP server 再 HTTP/SSE 调，增加无谓序列化/网络错误面，直接 import 更稳更快。Claude：与本 ADR 网关“白名单/审计/信任边界单点实施”取舍冲突，记录待裁。human-001 裁决：reject——家庭场景时延非关键；平台能异步处理任务、家庭成员提交后可去做别的事、完成时收通知，正是搭建初衷；可维护性/可扩展性 > 复杂度与时延的适度增加，保留 MCP 架构
+- [gemini-r2][2026-06-14] ① 06 状态图数据流绕过鉴权网关、图文不符 → BUG-009；② kid 压测：RAG 注入（检索网页夹带“忽略安全策略”）+ 输出过滤被 Base64 等编码绕过则红线破——强化 BUG-005（网关消毒须做指令/数据定界 + 输出分类器抗编码），并汇入 REQ-009 对抗测试集。human-001 裁决：accept（2026-06-14, BUG-009 + 强化 BUG-005 + REQ-009）

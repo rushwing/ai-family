@@ -81,8 +81,8 @@
       <tr><td>单人运维成本</td><td>✅ 低</td><td>❌ N+1 仓 / N+1 CI / 依赖矩阵</td><td>🟡 3 仓，可控</td></tr>
       <tr><td>独立部署/发版</td><td>🟡 需 path filter</td><td>✅ 天然独立</td><td>✅ 模块 path-filtered CI + 独立镜像 tag</td></tr>
       <tr><td>安全职责分离（kid 红线）</td><td>❌ 策略与业务同权限</td><td>🟡 分散，难统一管控</td><td>✅ governance 仓 CODEOWNERS 双签</td></tr>
-      <tr><td>生产 blast radius 隔离</td><td>❌ IaC 与应用同仓</td><td>🟡 取决于 infra 放哪</td><td>✅ infra 单独仓 + admin 权限</td></tr>
-      <tr><td>K3s/GitOps 迁移契合</td><td>🟡</td><td>🟡</td><td>✅ infra 仓即 GitOps 源（ADR-009）</td></tr>
+      <tr><td>生产 blast radius 隔离</td><td>❌ IaC 与应用同仓</td><td>🟡 取决于 infra 放哪</td><td>✅ infra/ 目录 + CODEOWNERS（后续按触发拆仓）</td></tr>
+      <tr><td>K3s/GitOps 迁移契合</td><td>🟡</td><td>🟡</td><td>✅ infra/ 即 GitOps 源（ADR-009 混合编排）</td></tr>
       <tr><td>未来可拆分（escape hatch）</td><td>🟡 需重构</td><td>✅ 已拆</td><td>✅ 模块边界 = <code>git subtree split</code> 缝</td></tr>
       <tr><td style="background:#E8F5E9"><strong>结论</strong></td><td>过度集中：IaC/策略与业务同权限，违背职责分离</td><td><strong>过早优化</strong>：付 polyrepo 税，无团队边界红利；契约耦合使其反而不 scalable</td><td style="background:#E8F5E9"><strong>✅ 选定</strong>：SMB 段 GCP/Azure 共识，兼顾耦合现实与红线</td></tr>
     </table>
@@ -149,20 +149,20 @@
 
         <!-- infra 仓 -->
         <rect x="620" y="272" width="390" height="228" rx="10" fill="#FFF" stroke="#E65100" stroke-width="1.8"/>
-        <text x="815" y="296" text-anchor="middle" fill="#E65100" font-size="12" font-weight="700">ai-family-infra（IaC + GitOps 源）</text>
+        <text x="815" y="296" text-anchor="middle" fill="#E65100" font-size="12" font-weight="700">infra/（IaC + GitOps 源 · 初期目录）</text>
         <text x="636" y="324" fill="#5D4037" font-size="10">· compose →（M5）K3s Helm charts</text>
         <text x="636" y="346" fill="#5D4037" font-size="10">· Terraform/cloud · Tailscale ACL（§02 §3）</text>
         <text x="636" y="368" fill="#5D4037" font-size="10">· sops → sealed-secrets · CI/CD pipelines</text>
         <text x="636" y="390" fill="#5D4037" font-size="10">· 私有 registry 配置 · 备份/恢复 runbook</text>
         <rect x="636" y="406" width="358" height="78" rx="6" fill="#FFF3E0"/>
-        <text x="815" y="426" text-anchor="middle" fill="#E65100" font-size="9.5">独立 blast radius（可毁生产）→ 单独仓 + admin 权限</text>
+        <text x="815" y="426" text-anchor="middle" fill="#E65100" font-size="9.5">独立 blast radius（可毁生产）→ 初期 infra/ 目录 + CODEOWNERS，按触发拆仓</text>
         <text x="815" y="444" text-anchor="middle" fill="#E65100" font-size="9.5">集群以 GitOps 拉取本仓声明部署（ADR-009 两阶段）</text>
         <text x="815" y="464" text-anchor="middle" fill="#E65100" font-size="9.5">secrets 永不进平台仓；轮换走 REQ</text>
 
         <!-- 运行集群 -->
         <rect x="30" y="530" width="980" height="60" rx="10" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.2"/>
         <text x="520" y="558" text-anchor="middle" fill="#455A64" font-size="11" font-weight="700">运行集群 · Pi5(ingress) + Mac Mini M4(运行时) + NAS(数据)</text>
-        <text x="520" y="576" text-anchor="middle" fill="#607D8B" font-size="9.5">← 镜像来自平台仓 CI（私有 registry）  ·  部署声明来自 infra 仓（GitOps apply）  ·  策略 bundle 来自 governance 仓</text>
+        <text x="520" y="576" text-anchor="middle" fill="#607D8B" font-size="9.5">← 镜像来自平台仓 CI（私有 registry）  ·  部署声明来自 infra/（GitOps apply）  ·  策略 bundle 来自 governance 仓</text>
 
         <!-- 箭头 -->
         <line x1="300" y1="500" x2="300" y2="530" stroke="#3F51B5" stroke-width="1.8" marker-end="url(#ai)"/>
@@ -171,11 +171,11 @@
         <text x="852" y="520" fill="#E65100" font-size="9">GitOps</text>
       </svg>
     </div>
-    <div class="highlight-box">✅ <strong>决策</strong>：采用 <strong>C — 三仓逻辑边界</strong>，分两步落地物理仓：<br>
-    · <strong>现在</strong>：<code>ai-family</code>（应用全层 + 共享库 + harness + docs，<strong>含受 CODEOWNERS 双签保护的 governance/ 目录</strong>）+ <code>ai-family-infra</code>（IaC/GitOps，因 blast radius <strong>第一天即独立</strong>）。<br>
-    · <strong>M3（kid 上线）前</strong>：将 <code>governance/</code> 升格为独立仓 <code>ai-family-governance</code>，把职责分离做到物理隔离。<br>
-    Agent 始终在平台仓内<strong>模块化但不拆仓</strong>。</div>
-    <p style="font-size:13px;color:#777"><strong>为什么 governance 先目录后独立</strong>：单人初期独立第三仓收益低、运维多一份；而平台仓内 <code>governance/</code> 目录 + 严格 <code>CODEOWNERS</code> 已能满足红线的"小圈子强审"。等 kid 场景临近上线、合规审计与职责分离的真实需求出现时再升格，迁移成本低（目录 → <code>git subtree split</code>）。<code>ai-family-infra</code> 则因"可毁生产"的 blast radius 不走此降级，第一天即独立。</p>
+    <div class="highlight-box">✅ <strong>决策（经 2026-06-14 裁决修订）</strong>：采用 <strong>C 的单仓变体 —— 初期纯 Monorepo，三层逻辑边界靠 path filtering + CODEOWNERS，不第一天分物理仓</strong>：<br>
+    · <strong>现在</strong>：单仓 <code>ai-family</code>（应用全层 + 共享库 + harness + docs），<code>infra/</code>（IaC/GitOps）与受 CODEOWNERS 双签保护的 <code>governance/</code> 均为<strong>目录</strong>。<br>
+    · <strong>后续按触发条件拆物理仓</strong>：Agent 规模 / 团队 / 合规审计需要时，再把 <code>infra/</code>、<code>governance/</code> 或某 Agent 模块 <code>git subtree split</code> 为独立仓（kid 上线 M3 前优先评估 governance）。<br>
+    Agent 始终<strong>模块化但不拆仓</strong>。</div>
+    <p style="font-size:13px;color:#777"><strong>为什么不第一天分仓</strong>：单人开发时，跨层改一处（如加一个环境变量）若要在两个物理仓各提一个 PR，会拖慢 Draft-First 的迭代节奏；而仓内 <code>infra/</code>、<code>governance/</code> 目录 + 严格 <code>CODEOWNERS</code> + path filtering 已能拿到部署解耦与"小圈子强审"。真正的物理隔离（blast radius / 合规职责分离）留到 Agent 规模或审计需求出现时，再沿目录边界 <code>git subtree split</code>，迁移成本低。这是 Gemini（反对分仓）与 Codex（主张分仓）分歧的裁决落点：<strong>先迭代速度，后物理隔离</strong>。</p>
   </section>
 
   <section>
@@ -207,7 +207,7 @@
 ├─ .github/
 │  ├─ CODEOWNERS                # 模块 owner；governance/ 路径强制 human-001
 │  └─ workflows/                # path-filtered CI：改 agents/goal/** 只构 goal-agent
-└─ compose.dev.yaml            # 本地起栈（生产声明在 ai-family-infra 仓）</pre>
+└─ compose.dev.yaml            # 本地起栈（生产声明在 infra/ 目录）</pre>
     <div class="q-box">📘 关键纪律：<strong>跨层共享的东西一律进 <code>libs/</code>，且只进 <code>libs/</code></strong>。Agent 之间不得横向 import 彼此的 <code>src/</code>，只能依赖 <code>libs/</code> 的契约——这条规则让"同仓"不等于"耦合成一坨"，也让未来 subtree split 单个 Agent 时依赖关系清晰可断。</div>
   </section>
 
@@ -217,8 +217,8 @@
       <tr><th style="width:130px">关注点</th><th>做法</th><th>对应/承接</th></tr>
       <tr><td>路径过滤构建</td><td>CI 按变更路径触发：改 <code>agents/goal/**</code> 只构建 goal-agent 镜像，改 <code>libs/**</code> 触发依赖它的模块全量回归</td><td>GCP Cloud Build path 触发同款</td></tr>
       <tr><td>独立镜像与版本</td><td>每模块独立 Dockerfile + 镜像 tag（<code>goal-agent/vX.Y.Z</code>）；推私有 registry（NAS registry:2）</td><td>02 §1 / ADR-009</td></tr>
-      <tr><td>三仓流水线分工</td><td>平台仓 = build/test/push 镜像；infra 仓 = 渲染部署声明并 GitOps apply；governance 仓 = 策略 lint + bundle 版本化下发</td><td>本页 §4</td></tr>
-      <tr><td>密钥</td><td>secrets 永不进平台仓；<code>sops+age</code>→（K3s）sealed-secrets，全在 infra 仓</td><td>02 §5 / ADR-009</td></tr>
+      <tr><td>三仓流水线分工</td><td>平台仓 = build/test/push 镜像；infra/ = 渲染部署声明并 GitOps apply；governance 仓 = 策略 lint + bundle 版本化下发</td><td>本页 §4</td></tr>
+      <tr><td>密钥</td><td>secrets 永不进平台仓；<code>sops+age</code>→（K3s）sealed-secrets，全在 infra/ 目录</td><td>02 §5 / ADR-009</td></tr>
       <tr><td>质量门</td><td>harness 的 TC 作为 CI 必过项；跨成员越权读取等 P0 回归用例阻断合并</td><td>02 §4 / 03</td></tr>
     </table>
   </section>
@@ -237,10 +237,10 @@
   <section>
     <h2>8. 落地步骤与 ADR-013 衔接</h2>
     <ol>
-      <li><strong>M1 起即落骨架</strong>：建 <code>ai-family</code>（已是当前仓）的 <code>apps/ agents/ toolsets/ data/ libs/</code> 模块骨架 + path-filtered CI；<code>ai-family-infra</code> 第一天就独立建仓。</li>
+      <li><strong>M1 起即落骨架</strong>：建 <code>ai-family</code>（已是当前仓）的 <code>apps/ agents/ toolsets/ data/ libs/</code> 模块骨架 + path-filtered CI；<code>infra/</code> 与 <code>governance/</code> 作为目录起步（不第一天分物理仓，裁决 2026-06-14）。</li>
       <li><strong>并入既有资产</strong>：<code>rushwing/goal-agent</code> 用 <code>git subtree add</code> 导入 <code>agents/goal/</code>（<strong>保留提交历史</strong>），随 GoalAgent 垂直切片（06）改造（MariaDB→PG、header→OIDC、APScheduler→图唤醒）。</li>
       <li><strong>governance 先目录后独立</strong>：单人初期可先用平台仓 <code>governance/</code> 目录 + CODEOWNERS；kid 上线（M3）前升格为独立仓 <code>ai-family-governance</code>。</li>
-      <li><strong>M5 K3s</strong>：<code>ai-family-infra</code> 的 compose 声明 Helm 化，转 GitOps（ADR-009 检查单）。</li>
+      <li><strong>M5 K3s</strong>：<code>infra/</code> 的 compose 声明 Helm 化，转 GitOps（ADR-009 混合编排：仅 Pi5 入 K3s，Mac/NAS 外部接入）。</li>
       <li><strong>立 ADR-013</strong>：本页结论经 Codex/Gemini 评审后，落 <code>ADR-013 源码仓库与代码治理</code>（proposed→accepted），与 ADR-001/009 交叉引用。</li>
     </ol>
   </section>
@@ -252,7 +252,7 @@
       <tr><td>RR1</td><td>monorepo 全量 CI 变慢</td><td>path filter + 依赖图增量构建 + 缓存；仍慢则按模块拆 CI workflow（不拆仓）</td></tr>
       <tr><td>RR2</td><td>单人"评审"形同虚设</td><td>多 AI 评审 + harness Review Notes 回流（05 §3）补偿</td></tr>
       <tr><td>RR3</td><td>某 Agent 真需独立团队/独立开源/独立发布节奏</td><td>触发 <code>git subtree split</code> 把该模块切出为独立仓——边界已预留，迁移成本低</td></tr>
-      <tr><td>RR4</td><td>三仓对单人偏重</td><td>governance 降级为目录 + CODEOWNERS；infra 因 blast radius 不降级</td></tr>
+      <tr><td>RR4</td><td>三仓对单人偏重</td><td>infra/governance 均先目录 + CODEOWNERS，按触发条件再拆物理仓</td></tr>
       <tr><td>RR5</td><td>libs 变"上帝包"，模块隐性耦合</td><td>libs 按契约细分子包；Agent 间禁止横向 import（§5 纪律）；定期依赖审查</td></tr>
     </table>
     <div class="highlight-box">✅ 一句话总结：<strong>monorepo now, polyrepo-ready</strong> —— 用模块边界拿到 polyrepo 90% 的好处（独立构建/发版/所有权），用单仓避免它 90% 的成本（跨仓契约对齐）；只在 blast radius 与 kid 红线这两条真实边界上才拆出独立仓。</div>

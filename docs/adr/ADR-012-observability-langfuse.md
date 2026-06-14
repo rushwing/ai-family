@@ -56,4 +56,4 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [gemini-r2][2026-06-14] kid 红线：审计须不可变 append-only，防 kid 删记录/软删除规避家长审计；审计须与可删的会话历史物理分离 → BUG-011。human-001 裁决：accept（2026-06-14）

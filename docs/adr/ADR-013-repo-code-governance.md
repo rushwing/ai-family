@@ -37,25 +37,25 @@ linked_reqs: []
 
 ## Decision（决策）
 
-采用 **Option C**：模块化单体仓 `ai-family` + 边界仓 `ai-family-infra` + `ai-family-governance`。Agent 在平台仓内**模块化但不拆仓**。物理仓分两步落地：
+采用 **Option C 的单仓变体（经 2026-06-14 裁决修订，见 Review Notes gemini-004）**：**初期纯 Monorepo `ai-family`**，五层 + `infra/` + `governance/` 均为仓内目录，靠 **path filtering** 做部署/CI 解耦；**不第一天分物理仓**。Agent 模块化但不拆仓。
 
-- **现在**：`ai-family`（含受 CODEOWNERS 双签保护的 `governance/` 目录）+ `ai-family-infra`（因 blast radius **第一天即独立**）。
-- **M3（kid 上线）前**：将 `governance/` 升格为独立仓 `ai-family-governance`，把职责分离做到物理隔离。
+- **现在**：单仓 `ai-family`，`infra/`（IaC/部署声明）与 `governance/`（受 CODEOWNERS 双签保护）均为目录。
+- **后续按触发条件拆物理仓**：当 Agent 规模 / 团队 / 合规审计需要时，再把 `infra/`、`governance/` 或某个 Agent 模块经 `git subtree split` 拆为独立仓（kid 上线 M3 前优先评估 governance）。
 
 详细论证、目录结构、CI/CD 与分支治理见设计稿 [docs/design/07](../design/07-repo-strategy.html)。
 
 ## Trade-off（明确放弃了什么）
 
-放弃 Option B 的「Agent 天然独立部署」与「每 Agent 独立仓的所有权清晰」——这些好处在单人 + 强契约耦合下收益低、成本高。换取的是：共享契约的一致性与原子跨层提交、最低的单人运维负担、harness/GLOSSARY 的单一权威。独立部署的诉求改由「模块化 + path-filtered CI + 独立镜像 tag」满足；真正需要把某 Agent 拆出去时（独立团队/开源/独立发布节奏），用 `git subtree split` 沿预留的模块边界切出——届时收益 > 成本。governance 第三仓延后到 M3 前，接受「初期职责分离靠目录级 CODEOWNERS 而非物理隔离」这一过渡态。
+放弃 Option B 的「Agent 天然独立部署」与「每 Agent 独立仓的所有权清晰」——这些好处在单人 + 强契约耦合下收益低、成本高。换取的是：共享契约的一致性与原子跨层提交、最低的单人运维负担、harness/GLOSSARY 的单一权威。独立部署的诉求改由「模块化 + path-filtered CI + 独立镜像 tag」满足；真正需要把某 Agent 拆出去时（独立团队/开源/独立发布节奏），用 `git subtree split` 沿预留的模块边界切出——届时收益 > 成本。infra 与 governance 物理仓均延后（按触发条件而非固定日期），接受「初期边界靠目录级 CODEOWNERS + path filtering 而非物理隔离」这一过渡态，换取单人迭代不被跨仓 PR 拖慢。
 
 ## Consequences（影响）
 
 - **代码结构**：跨层共享物一律进 `libs/` 且只进 `libs/`；Agent 之间禁止横向 import 彼此 `src/`，只依赖 `libs/` 契约——让"同仓"不等于"耦合成一坨"，也让未来 subtree split 依赖清晰可断。
 - **CI/CD**：平台仓按变更路径触发构建（改 `agents/goal/**` 只构 goal-agent，改 `libs/**` 触发下游全量回归）；每模块独立镜像 tag 推 NAS 私有 registry；harness TC 作为合并必过门。
 - **权限治理**：`.github/CODEOWNERS` 分层，`governance/` 路径强制 human-001 双签；策略以**版本化 bundle 只读下发**给 Agent/Compliance 消费，Agent 仓改动无法绕过或反向篡改策略——把"策略在引擎不在 prompt"保障到源码权限层。
-- **infra 仓**：secrets（sops→sealed-secrets）与部署声明全在 `ai-family-infra`，集群 GitOps 拉取（[ADR-009](ADR-009-compose-to-k3s.md) 两阶段）；admin 权限独立。
+- **infra 目录**：secrets（sops→sealed-secrets）与部署声明在 `infra/` 目录，集群 GitOps 拉取（[ADR-009](ADR-009-compose-to-k3s.md) 混合编排）；CODEOWNERS 对 `infra/` 加严，后续按触发条件可 `subtree split` 为 `ai-family-infra` 独立仓。
 - **既有资产**：`rushwing/goal-agent` 经 `git subtree add` 导入 `agents/goal/`（保留历史），随 06 垂直切片改造。
-- **里程碑衔接**：M1 起落平台仓模块骨架 + infra 仓；M3 前 governance 升格独立仓；M5 infra 仓 Helm 化转 GitOps。
+- **里程碑衔接**：M1 起落单仓模块骨架（含 `infra/`、`governance/` 目录）+ path-filtered CI；拆物理仓按触发条件而非固定里程碑（M3 前优先评估 governance）；M5 K3s 化（ADR-009 混合编排）。
 
 ## Revisit Trigger（重审触发条件）
 
@@ -66,4 +66,6 @@ linked_reqs: []
 
 ## Review Notes（评审追加区）
 
-（待 Codex/Gemini 评审追加，格式：`- [UID][日期] 意见原文 → human-001 裁决`）
+- [codex-007][2026-06-14] path-filtered CI 写成可实现独立构建但无依赖图来源；libs/** 改动触发“下游全量回归”需知依赖关系 → 已立 REQ-005（依赖图工具 + CI 规则：libs/auth 改动至少触发所有鉴权相关 Agent/MCP/e2e）。human-001 裁决：accept（2026-06-14, REQ-005）
+- [codex-008][2026-06-14] 已识别 libs 上帝包但反悔条件只有事后审查，无前置边界 → 已立 REQ-006（libs 分层 contracts/auth/state/agent-sdk 不得反向依赖业务、禁 libs/common、加 import-linter）。human-001 裁决：accept（2026-06-14, REQ-006）
+- [gemini-004/反驳][2026-06-14] **与 Codex 对冲**：反对第一天就分 ai-family/ai-family-infra 物理仓——单人跨层改（加一个环境变量）要提两个 PR，拖慢 Draft-First；主张纯 Monorepo + path filtering 部署解耦。Claude：这与本 ADR“infra 因 blast radius 第一天独立”直接冲突，是两份评审的**真实分歧**，留给 human-001 裁决：blast radius 隔离 vs 单人迭代摩擦。human-001 裁决：**采纳 Gemini**——不第一天分仓，先纯 Monorepo + path filtering 做部署解耦；待 Agent 规模到一定程度再考虑拆出 infra/governance 物理仓。正文与 docs/design/07 已据此修订
