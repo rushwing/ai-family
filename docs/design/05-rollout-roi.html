@@ -171,7 +171,10 @@
       <tr><td>R2</td><td>个人时间投入中断导致烂尾</td><td>垂直切片保证每阶段都有可用产出；M1 后系统已自我管理进度</td></tr>
       <tr><td>R3</td><td>家人不用（产品风险）</td><td>每里程碑以"家人可感知能力"验收；ChatUI 体验由 Claude Design 把关；Telegram 通道降低使用门槛</td></tr>
       <tr><td>R4</td><td>kid 安全事故（最高声誉风险）</td><td>StudyAgent 上线前 shadow 2 周 + 永久输出审查 + 家长可见审计（03 §4）</td></tr>
-      <tr><td>R5</td><td>token 成本失控</td><td>LiteLLM 硬顶 + Langfuse 月报 + 三板斧（§3）</td></tr>
+      <tr><td>R5</td><td>token 成本失控</td><td>LiteLLM 硬顶 + Langfuse 月报 + 三板斧（§3）+ ADR-014 会话级硬熔断 / ReAct 死循环阻断（REQ-007）</td></tr>
+      <tr><td>R6</td><td>交互门槛 / 响应慢（&gt;3s）被弃用（老人、年幼儿童尤甚）</td><td>异步 + 完成通知模式（提交后去忙别的、不承诺实时，本就是平台初衷）；Telegram 低门槛入口；流式输出给即时反馈；为老人/儿童预设“快捷意图卡片”而非纯打字</td></tr>
+      <tr><td>R7</td><td>依赖用户主动打标签 / 纠正 Agent 来学习（不现实）</td><td>不依赖主动标注；用隐式信号（采纳 / 重试 / 追问）作学习信号；Agent 主动询问而非等用户纠正</td></tr>
+      <tr><td>R8</td><td>冷启动：初期家庭数据 / 知识图谱为空，回答通用、ROI 低</td><td>M1 先让 GoalAgent 产确定性价值（日程 / 打卡，不依赖图谱）；预导入既有资料 / 日历给图谱开局；初期 ROI 以“时间回收”计量而非“家庭专属惊喜”</td></tr>
     </table>
   </section>
 
