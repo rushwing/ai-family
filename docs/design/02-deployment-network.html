@@ -148,7 +148,7 @@
         <!-- 路由图例带 -->
         <rect x="40" y="558" width="980" height="48" rx="8" fill="#E0F2F1" stroke="#00897B" stroke-width="1.2"/>
         <text x="54" y="578" fill="#00695C" font-size="10.5" font-weight="700">ingress→runtime→data 路由（全程经 tailnet · ACL 端口白名单 · Pi5 作 ingress 非 Subnet Router，见 §3）：</text>
-        <text x="54" y="596" fill="#00695C" font-size="10">① chatui(Pi5) → agent-core(Mac Mini) :8000 SSE　　② agent-core/ingest-worker → PG(NAS):5432 · neo4j:7687 · minio:9000　—— Pi5 仅可达 agent-core 单端口，被攻破≠内网全穿透；M5 迁 K3s 后由 Ingress+NetworkPolicy 承接</text>
+        <text x="54" y="596" fill="#00695C" font-size="10">① chatui(Pi5) → agent-core(Mac Mini) :8000 SSE　　② agent-core/ingest-worker → PG(NAS):5432 · neo4j:7687 · minio:9000　—— Pi5(ingress) 仅可达 runtime(Mac Mini) 的 8000-8099 白名单端口，触不到 NAS/VPS，被攻破≠内网全穿透；M5 迁 K3s 后由 Ingress+NetworkPolicy 承接</text>
       </svg>
     </div>
   </section>
