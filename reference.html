@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enterprise Multi-Agent Assistant — System Design</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .page-header { margin-bottom: 32px; }
+    .page-header h1 { font-size: 30px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    .tags { margin-top: 12px; }
+    .tag { display: inline-block; padding: 3px 11px; border-radius: 12px; font-size: 12px; font-weight: 500; margin: 3px; }
+    .tag-blue { background: #E3F2FD; color: #1565C0; }
+    .tag-green { background: #E8F5E9; color: #2E7D32; }
+    .tag-orange { background: #FFF3E0; color: #E65100; }
+    .tag-red { background: #FFEBEE; color: #B71C1C; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', 'Fira Code', monospace; font-size: 12.5px; color: #C62828; }
+    pre { background: #1E272E; color: #DFE6E9; padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.65; margin: 14px 0; font-family: 'Cascadia Code', 'Fira Code', monospace; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.6; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <h1>System Design: Enterprise Multi-Agent Assistant</h1>
+    <p class="subtitle">An enterprise AI platform for a large financial institution — enabling knowledge Q&A, document analysis, data queries, report generation, approval workflows, and customer communication, with full data governance.</p>
+    <div class="tags">
+      <span class="tag tag-blue">Enterprise AI Platform</span>
+      <span class="tag tag-blue">Multi-Agent Workflow</span>
+      <span class="tag tag-green">RAG + Tool-Calling</span>
+      <span class="tag tag-orange">Data Governance / DLP</span>
+      <span class="tag tag-orange">RBAC / ABAC</span>
+      <span class="tag tag-red">Explainability / Audit</span>
+    </div>
+  </div>
+
+  <!-- Problem Scope -->
+  <section>
+    <h2>Problem Scope (as given)</h2>
+    <p>A large financial client wants an enterprise GenAI Assistant for employees: knowledge Q&A, document analysis, DB queries, report generation, approval flows, email drafts, meeting summaries. Must connect to internal knowledge bases, databases, CRM, ticketing, and document systems. Must meet data security, permission isolation, explainability, and audit requirements.</p>
+  </section>
+
+  <!-- Clarifying Questions -->
+  <section>
+    <h2>Step 1 — Clarify Before Drawing Anything</h2>
+    <div class="q-box">1. <strong>Which business scenarios have highest priority?</strong> Knowledge Q&A? Customer service? Sales enablement? Financial analysis? Compliance review? Start vertical, then generalize.</div>
+    <div class="q-box">2. <strong>Who are the users and how many?</strong> Frontline staff, relationship managers, legal, risk, management? 100 users or 100,000?</div>
+    <div class="q-box">3. <strong>What actions is the agent allowed to take?</strong> Read-only? Generate drafts only? Submit approvals? Execute DB updates?</div>
+    <div class="q-box">4. <strong>What data sources exist?</strong> SharePoint / Google Drive / Confluence / CRM / BigQuery / Ticketing?</div>
+    <div class="q-box">5. <strong>What is the permission model?</strong> Must it inherit original system permissions? Row-level / document-level security required?</div>
+    <div class="q-box">6. <strong>What compliance requirements exist?</strong> Data residency? PII masking? SOC2 audit trail? Human approval for write actions?</div>
+    <div class="q-box">7. <strong>What is the rollout target?</strong> One high-value workflow first, or a reusable platform?</div>
+    <div class="highlight-box">
+      🎯 <strong>Key FDE answer:</strong> "I would not start by building a universal enterprise assistant. I'd select one high-value, low-risk, measurable workflow — e.g. 'relationship manager auto-generates client briefing' or 'compliance team reviews contract clauses.' First build a vertical agent, then extract a reusable platform capability."
+    </div>
+  </section>
+
+  <!-- Architecture Diagram -->
+  <section>
+    <h2>Architecture Diagram</h2>
+    <div class="diagram-wrap">
+      <svg width="960" height="575" xmlns="http://www.w3.org/2000/svg" style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: block; margin: 0 auto;">
+        <defs>
+          <marker id="arr2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 9 3.5, 0 7" fill="#9E9E9E"/>
+          </marker>
+        </defs>
+
+        <!-- Layer 1: Client -->
+        <rect x="20" y="10" width="920" height="78" rx="9" fill="#E8EAF6" stroke="#283593" stroke-width="1.5"/>
+        <text x="36" y="30" fill="#283593" font-weight="700" font-size="11" letter-spacing="1">CLIENT LAYER</text>
+        <rect x="120" y="38" width="180" height="30" rx="6" fill="#283593"/>
+        <text x="210" y="58" text-anchor="middle" fill="white" font-size="11">Enterprise Chat UI</text>
+        <rect x="315" y="38" width="165" height="30" rx="6" fill="#283593"/>
+        <text x="397" y="58" text-anchor="middle" fill="white" font-size="11">Workflow UI</text>
+        <rect x="495" y="38" width="165" height="30" rx="6" fill="#283593"/>
+        <text x="577" y="58" text-anchor="middle" fill="white" font-size="11">Admin Console</text>
+        <rect x="675" y="38" width="220" height="30" rx="6" fill="#283593"/>
+        <text x="785" y="58" text-anchor="middle" fill="white" font-size="11">Feedback / Review UI</text>
+
+        <!-- Arrow 1→2 -->
+        <line x1="480" y1="88" x2="480" y2="100" stroke="#9E9E9E" stroke-width="1.8" marker-end="url(#arr2)"/>
+
+        <!-- Layer 2: Agent Runtime -->
+        <rect x="20" y="102" width="920" height="90" rx="9" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
+        <text x="36" y="122" fill="#2E7D32" font-weight="700" font-size="11" letter-spacing="1">AGENT RUNTIME</text>
+        <rect x="30" y="130" width="120" height="30" rx="6" fill="#2E7D32"/>
+        <text x="90" y="150" text-anchor="middle" fill="white" font-size="10">Intent Router</text>
+        <rect x="163" y="130" width="115" height="30" rx="6" fill="#2E7D32"/>
+        <text x="220" y="150" text-anchor="middle" fill="white" font-size="10">Planner</text>
+        <rect x="291" y="130" width="140" height="30" rx="6" fill="#2E7D32"/>
+        <text x="361" y="150" text-anchor="middle" fill="white" font-size="10">Knowledge Agent</text>
+        <rect x="444" y="130" width="135" height="30" rx="6" fill="#2E7D32"/>
+        <text x="511" y="150" text-anchor="middle" fill="white" font-size="10">Data Agent</text>
+        <rect x="592" y="130" width="150" height="30" rx="6" fill="#2E7D32"/>
+        <text x="667" y="150" text-anchor="middle" fill="white" font-size="10">Compliance Agent</text>
+        <rect x="755" y="130" width="145" height="30" rx="6" fill="#2E7D32"/>
+        <text x="827" y="150" text-anchor="middle" fill="white" font-size="10">Workflow Agent</text>
+
+        <!-- Arrow 2→3 -->
+        <line x1="480" y1="192" x2="480" y2="204" stroke="#9E9E9E" stroke-width="1.8" marker-end="url(#arr2)"/>
+
+        <!-- Layer 3: Context -->
+        <rect x="20" y="206" width="920" height="78" rx="9" fill="#FFF3E0" stroke="#E65100" stroke-width="1.5"/>
+        <text x="36" y="226" fill="#E65100" font-weight="700" font-size="11" letter-spacing="1">CONTEXT LAYER</text>
+        <rect x="30" y="234" width="155" height="30" rx="6" fill="#E65100"/>
+        <text x="107" y="254" text-anchor="middle" fill="white" font-size="10">User Context</text>
+        <rect x="198" y="234" width="155" height="30" rx="6" fill="#E65100"/>
+        <text x="275" y="254" text-anchor="middle" fill="white" font-size="10">Session Context</text>
+        <rect x="366" y="234" width="165" height="30" rx="6" fill="#E65100"/>
+        <text x="448" y="254" text-anchor="middle" fill="white" font-size="10">Policy Context</text>
+        <rect x="544" y="234" width="180" height="30" rx="6" fill="#E65100"/>
+        <text x="634" y="254" text-anchor="middle" fill="white" font-size="10">Retrieved Doc Context</text>
+        <rect x="737" y="234" width="185" height="30" rx="6" fill="#E65100"/>
+        <text x="829" y="254" text-anchor="middle" fill="white" font-size="10">Tool Execution Results</text>
+
+        <!-- Arrow 3→4 -->
+        <line x1="480" y1="284" x2="480" y2="296" stroke="#9E9E9E" stroke-width="1.8" marker-end="url(#arr2)"/>
+
+        <!-- Layer 4: Tool/MCP -->
+        <rect x="20" y="298" width="920" height="78" rx="9" fill="#EDE7F6" stroke="#6A1B9A" stroke-width="1.5"/>
+        <text x="36" y="318" fill="#6A1B9A" font-weight="700" font-size="11" letter-spacing="1">TOOL / MCP LAYER</text>
+        <rect x="30" y="326" width="145" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="102" y="346" text-anchor="middle" fill="white" font-size="10">Document Search</text>
+        <rect x="188" y="326" width="140" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="258" y="346" text-anchor="middle" fill="white" font-size="10">SQL Query Tool</text>
+        <rect x="341" y="326" width="130" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="406" y="346" text-anchor="middle" fill="white" font-size="10">CRM Tool</text>
+        <rect x="484" y="326" width="130" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="549" y="346" text-anchor="middle" fill="white" font-size="10">Ticket Tool</text>
+        <rect x="627" y="326" width="145" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="699" y="346" text-anchor="middle" fill="white" font-size="10">Email Draft Tool</text>
+        <rect x="785" y="326" width="148" height="30" rx="6" fill="#6A1B9A"/>
+        <text x="859" y="346" text-anchor="middle" fill="white" font-size="10">Approval Tool</text>
+
+        <!-- Arrow 4→5 -->
+        <line x1="480" y1="376" x2="480" y2="388" stroke="#9E9E9E" stroke-width="1.8" marker-end="url(#arr2)"/>
+
+        <!-- Layer 5: Data -->
+        <rect x="20" y="390" width="920" height="78" rx="9" fill="#E0F2F1" stroke="#004D40" stroke-width="1.5"/>
+        <text x="36" y="410" fill="#004D40" font-weight="700" font-size="11" letter-spacing="1">DATA LAYER</text>
+        <rect x="30" y="418" width="158" height="30" rx="6" fill="#004D40"/>
+        <text x="109" y="438" text-anchor="middle" fill="white" font-size="10">Enterprise Documents</text>
+        <rect x="200" y="418" width="145" height="30" rx="6" fill="#004D40"/>
+        <text x="272" y="438" text-anchor="middle" fill="white" font-size="10">Data Warehouse</text>
+        <rect x="357" y="418" width="120" height="30" rx="6" fill="#004D40"/>
+        <text x="417" y="438" text-anchor="middle" fill="white" font-size="10">CRM</text>
+        <rect x="489" y="418" width="155" height="30" rx="6" fill="#004D40"/>
+        <text x="566" y="438" text-anchor="middle" fill="white" font-size="10">Ticketing System</text>
+        <rect x="656" y="418" width="170" height="30" rx="6" fill="#004D40"/>
+        <text x="741" y="438" text-anchor="middle" fill="white" font-size="10">Email / Calendar Meta</text>
+        <rect x="838" y="418" width="100" height="30" rx="6" fill="#004D40"/>
+        <text x="888" y="438" text-anchor="middle" fill="white" font-size="10">Policy DB</text>
+
+        <!-- Arrow 5→6 -->
+        <line x1="480" y1="468" x2="480" y2="480" stroke="#9E9E9E" stroke-width="1.8" marker-end="url(#arr2)"/>
+
+        <!-- Layer 6: Security / Governance -->
+        <rect x="20" y="482" width="920" height="78" rx="9" fill="#FFEBEE" stroke="#C62828" stroke-width="1.5"/>
+        <text x="36" y="502" fill="#C62828" font-weight="700" font-size="11" letter-spacing="1">SECURITY / GOVERNANCE LAYER</text>
+        <rect x="30" y="510" width="148" height="30" rx="6" fill="#C62828"/>
+        <text x="104" y="530" text-anchor="middle" fill="white" font-size="10">Identity Federation</text>
+        <rect x="190" y="510" width="130" height="30" rx="6" fill="#C62828"/>
+        <text x="255" y="530" text-anchor="middle" fill="white" font-size="10">RBAC / ABAC</text>
+        <rect x="332" y="510" width="115" height="30" rx="6" fill="#C62828"/>
+        <text x="389" y="530" text-anchor="middle" fill="white" font-size="10">DLP</text>
+        <rect x="459" y="510" width="145" height="30" rx="6" fill="#C62828"/>
+        <text x="531" y="530" text-anchor="middle" fill="white" font-size="10">PII Redaction</text>
+        <rect x="616" y="510" width="155" height="30" rx="6" fill="#C62828"/>
+        <text x="693" y="530" text-anchor="middle" fill="white" font-size="10">Human Approval</text>
+        <rect x="783" y="510" width="148" height="30" rx="6" fill="#C62828"/>
+        <text x="857" y="530" text-anchor="middle" fill="white" font-size="10">Audit Trail</text>
+      </svg>
+    </div>
+  </section>
+
+  <!-- Agent Design -->
+  <section>
+    <h2>Agent Runtime Design</h2>
+    <pre>Intent Router   → classifies intent, estimates risk level (read / draft / write / high-risk)
+Planner         → decomposes task, selects agents, determines if human approval needed
+Knowledge Agent → document retrieval, citation, summarization
+Data Agent      → generates constrained SQL, queries warehouse (read-only by default)
+Compliance Agent→ checks output for policy violations, PII, sensitive terms
+Workflow Agent  → interacts with CRM / ticket / approval systems (draft-first mode)
+Response Synth. → merges evidence, produces final answer with citations + action summary</pre>
+
+    <h3>Draft-First Execution Model</h3>
+    <p>For all write actions (send email, submit approval, update CRM): the agent <strong>drafts first</strong>, the user reviews and confirms. The agent cannot auto-execute write actions without explicit user approval. This is non-negotiable for enterprise financial contexts.</p>
+
+    <h3>Context Engineering</h3>
+    <pre>Prompt context =
+  system_policy        # enterprise rules, tone, scope
+  + user_role          # from identity provider
+  + task_intent        # classified by intent router
+  + allowed_tools      # scoped to user role
+  + retrieved_evidence # from knowledge/data agents
+  + conversation_state # session memory
+  + previous_tool_results
+  + risk_level
+  + output_schema      # structured output for UI + audit</pre>
+    <div class="warn-box">⚠️ Business rules should NOT live entirely in the prompt. Route them to a policy engine. Prompts that carry all rules become unmaintainable and untestable.</div>
+  </section>
+
+  <!-- Security -->
+  <section>
+    <h2>Security Controls</h2>
+    <div class="two-col">
+      <div>
+        <h3>Identity &amp; Access</h3>
+        <ul>
+          <li>Federate identity from enterprise IdP (OIDC/SAML)</li>
+          <li>RBAC for agent capabilities; ABAC for data rows/documents</li>
+          <li>Tool calls carry user identity — tools enforce authz, not the agent</li>
+          <li>Document-level permission check before returning any content</li>
+        </ul>
+        <h3>Data Safety</h3>
+        <ul>
+          <li>PII detection and redaction before LLM context injection</li>
+          <li>DLP policy prevents exfiltration via tool output</li>
+          <li>Data residency controls (regional deployment)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Prompt Safety</h3>
+        <ul>
+          <li>Prompt injection detection on user-uploaded documents</li>
+          <li>Input sanitization before system prompt composition</li>
+          <li>SQL Agent: whitelist-only query patterns, read-only DB user</li>
+        </ul>
+        <h3>Audit</h3>
+        <ul>
+          <li>Every prompt, tool call, retrieved doc, and output logged with trace_id and user_id</li>
+          <li>Immutable audit log for regulatory inspection</li>
+          <li>Anomaly detection on unusual access patterns</li>
+        </ul>
+        <div class="highlight-box" style="margin-top:12px;">
+          🎯 Key: <strong>"An agent gaining permission by reading context is not the same as the user having that permission."</strong> Tools enforce authz independently.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Evaluation -->
+  <section>
+    <h2>Evaluation &amp; Rollout Strategy</h2>
+    <div class="two-col">
+      <div>
+        <h3>Offline Metrics</h3>
+        <ul>
+          <li>Q&amp;A accuracy on golden dataset</li>
+          <li>Retrieval precision/recall</li>
+          <li>Tool call correctness (right tool, right params)</li>
+          <li>Hallucination rate (unsupported claims)</li>
+          <li>PII leak rate in outputs</li>
+        </ul>
+        <h3>Online Metrics</h3>
+        <ul>
+          <li>Task completion rate</li>
+          <li>Draft adoption rate (user sends AI-generated email without major edit)</li>
+          <li>Time-to-answer vs. baseline</li>
+          <li>Human approval rejection rate (high = agent too aggressive)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Rollout Playbook</h3>
+        <ol>
+          <li>Pick one high-value vertical workflow</li>
+          <li>Shadow mode: AI generates recommendations, humans execute; collect feedback</li>
+          <li>Draft mode: AI generates drafts, humans review and confirm</li>
+          <li>Assisted mode: AI executes low-risk actions autonomously</li>
+          <li>Extract reusable platform components for next workflow</li>
+        </ol>
+        <h3>ROI Framing for C-Suite</h3>
+        <ul>
+          <li>Hours saved per user per week × headcount × cost</li>
+          <li>Reduction in compliance review cycle time</li>
+          <li>Customer response time improvement</li>
+          <li>Error rate reduction in manual workflows</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- GCP Stack Mapping -->
+  <section>
+    <h2>GCP Stack Mapping</h2>
+    <p>Translate the generic architecture into named GCP products. This is how you signal "I know what to pick up off the shelf" vs. "I'd build everything from scratch."</p>
+    <div class="two-col">
+      <div>
+        <h3>Agent &amp; Orchestration</h3>
+        <ul>
+          <li><strong>Gemini Enterprise Agent Platform</strong> — the top-level product for enterprise governance + agent management</li>
+          <li><strong>ADK</strong> — build Intent Router, Planner, domain agents; test locally before deploying</li>
+          <li><strong>Agent Engine / Runtime</strong> — production deployment with managed scaling and session persistence</li>
+          <li><strong>Agent Garden / Starter Pack</strong> — use pre-built templates (customer service, data analyst) as starting point</li>
+          <li><strong>Gemini Flash</strong> — simple Q&amp;A, routing, drafting; <strong>Gemini Pro</strong> — contract review, complex analysis</li>
+        </ul>
+        <h3>Tools &amp; Integration</h3>
+        <ul>
+          <li><strong>MCP + Cloud Run</strong> — wrap CRM, ticketing, email as auditable MCP tools on Cloud Run</li>
+          <li><strong>MCP Toolbox</strong> — natural language → BigQuery queries; enforces read-only + schema bounds</li>
+          <li><strong>Application Integration</strong> — connect to Salesforce, SAP, ServiceNow with pre-built connectors</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Data &amp; RAG</h3>
+        <ul>
+          <li><strong>Vertex AI Search</strong> — enterprise document corpus (policies, contracts, procedures) with RBAC-aware retrieval</li>
+          <li><strong>BigQuery</strong> — structured data warehouse; Data Agent queries via MCP Toolbox</li>
+          <li><strong>Vertex AI Vector Search</strong> — fast similarity search for semantic document matching</li>
+          <li><strong>Cloud Storage</strong> — raw document storage (SharePoint export, email archives)</li>
+        </ul>
+        <h3>Security &amp; Governance</h3>
+        <ul>
+          <li><strong>IAM</strong> — federate from enterprise IdP; RBAC per capability; agent SA least-privilege</li>
+          <li><strong>VPC Service Controls</strong> — data perimeter; no exfiltration even if credentials are compromised</li>
+          <li><strong>DLP API</strong> — PII detection and redaction before LLM context injection</li>
+          <li><strong>Secret Manager</strong> — CRM API keys, DB passwords fetched at runtime; never hardcoded</li>
+          <li><strong>Cloud Audit Logs</strong> — immutable record for regulatory compliance (SOX, GDPR)</li>
+          <li><strong>Cloud Trace + Monitoring</strong> — trace every agent decision; p99 latency dashboards for on-call</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scalability -->
+  <section>
+    <h2>Scalability</h2>
+    <p>The PDF tests: "thinking through the jump from 10,000 internal users to millions of external clients." For an enterprise assistant this means multi-tenant scale with strict isolation.</p>
+    <div class="two-col">
+      <div>
+        <h3>10K → 1M Users: Architecture Shift</h3>
+        <ul>
+          <li><strong>10K users (single enterprise):</strong> Cloud Run for tools, Agent Engine for agent runtime, Vertex AI Search single corpus. Everything in one project/region.</li>
+          <li><strong>100K users (large enterprise / multi-BU):</strong> Add per-BU data isolation (separate Search corpora, BQ datasets). Quota management per team.</li>
+          <li><strong>1M+ users (multi-tenant SaaS):</strong> Tenant-per-namespace in Agent Engine. VPC SC perimeters per large tenant. Cloud Armor for DDoS. Global load balancing with regional failover.</li>
+        </ul>
+        <h3>Cloud Run Auto-scaling</h3>
+        <ul>
+          <li>Agent tools on Cloud Run scale from 0 to thousands of instances automatically.</li>
+          <li>Set min-instances=2 for P1 tools to avoid cold start latency spike.</li>
+          <li>CPU-based autoscaling for predictable load; request-count scaling for spiky traffic.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Data Isolation at Scale</h3>
+        <ul>
+          <li>Vertex AI Search: separate corpus per tenant or per department — no cross-tenant document bleed.</li>
+          <li>BigQuery: row-level security policy binding user_email → department → allowed_tables.</li>
+          <li>VPC Service Controls: perimeter per enterprise customer if running as managed service.</li>
+          <li>Agent session namespace by tenant_id — no shared state.</li>
+        </ul>
+        <h3>Quota &amp; Rate Management</h3>
+        <ul>
+          <li>Per-user token budget enforced at the agent gateway layer.</li>
+          <li>Per-team daily/monthly spend quota via Cloud Billing alerts.</li>
+          <li>Vertex AI API quotas per project — request increases proactively before go-live.</li>
+          <li>Back-pressure: queue excess requests rather than dropping them; communicate wait time to user.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Performance & Cost -->
+  <section>
+    <h2>Performance &amp; Cost Optimization</h2>
+    <div class="two-col">
+      <div>
+        <h3>Model Routing by Task Complexity</h3>
+        <ul>
+          <li><strong>Flash</strong> (~$0.075/M tokens): simple Q&amp;A, summarization, routing decisions, email drafts.</li>
+          <li><strong>Pro</strong> (~$3.50/M tokens): complex contract review, multi-document analysis, financial reasoning.</li>
+          <li>Intent Router classifies task complexity → routes to appropriate model tier automatically.</li>
+          <li>Estimated: 80% of requests use Flash → ~10× cost reduction vs. routing everything to Pro.</li>
+        </ul>
+        <h3>Prompt Caching</h3>
+        <ul>
+          <li>Gemini supports prefix caching — cache the system prompt + policy context (these don't change per request).</li>
+          <li>Saves ~40–60% of input tokens on repeated similar requests.</li>
+          <li>Cache TTL: 1 hour for session context; 24 hours for static policy documents.</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Retrieval Cost Control</h3>
+        <ul>
+          <li>Start with top-k=3 retrieved documents; expand to k=8 only for complex multi-document tasks.</li>
+          <li>Cache Vertex AI Search results for common queries (e.g. "what is the expense policy" — same answer for all users).</li>
+          <li>Batch embedding generation for document ingestion — don't regenerate unchanged documents.</li>
+        </ul>
+        <h3>Async &amp; Batch Processing</h3>
+        <ul>
+          <li>Meeting summaries, weekly reports, compliance audits: run as async batch jobs (Gemini Batch API), not real-time — ~50% cost discount.</li>
+          <li>Heavy document ingestion (SharePoint sync) runs on a schedule, not on user request.</li>
+          <li>Pre-compute common analytics summaries nightly in BigQuery — agent serves cached summaries for standard dashboards.</li>
+        </ul>
+        <h3>Latency</h3>
+        <ul>
+          <li>Target: p99 &lt; 3s for simple Q&amp;A; &lt; 10s for complex analysis (set expectations with UX design).</li>
+          <li>Stream tokens to UI as soon as first token arrives — don't buffer full response.</li>
+          <li>Parallelize independent tool calls in planner (CRM fetch + doc search simultaneously).</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Follow-up Q&A -->
+  <section>
+    <h2>Likely Follow-up Questions</h2>
+    <ul>
+      <li><strong>How to prevent prompt injection?</strong> — Treat user-uploaded content as untrusted data, not instructions. Separate instruction and data channels. Use a content scanner before injecting into context.</li>
+      <li><strong>User uploads malicious doc to override system instructions?</strong> — Strict delimiter separation between system prompt and retrieved content. Instruction override detection layer.</li>
+      <li><strong>SQL Agent prevents sensitive field access?</strong> — DB user has read-only access on a view that excludes PII columns. Agent generates SQL against schema registry, not raw tables.</li>
+      <li><strong>How do agents share state?</strong> — Shared session context object, passed through the planner. No direct agent-to-agent messaging. Planner owns state merging.</li>
+      <li><strong>Fallback when agent fails?</strong> — Graceful degradation: surface partial results + "I couldn't complete X, here's what I found." Never hallucinate missing results.</li>
+      <li><strong>Customer says "we want ChatGPT for everything" — how do you respond?</strong> — Acknowledge the goal. Redirect to: "Let's identify which workflows generate the most value. Trying to automate everything at once usually means doing nothing well. What would save your team the most time in the next 90 days?"</li>
+    </ul>
+  </section>
+
+</div>
+</body>
+</html>

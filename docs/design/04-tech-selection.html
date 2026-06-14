@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 04 — 开源组件选型决策矩阵</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html" class="cur">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+  </div>
+
+  <div class="page-header">
+    <h1>04 — 开源组件选型决策矩阵</h1>
+    <p class="subtitle">全部选型一页总览：选择 / 落选项 / 关键 trade-off / 反悔条件。详细论证在各 ADR（L3），本页是索引与速查。状态标记：✅ accepted（已拍板）· 🟡 proposed（待评审挑战）。</p>
+  </div>
+
+  <section>
+    <h2>1. 核心选型矩阵（有 ADR 的 12 项）</h2>
+    <table>
+      <tr><th style="width:120px">领域</th><th style="width:170px">选择</th><th style="width:180px">落选项（败因一句话）</th><th>关键 Trade-off（放弃了什么）</th><th style="width:130px">反悔条件摘要</th></tr>
+      <tr>
+        <td>Agent 编排 <a href="../adr/ADR-001-langgraph-orchestration.md">ADR-001</a> ✅</td>
+        <td>LangGraph + ReAct + PG Checkpointer</td>
+        <td>Google ADK（生态小、持久化弱）；自研 ReAct（造轮子违背 P1）</td>
+        <td>放弃 GCP 同源学习路径与自研透明度；接受框架版本风险（锁 minor）</td>
+        <td>checkpointer 写入 p95&gt;500ms；license 变化</td>
+      </tr>
+      <tr>
+        <td>LLM 网关 <a href="../adr/ADR-002-llm-gateway-litellm.md">ADR-002</a> 🟡</td>
+        <td>LiteLLM Proxy（三档路由 + per-member 配额）</td>
+        <td>直连 SDK（治理散落）；OneAPI 系（治理弱、维护存疑）</td>
+        <td>接受一跳延迟与新组件，换厂商解耦 + 配额 + 成本观测单点</td>
+        <td>网关故障 ≥2 次/月；成本连续超预算</td>
+      </tr>
+      <tr>
+        <td>关系库与租户 <a href="../adr/ADR-003-postgres-rls-tenancy.md">ADR-003</a> ✅</td>
+        <td>PostgreSQL 16 单库 + RLS（租户=成员）</td>
+        <td>schema/库-per-member（10 人规模成本&gt;收益）；MariaDB 维持（双库运维）</td>
+        <td>接受 RLS 配置错误风险（P0 回归 TC 对冲），换单实例运维 + 企业租户模式样本</td>
+        <td>需 per-tenant 加密；&gt;200GB</td>
+      </tr>
+      <tr>
+        <td>向量检索 <a href="../adr/ADR-004-vector-es-vs-pgvector.md">ADR-004</a> 🟡</td>
+        <td>pgvector + PG FTS(zhparser) 混合检索</td>
+        <td><strong>Elasticsearch</strong>（JVM 吃掉 NAS 内存、第二套权限模型、双写一致性）；Qdrant/Milvus（只解决向量，两头不占）</td>
+        <td>放弃 BM25 成熟生态与检索调试工具，换运维一体 + RLS 同构；中文分词风险用评测集守护</td>
+        <td>golden set top-5 命中&lt;80% 两轮调参不达标；chunk&gt;500万</td>
+      </tr>
+      <tr>
+        <td>知识图谱 <a href="../adr/ADR-005-neo4j-ontology.md">ADR-005</a> ✅</td>
+        <td>Neo4j Community（受控本体 + GraphRAG-lite）</td>
+        <td>PG+AGE（生态小众）；不建图谱（与显式需求冲突）</td>
+        <td>接受应用层隔离（弱于 RLS）——以"图谱不存高敏数据"对冲；接受第二引擎运维</td>
+        <td>需存敏感属性；NAS 内存压力</td>
+      </tr>
+      <tr>
+        <td>消息总线 <a href="../adr/ADR-006-rabbitmq-bus.md">ADR-006</a> 🟡</td>
+        <td>RabbitMQ（quorum + DLQ）</td>
+        <td><strong>Kafka</strong>（任务语义要自己拼、Pi5 跑不动、对 &lt;1msg/s 是教科书式过度设计）；PG 队列（手搓死信/监控）</td>
+        <td>放弃流处理学习机会（不强行塞入）；编排状态不走 MQ（LangGraph 职责）</td>
+        <td>出现真流式场景（行情 tick）单独评估</td>
+      </tr>
+      <tr>
+        <td>网络穿透 <a href="../adr/ADR-007-tailscale-cloudflare.md">ADR-007</a> ✅</td>
+        <td>Tailscale mesh + CF Tunnel/Access</td>
+        <td>FRP+VPS 自建（入口安全自担责，含 kid 的系统不试错）；纯 Tailscale（家人体验差）</td>
+        <td>接受两个 SaaS 控制面依赖与 CF 边缘 TLS 终止，换零公网端口 + 免维护入口</td>
+        <td>免费档政策变化</td>
+      </tr>
+      <tr>
+        <td>身份 IdP <a href="../adr/ADR-008-identity-oidc.md">ADR-008</a> 🟡</td>
+        <td>Keycloak 26（单 realm，3 角色）</td>
+        <td>Authentik（多容器不更轻、企业特性弱）；Zitadel（生态薄，卡住没人问）</td>
+        <td>接受最重的资源占用与概念复杂度，换企业 IAM 全特性 + 最高学习价值</td>
+        <td>Pi5 内存持续&gt;85% 且主因是 KC</td>
+      </tr>
+      <tr>
+        <td>部署形态 <a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a> ✅</td>
+        <td>compose（M1–M4）→ K3s（M5）；数据层永不进集群</td>
+        <td>直接 K3s（双层调试拖慢切片）；只 compose（放弃学习目标）</td>
+        <td>接受一次有计划迁移返工；Phase 1 即遵守 12-factor/healthcheck/私有 registry 纪律降低迁移成本</td>
+        <td>M4 后 30 天未启动 M5 触发裁决</td>
+      </tr>
+      <tr>
+        <td>工具层 <a href="../adr/ADR-010-mcp-tool-architecture.md">ADR-010</a> ✅</td>
+        <td>一域一 FastMCP + 自研轻网关 + 工具侧鉴权 + Draft-First</td>
+        <td>单巨型 MCP（域耦合）；无网关直连（白名单/审计无处安放）</td>
+        <td>接受网关一跳与自研小组件；两段式写操作牺牲流畅度换人类确认硬保证</td>
+        <td>MCP 官方 registry 标准成熟；网关延迟占比&gt;20%</td>
+      </tr>
+      <tr>
+        <td>对象存储 <a href="../adr/ADR-011-nas-storage-minio.md">ADR-011</a> 🟡</td>
+        <td>NAS 双形态：SMB（人用）+ MinIO（机用）+ restic→VPS</td>
+        <td>纯 SMB（无权限模型/审计）；MinIO 全接管（强迫家人改习惯）</td>
+        <td>接受学习资料双份存储与单向同步复杂度，换家人零迁移 + S3 标准接口</td>
+        <td>绿联系统变更；VPS 备份成本&gt;R2/B2</td>
+      </tr>
+      <tr>
+        <td>可观测 <a href="../adr/ADR-012-observability-langfuse.md">ADR-012</a> 🟡</td>
+        <td>Langfuse self-host + Prometheus/Grafana/Loki + PG 审计表</td>
+        <td>LangSmith SaaS（全家对话上云违背 P4）；纯 OTel 自拼（重造 Langfuse）</td>
+        <td>接受 Langfuse v3+ClickHouse 重量与三套系统维护，换数据不出家门 + eval 基建</td>
+        <td>NAS 内存不容纳（迁 MacMini）</td>
+      </tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>2. 次级选型（无独立 ADR，决策记录在此；升级为 ADR 的条件：被评审挑战或代价被证明超预期）</h2>
+    <table>
+      <tr><th style="width:140px">事项</th><th style="width:190px">选择</th><th>理由 / 落选项</th></tr>
+      <tr><td>ChatUI</td><td><strong>自研 NextJS</strong>（App Router + SSE）🟡</td><td>LobeChat/LibreChat 功能全但定制儿童模式、Draft-First 确认卡片、Plan Mode 卡片等核心交互成本高于自研；且自研前端 = 用户技能栈主场 + Claude Design 锚定 scope（P7）。<em>落选项保留为交互参考。</em></td></tr>
+      <tr><td>文档解析</td><td><strong>Docling</strong> 🟡</td><td>对 pdf 表格/版面还原质量好、纯 Python 易嵌入 worker；落选：unstructured（重依赖）、MinerU（GPU 倾向）。excel 用 openpyxl 直读结构化。</td></tr>
+      <tr><td>嵌入模型</td><td>v1 API 嵌入（经 LiteLLM）→ M3 评估 MacMini 本地 BGE-M3 🟡</td><td>Pi5 无力本地嵌入；表结构带 model+dim 版本列，切换不动库。</td></tr>
+      <tr><td>Guardrail 实现</td><td>规则层（自研轻量）+ LLM-judge（低价档）🟡</td><td>LlamaGuard 系需本地 GPU 且中文场景弱；NeMo Guardrails 框架重。两层设计见 <a href="03-dataflow-tenancy.html">03 §4</a>。</td></tr>
+      <tr><td>Secrets</td><td>sops + age（Phase 1）→ sealed-secrets（Phase 2）✅</td><td>Vault 对家庭规模是运维负债——有意识降级，目标只是"git 无明文 + 最小分发"（02 §5）。</td></tr>
+      <tr><td>定时调度</td><td>LangGraph 定时入口（APScheduler 触发器保留在 agent-core 内）🟡</td><td>不引入独立调度系统（Temporal/Airflow 均过重）；cron 类任务走 RabbitMQ 投递保证可观测。</td></tr>
+      <tr><td>CI</td><td>Gitea Actions（NAS 自托管 git）或 GitHub Actions 🟡</td><td>倾向 GitHub（已有仓库习惯 + 免费额度），镜像推 NAS registry；待 M1 定。</td></tr>
+      <tr><td>行情数据（StockAgent）</td><td>沿用 OpenStock 经验（Finnhub/AKShare 类）+ 只读实盘接口</td><td>M4 议题，届时补 ADR——自动下单永久排除（01 §2 职责契约）。</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. 有意不引入清单（防"为用而用"，每项给出回归条件）</h2>
+    <table>
+      <tr><th style="width:160px">技术（用户技能栈内）</th><th>不引入理由</th><th>什么时候回来</th></tr>
+      <tr><td>Kafka</td><td>家庭负载无流语义（ADR-006）</td><td>真流式场景出现（行情 tick 流）</td></tr>
+      <tr><td>Elasticsearch</td><td>NAS 内存 + 第二权限模型（ADR-004）</td><td>检索质量/规模触发线击穿</td></tr>
+      <tr><td>gRPC</td><td>v1 内部通信 HTTP/SSE+MCP 生态对齐（01 §5）</td><td>M5 后高频内部接口（如批量嵌入服务）</td></tr>
+      <tr><td>Nuitka</td><td>服务全部容器化交付，无桌面端/防逆向发布需求</td><td>出现需要单文件分发的终端工具时</td></tr>
+      <tr><td>HashiCorp Vault</td><td>sops 已达标，Vault 是运维负债（02 §5）</td><td>secret 消费方数量或轮换频率显著上升</td></tr>
+      <tr><td>独立向量库（Qdrant 等）</td><td>pgvector 覆盖（ADR-004）</td><td>同 ES 触发线，且 ES 也不满足时</td></tr>
+      <tr><td>Service Mesh / Istio</td><td>家庭规模无多服务流量治理需求</td><td>基本不会（明确写死，防技术雪球）</td></tr>
+    </table>
+    <div class="highlight-box">🎯 选型总原则回看：每一行都能回答"<strong>它替家庭里的谁解决了什么问题</strong>"或"<strong>它对应企业里的哪个学习样本</strong>"——两个都答不上的组件不进系统（原则 P1 的反向约束）。</div>
+  </section>
+
+</div>
+</body>
+</html>

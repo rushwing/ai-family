@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 06 — GoalAgent 垂直切片详设</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    pre { background: #1E272E; color: #DFE6E9; padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.65; margin: 14px 0; font-family: 'Cascadia Code', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html" class="cur">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+  </div>
+
+  <div class="page-header">
+    <h1>06 — GoalAgent 垂直切片详设（M1）</h1>
+    <p class="subtitle">以 <a href="https://github.com/rushwing/goal-agent">rushwing/goal-agent</a> 为基础的平台化迁移：这是第一条从 ChatUI 打穿到数据层的全链路，也是后续所有 Agent 的模板。对应 <code>REQ-003</code>。</p>
+  </div>
+
+  <section>
+    <h2>1. 现状盘点（保留什么 / 改造什么）</h2>
+    <table>
+      <tr><th style="width:220px">goal-agent 现有资产</th><th style="width:90px">处置</th><th>说明</th></tr>
+      <tr><td>FastMCP server：36 tools / 6 组（admin、plan、check-in、report、wizard、tracks）</td><td>✅ 保留</td><td>语义不变接入 MCP 网关；补 risk 元数据（write 类改两段式）与 JWT 工具侧鉴权（<a href="../adr/ADR-010-mcp-tool-architecture.md">ADR-010</a>）</td></tr>
+      <tr><td>streak / XP / badge 公式与游戏化体系</td><td>✅ 保留</td><td>纯业务逻辑，平迁</td></tr>
+      <tr><td>日/周/月 Markdown 报表</td><td>✅ 保留</td><td>生成触发改走 RabbitMQ <code>report.gen</code>；产物入 MinIO artifacts</td></tr>
+      <tr><td>Telegram 通知</td><td>✅ 保留</td><td>改经 <code>notify.out</code> 统一出口（Agent 不直连渠道，ADR-006）</td></tr>
+      <tr><td>SQLAlchemy 2.0 async + Alembic + Pydantic v2 + uv/ruff/pytest 工程基建</td><td>✅ 保留</td><td>平台 Python 服务的工程模板即源于此</td></tr>
+      <tr><td>MariaDB + aiomysql</td><td>🔄 迁移</td><td>→ PG16 + asyncpg：方言切换、Alembic 基线重建、数据搬迁脚本、全表加 <code>family_member_id</code> + RLS（<a href="../adr/ADR-003-postgres-rls-tenancy.md">ADR-003</a>）</td></tr>
+      <tr><td><code>X-Telegram-Chat-Id</code> header 鉴权 + best_pal/go_getter 双角色</td><td>🔄 重构</td><td>→ Keycloak OIDC JWT；角色映射：best_pal→admin，go_getter→adult/kid；Telegram chat id 降级为通道绑定属性</td></tr>
+      <tr><td>Kimi 直连生成计划（OpenAI SDK）</td><td>🔄 改造</td><td>base_url 切到 LiteLLM（代码近零改动，ADR-002）</td></tr>
+      <tr><td>APScheduler 进程内 cron（7:30 任务下发 / 21:00 提醒 / 周月报）</td><td>🔄 改造</td><td>调度器保留，但触发动作改为"启动/唤醒 LangGraph 图 + 投递 MQ"，消除单 worker 限制的根因</td></tr>
+      <tr><td>计划生成 GitHub 自动 commit 归档</td><td>🔄 替换</td><td>归档改入 MinIO artifacts + PG 版本表（数据不出家门，P4）；GitHub 同步降级为可选导出</td></tr>
+      <tr><td>OpenClaw TypeScript 插件（GoalGroup wizard）</td><td>⏸ 冻结</td><td>M1 以 ChatUI 为主通道；插件待 M4 OpenClaw 接入时再评估复活</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>2. GoalAgent 的 LangGraph 长程图</h2>
+    <div class="diagram-wrap">
+      <svg width="1060" height="430" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs>
+          <marker id="g1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#555"/></marker>
+          <marker id="g2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#1565C0"/></marker>
+        </defs>
+
+        <!-- 主流程 -->
+        <rect x="20" y="40" width="150" height="50" rx="8" fill="#283593"/><text x="95" y="61" text-anchor="middle" fill="#fff" font-size="10.5">intake</text><text x="95" y="78" text-anchor="middle" fill="#C5CAE9" font-size="9">目标意图结构化</text>
+        <rect x="210" y="40" width="170" height="50" rx="8" fill="#2E7D32"/><text x="295" y="61" text-anchor="middle" fill="#fff" font-size="10.5">decompose</text><text x="295" y="78" text-anchor="middle" fill="#C8E6C9" font-size="9">目标→里程碑→周计划（LLM）</text>
+        <rect x="420" y="40" width="170" height="50" rx="8" fill="#F57F17"/><text x="505" y="61" text-anchor="middle" fill="#fff" font-size="10.5">⏸ interrupt: 计划确认</text><text x="505" y="78" text-anchor="middle" fill="#FFF3E0" font-size="9">用户批准/修改（Plan Mode）</text>
+        <rect x="630" y="40" width="170" height="50" rx="8" fill="#2E7D32"/><text x="715" y="61" text-anchor="middle" fill="#fff" font-size="10.5">commit_plan</text><text x="715" y="78" text-anchor="middle" fill="#C8E6C9" font-size="9">写库（goal-mcp tools · RLS）</text>
+        <rect x="840" y="40" width="200" height="50" rx="8" fill="#00695C"/><text x="940" y="61" text-anchor="middle" fill="#fff" font-size="10.5">schedule_daily</text><text x="940" y="78" text-anchor="middle" fill="#B2DFDB" font-size="9">注册每日节拍（cron→图唤醒）</text>
+        <line x1="170" y1="65" x2="210" y2="65" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <line x1="380" y1="65" x2="420" y2="65" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <line x1="590" y1="65" x2="630" y2="65" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <line x1="800" y1="65" x2="840" y2="65" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+
+        <!-- 每日循环 -->
+        <rect x="120" y="170" width="820" height="160" rx="10" fill="#F1F8E9" stroke="#558B2F" stroke-width="1.5"/>
+        <text x="140" y="194" fill="#33691E" font-size="11" font-weight="700">每日循环子图（cron 7:30 唤醒 · 跨天长程 · 每节点落 checkpoint）</text>
+        <rect x="140" y="210" width="150" height="46" rx="7" fill="#558B2F"/><text x="215" y="229" text-anchor="middle" fill="#fff" font-size="10">daily_plan</text><text x="215" y="244" text-anchor="middle" fill="#DCEDC8" font-size="8.5">当日任务生成+下发</text>
+        <rect x="330" y="210" width="150" height="46" rx="7" fill="#558B2F"/><text x="405" y="229" text-anchor="middle" fill="#fff" font-size="10">await_checkin</text><text x="405" y="244" text-anchor="middle" fill="#DCEDC8" font-size="8.5">⏸ 等打卡（可挂起数日）</text>
+        <rect x="520" y="210" width="150" height="46" rx="7" fill="#558B2F"/><text x="595" y="229" text-anchor="middle" fill="#fff" font-size="10">evaluate</text><text x="595" y="244" text-anchor="middle" fill="#DCEDC8" font-size="8.5">streak/XP + 偏差检测</text>
+        <rect x="710" y="210" width="210" height="46" rx="7" fill="#E65100"/><text x="815" y="229" text-anchor="middle" fill="#fff" font-size="10">adapt（条件分支）</text><text x="815" y="244" text-anchor="middle" fill="#FFF3E0" font-size="8.5">连续偏差→重规划提案（回到确认门）</text>
+        <line x1="290" y1="233" x2="330" y2="233" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <line x1="480" y1="233" x2="520" y2="233" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <line x1="670" y1="233" x2="710" y2="233" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <path d="M 815 256 L 815 300 L 215 300 L 215 256" fill="none" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <text x="515" y="294" text-anchor="middle" fill="#666" font-size="9">次日继续（thread 不变，checkpoint 续跑）</text>
+        <line x1="940" y1="90" x2="940" y2="150" stroke="#555" stroke-width="1.6"/><line x1="940" y1="150" x2="920" y2="186" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
+        <path d="M 815 210 L 815 130 L 505 130 L 505 90" fill="none" stroke="#1565C0" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#g2)"/>
+        <text x="660" y="122" text-anchor="middle" fill="#1565C0" font-size="9">重规划提案 → 重新走人工确认门（Draft-First）</text>
+
+        <!-- 底部说明 -->
+        <rect x="20" y="356" width="1020" height="56" rx="8" fill="#ECEFF1"/>
+        <text x="36" y="378" fill="#455A64" font-size="10">韧性验收（REQ-003）：在 await_checkin 挂起期间 kill agent-core → 重启 → thread 从 checkpoint 恢复，当晚 21:00 提醒照常触发。</text>
+        <text x="36" y="398" fill="#455A64" font-size="10">周/月报：独立轻量图（cron 唤醒 → 聚合查询 → LLM 摘要 → MinIO artifacts + notify.out），与每日循环解耦。</text>
+      </svg>
+    </div>
+    <div class="q-box">📘 这张图是后续所有领域 Agent 的结构模板：<strong>intake → 分解 → 人工确认门 → 执行循环（可挂起）→ 条件自适应回路</strong>。StudyAgent/TravelAgent 在 M3/M4 按同构裁剪。</div>
+  </section>
+
+  <section>
+    <h2>3. ChatUI v0（三屏，scope 锚定 Claude Design 稿）</h2>
+    <table>
+      <tr><th style="width:140px">屏</th><th>内容</th><th>关键交互组件（设计稿必须覆盖）</th></tr>
+      <tr><td>登录</td><td>Keycloak OIDC 跳转（code+PKCE），成员选择仅是 IdP 账号差异</td><td>无自建登录表单（ADR-008 纪律：不自建用户体系）</td></tr>
+      <tr><td>对话</td><td>SSE 流式回复；GoalAgent 单 Agent 直连（M1 无 Router）</td><td>① 计划确认卡片（interrupt 渲染：批准/修改/拒绝）② Draft-First 确认卡片 ③ 拦截提示样式（为 M3 Compliance 预留）</td></tr>
+      <tr><td>目标看板</td><td>目标/里程碑/今日任务/streak·XP 视图（读 goal-mcp）</td><td>打卡按钮（写操作 → 确认流）；周报入口</td></tr>
+    </table>
+    <div class="warn-box">⚠️ Scope 纪律（P7）：v0 就这三屏。设计稿之外的功能请求（深色模式、多语言、移动 App……）一律先进 REQ backlog，不进 M1。</div>
+  </section>
+
+  <section>
+    <h2>4. Dogfooding：第一个 Goal 就是本项目</h2>
+    <pre># GoalAgent 录入的第一个目标（M1 上线日执行）
+Goal: "ai-family 平台建设"           # 中期目标，周期 = M1–M5
+Milestones: M1 基座+切片 / M2 编排治理 / M3 知识学习 / M4 领域补全 / M5 K3s
+每周计划: 从 harness/tasks/features/ 的 REQ 状态同步（人工录入起步，M2 后由 goal-mcp 工具读仓库自动核对）
+日节拍: 周末档开发任务 + 工作日轻量任务（评审回复/文档修订）
+周报: GoalAgent 周报必须含：REQ 状态变化、偏差说明、下周窗口任务批次（喂给 Claude Code Pro 窗口，见 05 §3）</pre>
+    <div class="highlight-box">🎯 这一步的真实意义：M1 交付的不只是功能，而是<strong>把项目管理职责从人移交给系统</strong>——之后任何里程碑逾期，是 GoalAgent 的周报先发现，不是人的愧疚感先发现。</div>
+  </section>
+
+  <section>
+    <h2>5. 验收追溯（与 REQ-003 一一对应）</h2>
+    <table>
+      <tr><th>REQ-003 验收条目</th><th>本文档依据</th><th>TC 方向</th></tr>
+      <tr><td>两成员数据互不可见（API 与 DB 层）</td><td>§1 迁移行 + ADR-003</td><td>TC：RLS 跨成员查询返回 0 行；API 403</td></tr>
+      <tr><td>进程重启后长程计划从 checkpoint 续跑</td><td>§2 韧性验收注记</td><td>TC：await_checkin 挂起期 kill→恢复→提醒照常</td></tr>
+      <tr><td>Langfuse 完整 trace</td><td>03 §1 横切记录</td><td>TC：trace_id 从 ChatUI header 贯通到 tool span</td></tr>
+      <tr><td>首份周报含真实项目进度</td><td>§4 dogfooding</td><td>TC：周报含 REQ 状态变化字段（人工核对）</td></tr>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>
