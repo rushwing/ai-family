@@ -71,4 +71,6 @@ LangGraph Agent ──(MCP client)──► MCP Gateway ──► 各域 FastMCP
 
 ## Review Notes
 
-（待评审追加）
+- [codex-005][2026-06-14] “每个 tool 首行校验 JWT”无共享 auth 库/强制中间件/注册门禁，会退化为作者自觉；36 个 goal tools 迁移漏一个即越权口 → 已立 REQ-004（工具侧鉴权做成 FastMCP decorator + 注册门禁：无 auth metadata 或无测试的 tool 拒绝注册）。human-001 裁决：待定
+- [gemini-002][2026-06-14] 工具返回外部数据（网页/API）未过滤直入 LLM 上下文，提示注入可绕 output filter 破 kid 红线 → 已立 BUG-005（网关层强制 Input Sanitization 中间件）。Claude：本 ADR 约定 2 已有“untrusted_output 过 Compliance 注入检测”，G2 要求把它从约定升为强制中间件，采纳为强化。human-001 裁决：待定
+- [gemini-反驳][2026-06-14] 强制反驳：单体内把本地函数包成 MCP server 再 HTTP/SSE 调，增加无谓序列化/网络错误面，直接 import 更稳更快。Claude：与本 ADR 网关“白名单/审计/信任边界单点实施”取舍冲突，记录待裁。human-001 裁决：待定

@@ -57,4 +57,6 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [codex-001][2026-06-14] Mac Mini M4 写成 K3s 主 worker 但未定 OS：K3s 不能把 macOS 当原生节点（M4 上 Asahi 亦无成熟支持），M5 第一步即不可执行 → 必须裁决 OS 方案：裸机 Linux / Linux VM / 不进 K3s 仅跑 compose；若 VM 补资源/网络/持久化/重启自愈。Claude：这是 02/ADR-009 写“Mac 为主 worker”时漏掉的硬问题（→ 触发本 ADR 修订）。human-001 裁决：待定
+- [codex-006][2026-06-14] M5 检查单漏 external NAS 数据层接缝：DNS/service discovery、tailnet 路由、PG TLS、备份任务、NetworkPolicy、故障切换 → 已立 BUG-004（补 external service runbook + TC）。human-001 裁决：待定
+- [gemini-反驳][2026-06-14] 强制反驳 + 最可能后悔：单/双节点引入 K3s（Service/Ingress/PVC）纯属无谓抽象，排障认知负载远超收益，违背“单人 = 最大单点”；模块化单体 + compose 才是最优。Claude：与本 ADR“M5 才上 K3s、数据层不进集群”部分对齐，但“是否需要 K3s”本身值得 human 重审。human-001 裁决：待定

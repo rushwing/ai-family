@@ -66,4 +66,6 @@ linked_reqs: []
 
 ## Review Notes（评审追加区）
 
-（待 Codex/Gemini 评审追加，格式：`- [UID][日期] 意见原文 → human-001 裁决`）
+- [codex-007][2026-06-14] path-filtered CI 写成可实现独立构建但无依赖图来源；libs/** 改动触发“下游全量回归”需知依赖关系 → 已立 REQ-005（依赖图工具 + CI 规则：libs/auth 改动至少触发所有鉴权相关 Agent/MCP/e2e）。human-001 裁决：待定
+- [codex-008][2026-06-14] 已识别 libs 上帝包但反悔条件只有事后审查，无前置边界 → 已立 REQ-006（libs 分层 contracts/auth/state/agent-sdk 不得反向依赖业务、禁 libs/common、加 import-linter）。human-001 裁决：待定
+- [gemini-004/反驳][2026-06-14] **与 Codex 对冲**：反对第一天就分 ai-family/ai-family-infra 物理仓——单人跨层改（加一个环境变量）要提两个 PR，拖慢 Draft-First；主张纯 Monorepo + path filtering 部署解耦。Claude：这与本 ADR“infra 因 blast radius 第一天独立”直接冲突，是两份评审的**真实分歧**，留给 human-001 裁决：blast radius 隔离 vs 单人迭代摩擦。human-001 裁决：待定

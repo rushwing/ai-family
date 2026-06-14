@@ -53,4 +53,4 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [gemini-003][2026-06-14] 过度工程质疑：家庭规模可用 PG LISTEN/NOTIFY + SKIP LOCKED 替代 RabbitMQ/Redis，省一组常驻进程。Claude 校准：RabbitMQ 在 Mac(16GB)、PG 在 NAS(16GB)，非同机，OOM 前提弱于原述；但“家庭规模是否需要独立 MQ”的质疑成立，值得 M1 前重审本 ADR。human-001 裁决：待定

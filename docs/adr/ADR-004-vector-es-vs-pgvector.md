@@ -76,4 +76,4 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-（待评审追加）
+- [codex-011][2026-06-14] 称 BGE-M3 维度非 1024、halfvec(1024) 写死会导致换模型“切不动库”。Claude **驳回事实前提**：BGE-M3 dense 向量确为 **1024 维**，halfvec(1024) 与之一致；且本 ADR §Decision 实现要点已写“记录 model+dim 版本列”。**保留防御性内核**：按 embedding model 版本化列/索引，换模型走 REQ。human-001 裁决：待定
