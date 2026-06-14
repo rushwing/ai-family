@@ -63,3 +63,4 @@ linked_reqs: [REQ-002, REQ-003]
 ## Review Notes
 
 - [codex-003][2026-06-14] RLS 仅覆盖正常应用查询，未覆盖 SECURITY DEFINER 函数 / 迁移脚本 / 后台 worker / 连接池复用 / admin 脚本绕过路径（生产事故常见入口）→ 已立 BUG-002（FORCE RLS + 迁移受限 role + worker 必设 member/shared scope + 默认禁 SECURITY DEFINER + CI 扫描新表 RLS）。human-001 裁决：accept（2026-06-14, BUG-002）
+- [gemini-r2][2026-06-14] kid 红线压测：若用 PgBouncer（transaction 模式）复用连接而未在事务内重置 jwt claim，会话串联可致 kid 查出家长私密对话——即 BUG-002 的具体高危场景，建议 BUG-002 升 critical，并强制“事务内 SET LOCAL + per-txn claim、禁 session 级”。另：成员“被遗忘权”级联删除缺失 → REQ-008。human-001 裁决：待定

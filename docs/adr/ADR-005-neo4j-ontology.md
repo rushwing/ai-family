@@ -67,3 +67,4 @@ linked_reqs: []
 
 - [codex-012][2026-06-14] “本体变更走 ADR 附录”过重，每加关系改 ADR 会把决策记录与 schema migration 混淆，KnowledgeAgent 迭代会卡文档流程 → 建议 ADR 只管本体治理原则，具体 schema 放版本化 data/neo4j/ontology，变更走 REQ/TC（→ 触发本 ADR 修订）。human-001 裁决：accept——ADR 只管本体治理原则，具体 schema 移版本化 data/neo4j/ontology 走 REQ/TC；正文已据此修订
 - [gemini-反驳][2026-06-14] 强制反驳：家庭图谱 < 十万节点，PG+AGE 或递归 CTE 即可；Neo4j 吃内存且带 PG↔Neo4j 跨库一致性噩梦。Claude：与 G3 过度工程线呼应；本 ADR 已用“数据极小化 + 异步允许滞后”对冲一致性，记录待裁。human-001 裁决：accept Claude 意见——保留 Neo4j；以「数据极小化 + 异步允许滞后」对冲一致性，图谱不存高敏属性（成绩/持仓在 PG）
+- [gemini-r2][2026-06-14] 对齐：Gemini 接受 P1 约束，撤回“Neo4j → PG+AGE/递归 CTE”的过度工程挑战，本线 round-2 闭环（保留 Neo4j）。
