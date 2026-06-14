@@ -4,7 +4,7 @@ title: "源码仓库与代码治理：模块化单体仓 + 边界仓"
 status: accepted
 date: 2026-06-14
 deciders: [human-001]
-informed_by: []
+informed_by: [codex-007, codex-008, gemini-004/反驳]
 supersedes: null
 linked_reqs: []
 ---
