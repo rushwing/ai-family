@@ -45,6 +45,7 @@
     <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
     <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
     <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+    <a href="08-goalagent-architecture.html">08 GoalAgent 架构</a>
   </div>
 
   <div class="page-header">
@@ -127,7 +128,7 @@
   </section>
 
   <section>
-    <h2>2. Agent 职责契约一览（L1 深度，仅 GoalAgent 有 L2 详设 → <a href="06-goalagent-vertical.html">06</a>）</h2>
+    <h2>2. Agent 职责契约一览（L1 深度，仅 GoalAgent 有 L2 详设 → <a href="08-goalagent-architecture.html">08 架构</a>；现状盘点见 <a href="06-goalagent-vertical.html">06</a>）</h2>
     <table>
       <tr><th style="width:110px">Agent</th><th>职责边界（做什么 / 明确不做什么）</th><th style="width:170px">基础资产</th><th style="width:120px">主要数据面</th><th style="width:90px">默认可用角色</th></tr>
       <tr><td><strong>GoalAgent ★</strong></td><td>中短期目标 → 里程碑 → 日计划 → 打卡跟踪 → 周/月报；管理 ai-family 项目本身。不做：通用待办（无目标挂靠的杂事）</td><td>rushwing/goal-agent（36 MCP tools 保留）</td><td>PG（goals/plans/checkins）</td><td>全员</td></tr>

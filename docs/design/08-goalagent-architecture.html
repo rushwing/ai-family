@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 08 — GoalAgent 重审后架构（产品 scope + 平台化调和）</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    pre { background: #1E272E; color: #DFE6E9; padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.65; margin: 14px 0; font-family: 'Cascadia Code', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+    .danger-box { background: #FFEBEE; border-left: 4px solid #C62828; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #B71C1C; line-height: 1.7; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+    .legend { font-size: 12.5px; color: #555; margin: 6px 0 0; }
+    .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; vertical-align: middle; margin: 0 4px 0 12px; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+    <a href="08-goalagent-architecture.html" class="cur">08 GoalAgent 架构</a>
+  </div>
+
+  <div class="page-header">
+    <h1>08 — GoalAgent 重审后架构（产品 scope + 平台化调和）</h1>
+    <p class="subtitle">对 <a href="https://github.com/rushwing/goal-agent">rushwing/goal-agent</a> 做一次 <strong>产品 scope 重审 + 架构重设计</strong>——不是 MariaDB→PG 的组件替换，而是结合 ai-family 顶层设计（<a href="01-architecture.html">01</a>）把它收敛为平台化垂直切片。本页是 GoalAgent 的 L2 架构详设；<a href="06-goalagent-vertical.html">06</a> 保留为现状盘点/迁移清单。对应 <code>REQ-003</code>。</p>
+    <p class="legend">三色笔记语义：<span class="sw" style="background:#2E7D32"></span><strong style="color:#1B5E20">绿 = 决策/结论</strong><span class="sw" style="background:#F57F17"></span><strong style="color:#E65100">橙 = 取舍/权衡</strong><span class="sw" style="background:#C62828"></span><strong style="color:#B71C1C">红 = 风险/硬约束</strong></p>
+  </div>
+
+  <section>
+    <h2>1. 重审目的与基线</h2>
+    <p>goal-agent 是一个已上线、功能完整的"目标与习惯跟踪 Agent"（FastAPI + FastMCP 36 tools + MariaDB + Telegram + APScheduler，单 coach-多 pursuer 角色模型）。把它接入 ai-family，最低成本是"换组件"；但那样会把 goal-agent 的单用户假设、外部数据通道（GitHub/Telegram）、未成年人无关的产品形态原样带进一个<strong>含 kid 的多成员平台</strong>。本稿因此先做产品 scope 重审，再做架构调和。</p>
+    <table>
+      <tr><th style="width:230px">基线来源</th><th>内容</th><th style="width:150px">对本稿的作用</th></tr>
+      <tr><td>goal-agent 现状（8 阶段）</td><td>核心闭环 + 周/月报 + GoalGroup 向导（已部分 LangGraph 化：<code>wizard_graph.py</code>）+ web_research/feasibility + Gamification+（未建）+ OpenClaw 插件 + GitHub 归档 + Telegram</td><td>scope 重审的输入</td></tr>
+      <tr><td>goal-agent 自带迁移计划</td><td><code>docs/langgraph-migration/</code>：Strangler Fig 五阶段，<strong>仅聚焦 wizard_service 子图</strong>的组件级 LangGraph 化（langchain-anthropic + AsyncSqliteSaver）</td><td>可复用的局部资产，但层级不够</td></tr>
+      <tr><td>ai-family 顶层设计</td><td><a href="01-architecture.html">01</a>（六层架构 / IntentRouter / Planner / Draft-First / MCP 网关 / PG checkpointer）、<a href="06-goalagent-vertical.html">06</a>（垂直切片盘点）、<a href="03-dataflow-tenancy.html">03</a>（RLS 租户 + Compliance）</td><td>调和目标</td></tr>
+    </table>
+    <div class="warn-box">🟠 <strong>核心张力</strong>：goal-agent 自带计划是"把 wizard 的控制流换成 StateGraph"（组件级、SQLite checkpointer、单用户）；ai-family 要的是"目标全生命周期长程图 + 多成员 RLS + OIDC/网关/审计/LiteLLM"（平台级）。本稿的取舍主线，就是<strong>把 goal-agent 的局部 LangGraph 资产收编进平台长程图体系，而非沿用它的迁移层级</strong>。</div>
+  </section>
+
+  <section>
+    <h2>2. 产品 scope 重审（keep / 取舍 / defer）</h2>
+    <p>把 goal-agent 的能力按"是否服务于 M1 第一条打穿全链路的垂直切片 + 是否与含 kid 的多成员平台相容"重新裁剪。已锁定决策如下图三色编码：</p>
+    <div class="diagram-wrap">
+      <svg width="1040" height="430" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <!-- 三泳道 -->
+        <rect x="20" y="20" width="320" height="392" rx="10" fill="#F1F8E9" stroke="#2E7D32" stroke-width="1.4"/>
+        <rect x="360" y="20" width="320" height="392" rx="10" fill="#FFF8E1" stroke="#F57F17" stroke-width="1.4"/>
+        <rect x="700" y="20" width="320" height="392" rx="10" fill="#FFEBEE" stroke="#C62828" stroke-width="1.4"/>
+        <text x="180" y="44" text-anchor="middle" fill="#1B5E20" font-size="13" font-weight="700">🟢 KEEP + MIGRATE（进 M1）</text>
+        <text x="520" y="44" text-anchor="middle" fill="#E65100" font-size="13" font-weight="700">🟠 取舍 / 改造（进 M1，形态变）</text>
+        <text x="860" y="44" text-anchor="middle" fill="#B71C1C" font-size="13" font-weight="700">🔴 DEFER（不进 M1）</text>
+
+        <!-- KEEP 列 -->
+        <rect x="40" y="62" width="280" height="44" rx="7" fill="#2E7D32"/><text x="180" y="80" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">核心目标闭环</text><text x="180" y="96" text-anchor="middle" fill="#C8E6C9" font-size="9">target→milestone→daily→check-in→streak/XP</text>
+        <rect x="40" y="116" width="280" height="40" rx="7" fill="#2E7D32"/><text x="180" y="132" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">周 / 月报</text><text x="180" y="147" text-anchor="middle" fill="#C8E6C9" font-size="9">独立轻量图 · 聚合→LLM 摘要</text>
+        <rect x="40" y="166" width="280" height="40" rx="7" fill="#2E7D32"/><text x="180" y="182" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">Dogfooding</text><text x="180" y="197" text-anchor="middle" fill="#C8E6C9" font-size="9">本项目作首个 Goal 录入</text>
+        <rect x="40" y="216" width="280" height="44" rx="7" fill="#2E7D32"/><text x="180" y="234" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">GoalGroup 向导</text><text x="180" y="250" text-anchor="middle" fill="#C8E6C9" font-size="9">已部分 LangGraph 化 → 收编为子图</text>
+        <text x="40" y="288" fill="#33691E" font-size="9.5">＝ goal-agent 唯一成型的 LangGraph 资产</text>
+        <text x="40" y="304" fill="#33691E" font-size="9.5">＝ 平台长程图体系的同构起点</text>
+
+        <!-- 取舍 列 -->
+        <rect x="380" y="62" width="280" height="50" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="82" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">数据层 MariaDB → PG16</text><text x="520" y="99" text-anchor="middle" fill="#BF360C" font-size="9">全表 +family_member_id + RLS（见 §5 红线）</text>
+        <rect x="380" y="120" width="280" height="50" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="140" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">角色 best_pal/go_getter → OIDC</text><text x="520" y="157" text-anchor="middle" fill="#BF360C" font-size="9">映射 admin/adult/kid · header→JWT</text>
+        <rect x="380" y="178" width="280" height="50" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="198" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">GitHub 归档 → MinIO + PG 版本表</text><text x="520" y="215" text-anchor="middle" fill="#BF360C" font-size="9">数据不出家门（P4）</text>
+        <rect x="380" y="236" width="280" height="50" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="256" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">Telegram → notify.out 出口</text><text x="520" y="273" text-anchor="middle" fill="#BF360C" font-size="9">Agent 不直连渠道（ADR-006）</text>
+        <rect x="380" y="294" width="280" height="50" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="314" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">APScheduler → 图唤醒入口</text><text x="520" y="331" text-anchor="middle" fill="#BF360C" font-size="9">cron 触发改为启动/唤醒 LangGraph 图</text>
+        <rect x="380" y="352" width="280" height="46" rx="7" fill="#FFE0B2" stroke="#E65100"/><text x="520" y="370" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">wizard 子图 → 精简路径</text><text x="520" y="386" text-anchor="middle" fill="#BF360C" font-size="9">去 research/feasibility 节点（见 §4）</text>
+
+        <!-- DEFER 列 -->
+        <rect x="720" y="62" width="280" height="56" rx="7" fill="#FFCDD2" stroke="#C62828"/><text x="860" y="84" text-anchor="middle" fill="#B71C1C" font-size="11" font-weight="700">web_research + feasibility</text><text x="860" y="101" text-anchor="middle" fill="#B71C1C" font-size="9">外部数据入上下文 → 撞 kid 红线</text><text x="860" y="113" text-anchor="middle" fill="#B71C1C" font-size="9">触发：消毒中间件就绪后（BUG-005）</text>
+        <rect x="720" y="128" width="280" height="56" rx="7" fill="#FFCDD2" stroke="#C62828"/><text x="860" y="150" text-anchor="middle" fill="#B71C1C" font-size="11" font-weight="700">Gamification+</text><text x="860" y="167" text-anchor="middle" fill="#B71C1C" font-size="9">排行榜/streak freeze/XP shop（未建）</text><text x="860" y="179" text-anchor="middle" fill="#B71C1C" font-size="9">触发：核心闭环上线后增量迭代</text>
+        <rect x="720" y="194" width="280" height="56" rx="7" fill="#FFCDD2" stroke="#C62828"/><text x="860" y="216" text-anchor="middle" fill="#B71C1C" font-size="11" font-weight="700">OpenClaw 插件通道</text><text x="860" y="233" text-anchor="middle" fill="#B71C1C" font-size="9">TS 插件直调 REST，绕 ChatUI/网关</text><text x="860" y="245" text-anchor="middle" fill="#B71C1C" font-size="9">触发：M4 OpenClaw 接入再评估复活</text>
+        <text x="720" y="288" fill="#B71C1C" font-size="9.5">defer ≠ 砍：均带明确复活触发条件，</text>
+        <text x="720" y="304" fill="#B71C1C" font-size="9.5">不在 M1 切片打通的关键路径上。</text>
+      </svg>
+    </div>
+    <div class="highlight-box">🟢 <strong>决策</strong>：M1 GoalAgent = 核心目标闭环 + 周/月报 + dogfooding + GoalGroup 向导（精简）。这是一条"从 ChatUI 打穿到 PG/RLS 数据层"的最小完整垂直切片，且每一项都与含 kid 的多成员平台相容。</div>
+    <div class="danger-box">🔴 <strong>红线取舍</strong>：goal-agent 原有的 <strong>GitHub 自动 commit</strong> 与 <strong>Telegram 直连</strong> 是两条把家庭数据/通知送出家门或绕过统一出口的外部通道，含 kid 平台不可原样保留——M1 即改造为 MinIO+PG 归档与 <code>notify.out</code> 统一出口（数据不出家门 P4 / Agent 不直连渠道 ADR-006）。</div>
+  </section>
+
+  <section>
+    <h2>3. 架构调和：组件迁移 → 平台化运行时</h2>
+    <p>goal-agent 原架构是"FastAPI 进程内挂 FastMCP + 进程内 APScheduler + header 鉴权 + 直连 MariaDB"，单进程、单用户、信任边界模糊。重审后它成为 ai-family <code>agent-core</code> 内的一个领域 Agent 子图，所有数据/工具访问被收进平台的信任边界与租户隔离：</p>
+    <div class="diagram-wrap">
+      <svg width="1040" height="470" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs>
+          <marker id="m1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#555"/></marker>
+          <marker id="m2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#C62828"/></marker>
+        </defs>
+        <!-- 入口 -->
+        <rect x="20" y="30" width="170" height="50" rx="8" fill="#283593"/><text x="105" y="51" text-anchor="middle" fill="#fff" font-size="11">ChatUI（NextJS/SSE）</text><text x="105" y="68" text-anchor="middle" fill="#C5CAE9" font-size="9">携带 OIDC JWT + trace_id</text>
+        <!-- OIDC 边界 -->
+        <rect x="220" y="30" width="150" height="50" rx="8" fill="#FFEBEE" stroke="#C62828" stroke-width="1.5"/><text x="295" y="51" text-anchor="middle" fill="#C62828" font-size="10.5" font-weight="700">🔴 OIDC 校验</text><text x="295" y="68" text-anchor="middle" fill="#C62828" font-size="9">Keycloak JWT · 角色 admin/adult/kid</text>
+        <line x1="190" y1="55" x2="220" y2="55" stroke="#555" stroke-width="1.6" marker-end="url(#m1)"/>
+
+        <!-- agent-core -->
+        <rect x="20" y="110" width="640" height="230" rx="10" fill="#F1F8E9" stroke="#558B2F" stroke-width="1.5"/>
+        <text x="36" y="132" fill="#33691E" font-size="11" font-weight="700">agent-core（LangGraph 运行时 · 单进程，多成员）</text>
+        <rect x="40" y="146" width="280" height="56" rx="7" fill="#2E7D32"/><text x="180" y="168" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">GoalAgent 主长程图</text><text x="180" y="185" text-anchor="middle" fill="#C8E6C9" font-size="9">intake→分解→⏸确认→commit→每日循环</text>
+        <rect x="340" y="146" width="300" height="56" rx="7" fill="#2E7D32"/><text x="490" y="168" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">GoalGroup wizard 子图（精简）</text><text x="490" y="185" text-anchor="middle" fill="#C8E6C9" font-size="9">scope→targets→constraints→plan_gen→⏸确认</text>
+        <rect x="40" y="216" width="600" height="40" rx="7" fill="#00695C"/><text x="340" y="241" text-anchor="middle" fill="#fff" font-size="10">状态：LangGraph State + 🟢 PG Checkpointer（thread_id 续跑）· 会话热数据 Redis</text>
+        <rect x="40" y="266" width="290" height="56" rx="7" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.4"/><text x="185" y="288" text-anchor="middle" fill="#1565C0" font-size="10.5" font-weight="700">Draft-First 确认环</text><text x="185" y="305" text-anchor="middle" fill="#1565C0" font-size="9">write/high：prepare→用户确认→confirm</text>
+        <rect x="350" y="266" width="290" height="56" rx="7" fill="#FFEBEE" stroke="#C62828" stroke-width="1.4"/><text x="495" y="288" text-anchor="middle" fill="#C62828" font-size="10.5" font-weight="700">🔴 BUG-001 幂等点</text><text x="495" y="305" text-anchor="middle" fill="#C62828" font-size="9">idempotency_key + outbox + 去重</text>
+        <line x1="295" y1="80" x2="180" y2="146" stroke="#555" stroke-width="1.6" marker-end="url(#m1)"/>
+
+        <!-- MCP 网关 边界 -->
+        <rect x="700" y="146" width="320" height="56" rx="8" fill="#FFEBEE" stroke="#C62828" stroke-width="1.6"/><text x="860" y="168" text-anchor="middle" fill="#C62828" font-size="11" font-weight="700">🔴 MCP 网关（信任边界）</text><text x="860" y="185" text-anchor="middle" fill="#C62828" font-size="9">请求验签 · 工具白名单 · 工具侧 JWT · risk 两段式</text>
+        <line x1="660" y1="174" x2="700" y2="174" stroke="#C62828" stroke-width="2" marker-end="url(#m2)"/>
+
+        <!-- goal-mcp -->
+        <rect x="700" y="222" width="320" height="46" rx="8" fill="#FFE0B2" stroke="#E65100"/><text x="860" y="241" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">goal-mcp（FastMCP · 36 tools/6 组）</text><text x="860" y="257" text-anchor="middle" fill="#BF360C" font-size="9">write 类补 risk 元数据 + 工具侧鉴权（§6）</text>
+        <line x1="860" y1="202" x2="860" y2="222" stroke="#C62828" stroke-width="2" marker-end="url(#m2)"/>
+
+        <!-- 数据层 -->
+        <rect x="700" y="288" width="320" height="46" rx="8" fill="#37474F"/><text x="860" y="307" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">🔴 PG16 + pgvector（RLS 强制）</text><text x="860" y="323" text-anchor="middle" fill="#B0BEC5" font-size="9">family_member_id 行级隔离（§5）</text>
+        <line x1="860" y1="268" x2="860" y2="288" stroke="#C62828" stroke-width="2" marker-end="url(#m2)"/>
+
+        <!-- 横切 -->
+        <rect x="20" y="360" width="1000" height="44" rx="8" fill="#ECEFF1" stroke="#90A4AE"/><text x="520" y="380" text-anchor="middle" fill="#455A64" font-size="10.5">横切：LLM 出口统一 LiteLLM（DeepSeek/Kimi/Claude）· 每节点/工具上报 Langfuse（trace 贯通）· 🔴 关键事件写 PG 审计表（append-only，BUG-011）</text>
+        <text x="520" y="396" text-anchor="middle" fill="#90A4AE" font-size="9">调度：APScheduler 触发 → 启动/唤醒图（不再进程内直跑业务），消除单 worker 限制</text>
+
+        <!-- 出口 -->
+        <rect x="20" y="420" width="1000" height="36" rx="8" fill="#FFF8E1" stroke="#FFA000"/><text x="520" y="442" text-anchor="middle" fill="#5D4037" font-size="10.5">🟠 出站：通知统一经 notify.out（替代 Telegram 直连）· 报表归档入 MinIO + PG 版本表（替代 GitHub commit）</text>
+      </svg>
+    </div>
+    <div class="q-box">📘 <strong>层级修正</strong>：goal-agent 自带迁移计划停在"wizard 控制流换 StateGraph"。本稿把它上提一层——wizard 只是 GoalAgent 名下的一个<strong>子图</strong>，与主长程图共享 PG checkpointer、同受 OIDC/网关/RLS/审计约束。goal-agent 的 SQLite checkpointer、langchain-anthropic 直连均不沿用（统一走 PG checkpointer + LiteLLM）。</div>
+  </section>
+
+  <section>
+    <h2>4. 长程图设计（主图 + wizard 精简子图）</h2>
+    <p>主长程图承自 <a href="06-goalagent-vertical.html">06 §2</a>；wizard 子图取自 goal-agent <code>wizard_graph.py</code> 但按 M1 scope 精简。两图共享 thread/checkpointer，确认门均用 <code>interrupt()</code>。</p>
+    <div class="diagram-wrap">
+      <svg width="1040" height="360" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs>
+          <marker id="n1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#555"/></marker>
+        </defs>
+        <!-- 主长程图 -->
+        <text x="30" y="32" fill="#33691E" font-size="11" font-weight="700">主长程图（目标全生命周期 · cron 唤醒每日循环）</text>
+        <rect x="30" y="44" width="120" height="44" rx="7" fill="#283593"/><text x="90" y="70" text-anchor="middle" fill="#fff" font-size="10">intake</text>
+        <rect x="180" y="44" width="130" height="44" rx="7" fill="#2E7D32"/><text x="245" y="70" text-anchor="middle" fill="#fff" font-size="10">decompose（LLM）</text>
+        <rect x="340" y="44" width="150" height="44" rx="7" fill="#F57F17"/><text x="415" y="64" text-anchor="middle" fill="#fff" font-size="10">🟠 ⏸ interrupt</text><text x="415" y="80" text-anchor="middle" fill="#FFF3E0" font-size="9">计划确认（Plan Mode）</text>
+        <rect x="520" y="44" width="130" height="44" rx="7" fill="#2E7D32"/><text x="585" y="64" text-anchor="middle" fill="#fff" font-size="10">commit_plan</text><text x="585" y="80" text-anchor="middle" fill="#C8E6C9" font-size="8.5">写库（RLS）</text>
+        <rect x="680" y="44" width="150" height="44" rx="7" fill="#00695C"/><text x="755" y="64" text-anchor="middle" fill="#fff" font-size="10">schedule_daily</text><text x="755" y="80" text-anchor="middle" fill="#B2DFDB" font-size="8.5">cron→图唤醒</text>
+        <line x1="150" y1="66" x2="180" y2="66" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="310" y1="66" x2="340" y2="66" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="490" y1="66" x2="520" y2="66" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="650" y1="66" x2="680" y2="66" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <!-- 每日循环 -->
+        <rect x="180" y="110" width="650" height="70" rx="9" fill="#F1F8E9" stroke="#558B2F" stroke-width="1.3"/>
+        <text x="196" y="130" fill="#33691E" font-size="10" font-weight="700">每日循环子图（每节点落 checkpoint）</text>
+        <rect x="196" y="138" width="130" height="34" rx="6" fill="#558B2F"/><text x="261" y="159" text-anchor="middle" fill="#fff" font-size="9.5">daily_plan</text>
+        <rect x="346" y="138" width="150" height="34" rx="6" fill="#558B2F"/><text x="421" y="159" text-anchor="middle" fill="#fff" font-size="9.5">await_checkin ⏸</text>
+        <rect x="516" y="138" width="130" height="34" rx="6" fill="#558B2F"/><text x="581" y="159" text-anchor="middle" fill="#fff" font-size="9.5">evaluate</text>
+        <rect x="666" y="138" width="150" height="34" rx="6" fill="#E65100"/><text x="741" y="159" text-anchor="middle" fill="#fff" font-size="9.5">adapt（条件分支）</text>
+        <line x1="755" y1="88" x2="755" y2="110" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="326" y1="155" x2="346" y2="155" stroke="#555" stroke-width="1.4" marker-end="url(#n1)"/>
+        <line x1="496" y1="155" x2="516" y2="155" stroke="#555" stroke-width="1.4" marker-end="url(#n1)"/>
+        <line x1="646" y1="155" x2="666" y2="155" stroke="#555" stroke-width="1.4" marker-end="url(#n1)"/>
+
+        <!-- wizard 子图 -->
+        <text x="30" y="222" fill="#33691E" font-size="11" font-weight="700">GoalGroup wizard 子图（精简 · 由 intake 在"建组目标"意图时调用）</text>
+        <rect x="30" y="234" width="120" height="40" rx="7" fill="#2E7D32"/><text x="90" y="258" text-anchor="middle" fill="#fff" font-size="10">scope</text>
+        <rect x="180" y="234" width="120" height="40" rx="7" fill="#2E7D32"/><text x="240" y="258" text-anchor="middle" fill="#fff" font-size="10">targets</text>
+        <rect x="330" y="234" width="130" height="40" rx="7" fill="#2E7D32"/><text x="395" y="258" text-anchor="middle" fill="#fff" font-size="10">constraints</text>
+        <rect x="490" y="234" width="130" height="40" rx="7" fill="#2E7D32"/><text x="555" y="258" text-anchor="middle" fill="#fff" font-size="10">plan_gen</text>
+        <rect x="650" y="234" width="140" height="40" rx="7" fill="#F57F17"/><text x="720" y="258" text-anchor="middle" fill="#fff" font-size="10">🟠 ⏸ confirm</text>
+        <line x1="150" y1="254" x2="180" y2="254" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="300" y1="254" x2="330" y2="254" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="460" y1="254" x2="490" y2="254" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <line x1="620" y1="254" x2="650" y2="254" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
+        <!-- 去掉的节点 -->
+        <rect x="490" y="290" width="300" height="34" rx="7" fill="#FFEBEE" stroke="#C62828" stroke-dasharray="5 4"/><text x="640" y="311" text-anchor="middle" fill="#B71C1C" font-size="9.5">🔴 research_node / feasibility_node（M1 移除，见 §2 defer）</text>
+        <text x="30" y="312" fill="#666" font-size="9.5">精简理由：research 引入外部网页数据 → 撞 BUG-005</text>
+        <text x="30" y="328" fill="#666" font-size="9.5">kid 红线；feasibility 与之耦合，一并后置。</text>
+      </svg>
+    </div>
+    <div class="warn-box">🟠 <strong>取舍</strong>：goal-agent wizard 原路径含 <code>research_node</code>(fan-out 网页调研) + <code>feasibility_node</code>(可行性校验)。M1 移除这两个节点，wizard 走 <code>scope→targets→constraints→plan_gen→confirm</code> 线性精简路径——既保住"引导建组目标"这条已成型的 LangGraph 资产，又不把外部数据通道在消毒中间件（BUG-005）就绪前引入含 kid 的上下文。</div>
+    <div class="highlight-box">🟢 <strong>幂等设计内建</strong>：每日循环可被 cron 重复唤醒、可在 <code>await_checkin</code> 挂起期被 kill 后恢复——因此 <code>daily_plan</code> 下发、<code>evaluate</code> 计分、提醒发送等副作用节点必须带 idempotency_key + outbox，重复执行不重复发提醒/不重复计分（BUG-001）。这是图设计的一等约束，不是事后验收。</div>
+  </section>
+
+  <section>
+    <h2>5. 安全 / 正确性内建（把缺陷升为一等需求，非"兜底验收"）</h2>
+    <p>原 REQ-003 把 BUG-001/002 列在"兜底验收"。本稿据 review 裁决将其上提为<strong>设计内建需求</strong>——在迁移与图设计阶段就落地，因为这些是 kid 安全与数据正确性的根，事后回填代价极大。</p>
+    <div class="danger-box">🔴 <strong>BUG-002（RLS critical · kid 红线）</strong>：随数据层迁移步骤一次性内建——① 所有业务表 <code>FORCE ROW LEVEL SECURITY</code>；② 迁移/DDL 走受限 role，应用 role 无 BYPASSRLS；③ 后台 worker / 图节点写库必设 <code>member/shared</code> scope（不得以超级身份跑）；④ 默认禁 <code>SECURITY DEFINER</code> 函数，例外须评审；⑤ 若用 PgBouncer transaction 模式，必须事务内 <code>SET LOCAL</code> per-txn claim（禁 session 级，防连接复用串号）；⑥ CI 扫描：新增表无 RLS 策略即失败。详见 <a href="03-dataflow-tenancy.html">03</a> 与 <a href="../adr/ADR-003-postgres-rls-tenancy.md">ADR-003</a>。</div>
+    <div class="danger-box">🔴 <strong>BUG-001（精确一次语义）</strong>：LangGraph checkpoint ≠ 精确一次。副作用节点（提醒、计分、报表、写库）须以 idempotency_key 去重 + outbox 投递，kill-retry 不产生重复工具执行或重复通知（见 §4 图 + <a href="../adr/ADR-001-langgraph-orchestration.md">ADR-001</a>）。</div>
+    <div class="danger-box">🔴 <strong>BUG-011（审计 append-only）</strong>："谁在何时让 AI 做了什么"写入不可变审计表（append-only），kid 无权删除/软删规避家长审计。审计是含未成年成员系统的不可协商项（见 <a href="../adr/ADR-012-observability-langfuse.md">ADR-012</a>）。</div>
+    <div class="q-box">📘 这三条与原 REQ-003 的关系：它们仍由 REQ-003 的实现承载（linked_req=REQ-003），但定位从"验收末端检查"改为"迁移①/图③/审计层的设计输入"。REQ-003 差距清单据此刷新。</div>
+  </section>
+
+  <section>
+    <h2>6. 36 tools / services 处置清单</h2>
+    <table>
+      <tr><th style="width:160px">资产（goal-agent）</th><th style="width:80px">处置</th><th>M1 形态</th></tr>
+      <tr><td>MCP tools：admin / plan / check-in / report / tracks / wizard（6 组 36 tools）</td><td>🟢 保留</td><td>语义不变接入 goal-mcp；<strong>每个 write 类 tool 补 risk 元数据（两段式）+ 工具侧 JWT</strong>，无 auth metadata/无测试者拒绝注册（<a href="../adr/ADR-010-mcp-tool-architecture.md">ADR-010</a>/REQ-004）</td></tr>
+      <tr><td>streak / praise / report / scheduler service</td><td>🟢 保留</td><td>纯业务逻辑平迁；scheduler 触发动作改为"启动/唤醒图 + 投递 MQ"</td></tr>
+      <tr><td>plan_generator（Kimi 直连）</td><td>🟠 改造</td><td>base_url 切 LiteLLM（近零改动，<a href="../adr/ADR-002-llm-gateway-litellm.md">ADR-002</a>）</td></tr>
+      <tr><td>github_service（PyGithub 归档）</td><td>🟠 替换</td><td>→ MinIO artifacts + PG 版本表；GitHub 同步降级为可选导出</td></tr>
+      <tr><td>telegram_service</td><td>🟠 替换</td><td>→ <code>notify.out</code> 统一出口（ADR-006）</td></tr>
+      <tr><td>hmac_auth（X-Telegram-Chat-Id header）</td><td>🟠 替换</td><td>→ Keycloak OIDC JWT；角色 best_pal→admin、go_getter→adult/kid</td></tr>
+      <tr><td>wizard_service / wizard_graph / wizard_checkpointer</td><td>🟠 收编</td><td>收编为子图（§4 精简）；checkpointer 改 PG（弃 AsyncSqliteSaver）</td></tr>
+      <tr><td>web_research_service / feasibility_service</td><td>🔴 defer</td><td>不进 M1（外部数据→BUG-005）；wizard 对应节点移除</td></tr>
+      <tr><td>OpenClaw 插件（TS）</td><td>🔴 冻结</td><td>M1 以 ChatUI 为主通道；M4 再评估复活</td></tr>
+      <tr><td>Gamification+（排行榜/streak freeze/XP shop）</td><td>🔴 defer</td><td>未建，核心闭环上线后增量</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>7. 与 REQ-003 kickoff 的衔接</h2>
+    <p>本稿评审通过后进入实施（骨架优先 + 最小基座进切片）。四步：</p>
+    <ol>
+      <li><strong>导入</strong>：<code>git subtree add</code> 将 goal-agent 导入 <code>agents/goal/</code>（保留历史）。</li>
+      <li><strong>骨架</strong>：monorepo 骨架 + path-filtered CI（含 ADR 评审闭环 gate lint，BUG-006）。</li>
+      <li><strong>最小基座</strong>：起 PG+RLS+IdP+LiteLLM；<strong>BUG-002 RLS 随迁移内建、BUG-005 消毒中间件就绪门</strong>。</li>
+      <li><strong>切片改造</strong>：按 §3/§4/§6 落地（MariaDB→PG、header→OIDC、APScheduler→图唤醒、36 tools 补 risk/JWT、wizard 收编为精简子图）；<strong>BUG-001 幂等、BUG-011 审计随图/审计层内建</strong>。</li>
+    </ol>
+    <table>
+      <tr><th style="width:280px">原 REQ-003 差距清单</th><th>本稿修正</th></tr>
+      <tr><td>数据迁移 MariaDB→PG + RLS</td><td>🔴 RLS 升为迁移内建（BUG-002 六条），非验收末端</td></tr>
+      <tr><td>身份 header→OIDC</td><td>不变；补角色映射明细</td></tr>
+      <tr><td>编排 LangGraph 化</td><td>🟢 主长程图 + wizard 精简子图；🔴 幂等内建（BUG-001）</td></tr>
+      <tr><td>36 tools 补 risk/JWT</td><td>不变；明确注册门禁（无 auth/测试拒注册）</td></tr>
+      <tr><td>（原"兜底验收"BUG-001/002）</td><td>🟢 上提为设计内建（§5）</td></tr>
+      <tr><td>（未列）web_research/Gamification+/OpenClaw</td><td>🔴 明确 defer + 复活触发（§2）</td></tr>
+    </table>
+    <div class="warn-box">🟠 范围纪律：本稿只定 M1 GoalAgent 的 scope 与架构。设计稿之外的功能请求一律先进 REQ backlog（P7）。defer 项均带复活触发条件，不是永久砍除。</div>
+  </section>
+
+</div>
+</body>
+</html>
