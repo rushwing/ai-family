@@ -51,7 +51,7 @@ draft → req_review ⇄ tc_design → tc_review ⇄ tc_impl → tc_impl_review
 - 状态后退（⇄）仅由评审打回触发，打回必须附 BUG 或评审意见
 - `pending_bugs` 非空时整体置 `blocked`，提交信息格式：`bug-block: REQ-NNN blocked by BUG-NNN`
 - **`pending_bugs` 与 `linked_req` 是两套机制**：`pending_bugs` 仅登记**评审打回**本 REQ、使其后退/挂起的 BUG（→ blocked）；而 BUG 侧 `linked_req` 指向本 REQ 只是"该 BUG 由本 REQ 承载修复"的关联，**不**自动进 `pending_bugs`、**不**改变 REQ 生命周期状态（设计期 REQ 可照常 `draft`/`req_review`）。
-- **done 前置门禁**：任一 `status: open`/`in_progress` 的 `req_bug`，其 `linked_req` 指向某 REQ 时，该 REQ **不得置 `done`**（关联 req_bug 须全部 `resolved`/`closed`）。即 `linked_req` 阻塞的是 `done`、不是中间状态；与 ADR 评审闭环 gate（adr-standard §4.1 规则 3）同源。
+- **done 前置门禁**：任一**未闭**（`status` 为 `open`/`in_progress`/`blocked` —— 凡非 `resolved`/`closed`）的 `req_bug`，其 `linked_req` 指向某 REQ 时，该 REQ **不得置 `done`**（关联 req_bug 须全部 `resolved`/`closed`）。即 `linked_req` 阻塞的是 `done`、不是中间状态；与 ADR 评审闭环 gate（adr-standard §4.1 规则 3）同源。
 - **M0 设计类 REQ 简化路径**：`draft → req_review → done`，`tc_policy: exempt`，验收以评审闭环为准
 
 ## 5. 验收标准写法
