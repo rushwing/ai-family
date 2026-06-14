@@ -58,6 +58,8 @@ Codex/Gemini 的评审产出**不直接改设计稿**，而是：
 - 新增诉求 → 提新 `REQ-NNN`（status: draft）；
 - 选型异议 → 在对应 `ADR-NNN` 的 Review Notes 段落追加意见，由 human-001 裁决是否改决策。
 
+**ADR 评审闭环 gate（BUG-006）**：选型异议记录后必须闭环——一个 ADR 置 `accepted` 前，须满足 `informed_by` 完整、Review Notes 每条均带 human-001 裁决、关联 BUG 全闭、决策变更已同步进正文（详见 [adr-standard.md §4.1](adr-standard.md)）。未闭环的 ADR 停留 `proposed` 并阻塞其关联 REQ 的 `accepted`/`done`；一致性检查纳入 REQ-001 验收。
+
 ## 6. 与 GoalAgent 的关系（dogfooding）
 
 M1 起，本仓库的里程碑与 REQ 同步录入 GoalAgent 作为第一个正式 Goal（"ai-family 项目开发"），
