@@ -1,7 +1,7 @@
 ---
 adr_id: ADR-015
 title: "被遗忘权与审计不可变性的协调（删除策略 + 未成年人监护优先）"
-status: proposed
+status: accepted
 date: 2026-06-14
 deciders: [human-001]
 informed_by: [gemini-review-001]
@@ -37,15 +37,16 @@ linked_reqs: [REQ-008]
 
 ## Decision
 
-采用 **Option C**：
-1. **审计独立、append-only、只存元数据/指纹**（BUG-011）；删除操作本身也写一条审计（谁/何时/删除范围）。
-2. **成人成员**：自助删除请求 → PG/pgvector/Neo4j/MinIO 四数据面级联删除或匿名化（REQ-008）；审计仅保留最小元数据。
-3. **未成年人（kid）**：监护优先——kid 内容可删，但家长监护审计链不可删；任何 kid 删除请求经家长确认（Draft-First），kid 无权触达审计表。
-4. **高敏内容可选 crypto-shredding**：以销毁密钥实现“事实不可恢复 + 审计引用保留”。
+采用 **Option C**（human-001 裁决 2026-06-14）：
+1. **审计独立、append-only、只存元数据/指纹**（BUG-011）；删除 / 恢复 / 永久粉碎各写一条审计。
+2. **crypto-shredding 必选**：所有可删内容按成员密钥加密；永久删除 = 销毁该内容密钥，使其不可恢复而审计引用仍在。
+3. **两段式删除 + 回收站**：删除先进**回收站（软删除）**——标记删除、仍受 RLS 隔离、保留期 N 天内本人 / 家长可**恢复**（防误删无法恢复）；保留期满或显式确认后 → **crypto-shred 永久删除**（销毁密钥，不可逆）。
+4. **成人成员**：自助删除 → 四数据面（PG/pgvector/Neo4j/MinIO）软删进回收站、可恢复；期满 → 匿名化 + crypto-shred。
+5. **未成年人（kid）**：监护优先——kid 删除请求经家长确认（Draft-First）；kid 无权触达审计表，亦无权清空回收站绕过监护；家长监护审计链 append-only 不可删。
 
 ## Trade-off
 
-接受“审计永远留一条最小痕迹”（牺牲纯粹意义的被遗忘），换取家长监护不可规避与防 kid 自抹；接受 crypto-shredding 的密钥管理成本（仅对高敏内容启用）。放弃 Option A 的彻底删除与 Option B 的零删除两个极端。
+接受“审计永远留一条最小痕迹”（牺牲纯粹意义的被遗忘），换取家长监护不可规避与防 kid 自抹。crypto-shredding **必选**（所有可删内容），接受每成员密钥的生成/备份/销毁/轮换成本；回收站在保留期内多一份“已软删未粉碎”的存储与状态成本——换取误删可恢复。放弃 Option A 的彻底删除与 Option B 的零删除两个极端。
 
 ## Consequences
 
@@ -53,6 +54,8 @@ linked_reqs: [REQ-008]
 - 删除是高风险动作 → 走 Draft-First 两段式确认（ADR-010）；kid 删除路由到家长确认。
 - 需定义“最小审计元数据”集合与“内容指纹”算法，进 GLOSSARY。
 - 与 ADR-003（RLS）/ADR-012（审计权威）协同：审计表施 INSERT-only role。
+- **crypto-shredding 必选**引入每成员内容加密密钥的管理（生成/备份/销毁/轮换）——新增 infra 需求（密钥落点：sops/age 体系或独立 KMS，待 REQ-008 细化）；回收站保留期 N（建议默认 30 天）进配置。
+- 回收站为软删除中间态：仍受 RLS、不进检索/上下文、不计入“已交付”；清空回收站（永久删）对 kid 须经家长。
 
 ## Revisit Trigger
 
@@ -62,3 +65,4 @@ linked_reqs: [REQ-008]
 ## Review Notes（评审追加区）
 
 - [claude][2026-06-14] 本 ADR 为 human-001 指示起草（status: proposed），待裁决：① Option C 是否采纳；② crypto-shredding 设为可选/必选/不做；③ 成人匿名化 vs 硬删除的默认。
+- [human-001][2026-06-14] 裁决：采纳 Option C；crypto-shredding **必选**；成人**匿名化删除 + 回收站**（软删可恢复、防误删）；kid 监护优先不变。→ status: accepted。
