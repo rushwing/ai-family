@@ -4,7 +4,7 @@ title: "部署形态：M1–M4 docker-compose，M5 迁移 K3s（两阶段）"
 status: accepted
 date: 2026-06-11
 deciders: [human-001]
-informed_by: []
+informed_by: [codex-001, codex-006, gemini-反驳]
 supersedes: null
 linked_reqs: [REQ-002]
 ---

@@ -72,10 +72,11 @@
   <section>
     <h2>2. GoalAgent 的 LangGraph 长程图</h2>
     <div class="diagram-wrap">
-      <svg width="1060" height="430" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+      <svg width="1060" height="540" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
         <defs>
           <marker id="g1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#555"/></marker>
           <marker id="g2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#1565C0"/></marker>
+          <marker id="g3" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#C62828"/></marker>
         </defs>
 
         <!-- 主流程 -->
@@ -105,10 +106,20 @@
         <path d="M 815 210 L 815 130 L 505 130 L 505 90" fill="none" stroke="#1565C0" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#g2)"/>
         <text x="660" y="122" text-anchor="middle" fill="#1565C0" font-size="9">重规划提案 → 重新走人工确认门（Draft-First）</text>
 
+        <!-- 工具侧鉴权边界（BUG-009）：所有写操作节点都不直连数据层，统一经 MCP 网关 -->
+        <rect x="20" y="348" width="1020" height="92" rx="8" fill="#FFEBEE" stroke="#C62828" stroke-width="1.3"/>
+        <text x="36" y="368" fill="#B71C1C" font-size="10.5" font-weight="700">🔒 工具侧鉴权边界（ADR-010 信任边界 3 · REQ-004）——状态图中任何节点都不直连数据层：</text>
+        <text x="36" y="385" fill="#B71C1C" font-size="10">commit_plan / daily_plan / evaluate 等所有 goal-mcp 工具调用与写库，均先过 MCP 网关（请求验签 + 工具白名单 + 工具侧 JWT 校验 + write 类 risk 两段式）再落 PG(RLS)/MinIO；不存在绕过网关的数据流。</text>
+        <rect x="300" y="404" width="118" height="26" rx="6" fill="#558B2F"/><text x="359" y="421" text-anchor="middle" fill="#fff" font-size="9.5">写操作节点</text>
+        <line x1="418" y1="417" x2="468" y2="417" stroke="#C62828" stroke-width="2" marker-end="url(#g3)"/>
+        <rect x="470" y="404" width="170" height="26" rx="6" fill="#C62828"/><text x="555" y="421" text-anchor="middle" fill="#fff" font-size="9.5">🔒 MCP 网关（验签/白名单/JWT）</text>
+        <line x1="640" y1="417" x2="690" y2="417" stroke="#C62828" stroke-width="2" marker-end="url(#g3)"/>
+        <rect x="692" y="404" width="170" height="26" rx="6" fill="#37474F"/><text x="777" y="421" text-anchor="middle" fill="#fff" font-size="9.5">PG(RLS) / MinIO 数据层</text>
+
         <!-- 底部说明 -->
-        <rect x="20" y="356" width="1020" height="56" rx="8" fill="#ECEFF1"/>
-        <text x="36" y="378" fill="#455A64" font-size="10">韧性验收（REQ-003）：在 await_checkin 挂起期间 kill agent-core → 重启 → thread 从 checkpoint 恢复，当晚 21:00 提醒照常触发。</text>
-        <text x="36" y="398" fill="#455A64" font-size="10">周/月报：独立轻量图（cron 唤醒 → 聚合查询 → LLM 摘要 → MinIO artifacts + notify.out），与每日循环解耦。</text>
+        <rect x="20" y="456" width="1020" height="56" rx="8" fill="#ECEFF1"/>
+        <text x="36" y="478" fill="#455A64" font-size="10">韧性验收（REQ-003）：在 await_checkin 挂起期间 kill agent-core → 重启 → thread 从 checkpoint 恢复，当晚 21:00 提醒照常触发。</text>
+        <text x="36" y="498" fill="#455A64" font-size="10">周/月报：独立轻量图（cron 唤醒 → 聚合查询 → LLM 摘要 → MinIO artifacts + notify.out），与每日循环解耦。</text>
       </svg>
     </div>
     <div class="q-box">📘 这张图是后续所有领域 Agent 的结构模板：<strong>intake → 分解 → 人工确认门 → 执行循环（可挂起）→ 条件自适应回路</strong>。StudyAgent/TravelAgent 在 M3/M4 按同构裁剪。</div>
