@@ -59,6 +59,7 @@
         <defs>
           <marker id="b1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#757575"/></marker>
           <marker id="b2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#F57F17"/></marker>
+          <marker id="b3" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#00897B"/></marker>
         </defs>
 
         <!-- 公网区 -->
@@ -137,6 +138,17 @@
         <!-- 连接 -->
         <line x1="480" y1="108" x2="190" y2="230" stroke="#F57F17" stroke-width="2" marker-end="url(#b2)"/>
         <text x="250" y="208" fill="#E65100" font-size="10">Tunnel（cloudflared 出站长连接，无入站端口）</text>
+
+        <!-- ingress→runtime→data 路由（均经 tailnet · ACL 端口白名单 · Pi5 非 Subnet Router） -->
+        <text x="350" y="259" text-anchor="middle" fill="#00695C" font-size="11" font-weight="700">①</text>
+        <line x1="328" y1="277" x2="372" y2="277" stroke="#00897B" stroke-width="2.4" marker-end="url(#b3)"/>
+        <text x="690" y="259" text-anchor="middle" fill="#00695C" font-size="11" font-weight="700">②</text>
+        <line x1="668" y1="277" x2="712" y2="277" stroke="#00897B" stroke-width="2.4" marker-end="url(#b3)"/>
+
+        <!-- 路由图例带 -->
+        <rect x="40" y="558" width="980" height="48" rx="8" fill="#E0F2F1" stroke="#00897B" stroke-width="1.2"/>
+        <text x="54" y="578" fill="#00695C" font-size="10.5" font-weight="700">ingress→runtime→data 路由（全程经 tailnet · ACL 端口白名单 · Pi5 作 ingress 非 Subnet Router，见 §3）：</text>
+        <text x="54" y="596" fill="#00695C" font-size="10">① chatui(Pi5) → agent-core(Mac Mini) :8000 SSE　　② agent-core/ingest-worker → PG(NAS):5432 · neo4j:7687 · minio:9000　—— Pi5 仅可达 agent-core 单端口，被攻破≠内网全穿透；M5 迁 K3s 后由 Ingress+NetworkPolicy 承接</text>
       </svg>
     </div>
   </section>
@@ -187,20 +199,25 @@
 
   <section>
     <h2>3. Tailscale ACL（声明式网络策略 · 配置即文档）</h2>
-    <pre>// tags: infra=Pi5/MacMini/NAS/VPS, admin=家长管理设备, member=家人日常设备, kid=小孩设备
+    <pre>// tags: infra=Mac Mini(runtime)/NAS/VPS, ingress=Pi5（公网入口，最小可达面）,
+//        admin=家长管理设备, member=家人日常设备, kid=小孩设备
 {
   "acls": [
-    // 基础设施互通：仅白名单端口（PG 5432、Redis 6379、AMQP 5672、S3 9000、MCP 8xxx…）
+    // 基础设施互通：仅白名单端口（PG 5432、Redis 6379、AMQP 5672、S3 9000、Neo4j 7474/7687、MCP 8xxx…）
     { "action": "accept", "src": ["tag:infra"], "dst": ["tag:infra:5432,6379,5672,9000,7474,7687,8000-8099"] },
+    // ingress 最小化（BUG-008）：公网入口 Pi5 仅可达 runtime 的 agent-core/mcp 端口，禁直达数据面端口
+    //   —— Pi5 被攻破时 blast radius 收敛到单端口，不能横向打穿 NAS 数据面或其余主机
+    { "action": "accept", "src": ["tag:ingress"], "dst": ["tag:infra:8000-8099"] },
     // 管理设备：可达全部管理面端口
-    { "action": "accept", "src": ["tag:admin"], "dst": ["tag:infra:*"] },
+    { "action": "accept", "src": ["tag:admin"], "dst": ["tag:infra:*", "tag:ingress:*"] },
     // 家人设备：仅应急直连 ChatUI/IdP（日常走公网域名）
-    { "action": "accept", "src": ["tag:member"], "dst": ["tag:infra:3000,8443"] }
+    { "action": "accept", "src": ["tag:member"], "dst": ["tag:ingress:3000", "tag:infra:8443"] }
     // kid 设备：无任何 tailnet 访问规则（默认拒绝）—— 只能走 CF 入口，受完整身份链约束
   ],
-  "ssh": [ { "action": "check", "src": ["tag:admin"], "dst": ["tag:infra"], "users": ["ops"] } ]
+  "ssh": [ { "action": "check", "src": ["tag:admin"], "dst": ["tag:infra", "tag:ingress"], "users": ["ops"] } ]
 }</pre>
     <div class="highlight-box">✅ 设计意图：ACL 文件进配置库，变更走 REQ —— 网络策略与代码同等对待（GitOps 纪律，为 M5 K3s NetworkPolicy 迁移预演）。</div>
+    <div class="danger-box"><strong>ingress→runtime 路由与 Subnet Router 风险（BUG-008）</strong>：Pi5（公网入口）与 Mac Mini（runtime）各自运行 <code>tailscaled</code> 作为独立 tailnet 节点，<code>chatui→agent-core:8000</code> 这一跳走上面的端口白名单规则；<strong>不使用 Tailscale Subnet Router</strong>——即不存在「Pi5 代理整个 192.168.110.0/24 家庭网段」的路径。因此即便面向公网的 Pi5 被攻破，攻击者经 tailnet 也只能触达 <code>tag:ingress → :8000-8099</code> 白名单端口，无法直达 NAS 数据面（PG/Neo4j/MinIO）或内网其余主机，blast radius 由 ACL 收敛。M5 迁 K3s 后该跳由 Ingress Controller + NetworkPolicy 承接，安全语义不变（对应部署图 §1 的 ① ② 连线）。</div>
   </section>
 
   <section>

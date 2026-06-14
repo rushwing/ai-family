@@ -38,8 +38,9 @@ linked_reqs: [REQ-002]
 
 **Tailscale 承载全部节点间流量（管理、DB、备份、MCP 内部调用）；Cloudflare Tunnel + Access 作为唯一公网入口，只发布 ChatUI（及后续 PWA）。**
 
-关键安全设计（详见 docs/design/02）：
-- Tailscale ACL：`tag:infra`（Pi5/NAS/VPS）互通受限端口白名单；`tag:client`（家人设备）只许达 ChatUI/IdP 端口；小孩设备 tag 不可达管理台
+关键安全设计（ACL 细节以 docs/design/02 §3 为准）：
+- Tailscale ACL：`tag:infra`（Mac Mini runtime / NAS / VPS）互通受限端口白名单；`tag:ingress`（Pi5 公网入口）**最小可达面**——仅可达 runtime 的 `agent-core/mcp:8000-8099`，禁直达数据面端口；`tag:member`（家人设备）只许达 ChatUI/IdP 端口；小孩设备 tag 不可达管理台
+- **ingress 非 Subnet Router**：Pi5 作为公网入口节点不承担 Tailscale Subnet Router 角色（不代理整个家庭网段）；ingress→runtime 仅是端口白名单的单跳。即便 Pi5 被攻破，blast radius 收敛到 `:8000-8099` 单端口，无法横向打穿 NAS 数据面或内网其余主机（BUG-008）
 - CF Access policy：仅允许家庭成员邮箱列表，会话时长 24h；Access JWT 在 ChatUI 侧二次校验（防 CF 配置失误直通）
 - 敏感面板（RabbitMQ 管理台、Langfuse、Neo4j Browser、IdP admin）**只在 Tailscale 内**，永不经 Tunnel 发布
 - VPS 防火墙：仅允许 Tailscale UDP 打洞与出站，SSH 仅监听 tailnet 地址
@@ -65,3 +66,4 @@ linked_reqs: [REQ-002]
 
 - [gemini-005][2026-06-14] 02 部署图显示 CF Tunnel 直连 Pi5(ingress) 但未画 Pi5→Mac Mini/K3s 集群的安全路由；若用 Subnet Router 需明确 ACL，否则 Pi5 被攻破 → 内网全穿透 → 已立 BUG-008（02 SVG 补 Tailscale 网段与 K3s ingress 交互连线，正文补 subnet-router ACL）。human-001 裁决：accept（2026-06-14, BUG-008）
 - [gemini-r2][2026-06-14] 再次：02 图示 CF Tunnel 直连 RPi，但未画 RPi→Mac Mini（K3s Ingress/外部 runtime）的路由，正文缺 Subnet Router ACL——强化 BUG-008（混合编排下尤其要明确 Pi5 作 ingress 到 Mac 的 ACL 最小化，防 Pi5 被攻破后内网全穿透）。human-001 裁决：accept（2026-06-14, 强化 BUG-008）
+- [claude-code-001][2026-06-14] BUG-008 已修复：02 §1 SVG 补 ① chatui(Pi5)→agent-core(Mac Mini)、② agent-core→PG/Neo4j/MinIO(NAS) 路由连线与图例；§3 ACL 拆出 `tag:ingress` 并加 ingress→runtime 端口收敛规则 + Subnet Router 风险说明；本 ADR Decision 补「ingress 非 Subnet Router、blast radius 收敛」。状态闭环 → BUG-008 resolved。
