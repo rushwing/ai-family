@@ -59,4 +59,4 @@ JWT claim 携带 `family_member_id` 与 `role`。宿主 Pi5（内存预算 ~1GB 
 
 ## Review Notes
 
-- [gemini-003/反驳][2026-06-14] 自建 Keycloak 列为“最可能后悔决策”之一：JVM 重、配置繁；家庭 6 人可用 Logto/Authelia/应用层 JWT+白名单 10 分钟搞定，为“企业级练习”拖慢核心 AI 开发。Claude：与本 ADR Trade-off“接受最高资源占用换企业特性全集 + 学习价值”是已知取舍；建议作为过度工程线（与 ADR-006）一并由 human 裁决是否降级。human-001 裁决：待定
+- [gemini-003/反驳][2026-06-14] 自建 Keycloak 列为“最可能后悔决策”之一：JVM 重、配置繁；家庭 6 人可用 Logto/Authelia/应用层 JWT+白名单 10 分钟搞定，为“企业级练习”拖慢核心 AI 开发。Claude：与本 ADR Trade-off“接受最高资源占用换企业特性全集 + 学习价值”是已知取舍；建议作为过度工程线（与 ADR-006）一并由 human 裁决是否降级。human-001 裁决：不降级，保留 Keycloak——前期为单用户调试，相关 infra 在调试稳定前已购入并部署完毕，不构成阻塞项

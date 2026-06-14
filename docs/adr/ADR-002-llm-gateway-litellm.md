@@ -65,5 +65,5 @@ linked_reqs: [REQ-002]
 
 ## Review Notes
 
-- [codex-004][2026-06-14] 网关作预算硬顶/key 唯一持有者但无强制机制：key 同步失败、计数延迟、网关宕机降级、Agent 直连禁令均无验证 → 已立 BUG-003（CI secret 扫描 + egress 限制 + fail-closed 定义 + 预算超限打真实网关 TC）。human-001 裁决：待定
-- [gemini-gap][2026-06-14] 【最大缺口】无成本熔断 / ReAct 死循环阻断：工具连环失败重试可一夜刷爆 API（比宕机更致命）。本 ADR 是天然落点 → 已立 REQ-007（token/金额硬熔断 + 循环步数上限），建议配套立 ADR-014。human-001 裁决：待定
+- [codex-004][2026-06-14] 网关作预算硬顶/key 唯一持有者但无强制机制：key 同步失败、计数延迟、网关宕机降级、Agent 直连禁令均无验证 → 已立 BUG-003（CI secret 扫描 + egress 限制 + fail-closed 定义 + 预算超限打真实网关 TC）。human-001 裁决：accept（2026-06-14, BUG-003）
+- [gemini-gap][2026-06-14] 【最大缺口】无成本熔断 / ReAct 死循环阻断：工具连环失败重试可一夜刷爆 API（比宕机更致命）。本 ADR 是天然落点 → 已立 REQ-007（token/金额硬熔断 + 循环步数上限），建议配套立 ADR-014。human-001 裁决：accept（2026-06-14）——支持 REQ-007，批准新立 ADR-014（成本熔断）

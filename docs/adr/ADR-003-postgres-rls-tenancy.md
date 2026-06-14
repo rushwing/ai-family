@@ -62,4 +62,4 @@ linked_reqs: [REQ-002, REQ-003]
 
 ## Review Notes
 
-- [codex-003][2026-06-14] RLS 仅覆盖正常应用查询，未覆盖 SECURITY DEFINER 函数 / 迁移脚本 / 后台 worker / 连接池复用 / admin 脚本绕过路径（生产事故常见入口）→ 已立 BUG-002（FORCE RLS + 迁移受限 role + worker 必设 member/shared scope + 默认禁 SECURITY DEFINER + CI 扫描新表 RLS）。human-001 裁决：待定
+- [codex-003][2026-06-14] RLS 仅覆盖正常应用查询，未覆盖 SECURITY DEFINER 函数 / 迁移脚本 / 后台 worker / 连接池复用 / admin 脚本绕过路径（生产事故常见入口）→ 已立 BUG-002（FORCE RLS + 迁移受限 role + worker 必设 member/shared scope + 默认禁 SECURITY DEFINER + CI 扫描新表 RLS）。human-001 裁决：accept（2026-06-14, BUG-002）

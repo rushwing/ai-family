@@ -62,6 +62,6 @@ linked_reqs: [REQ-003]
 
 ## Review Notes
 
-- [codex-002][2026-06-14] checkpoint ≠ 精确一次恢复：未定义幂等键/副作用去重，kill-retry 可能重复执行工具或重复发提醒 → 已立 BUG-001（idempotency_key + outbox + 去重 TC）。human-001 裁决：待定
-- [gemini-001][2026-06-14] agent-core(Mac) 与 PG checkpointer(NAS) 跨设备，ReAct 每步高频读写恐拖慢回复，建议 checkpointer 移 Mac 本地。Claude 校准：本 ADR Revisit Trigger 已含“p95 写入 > 500ms”，Gemini 称的“数秒”量级或高估（千兆 LAN 单写 ~1-5ms），建议 M1 实测后定 checkpointer 落点。human-001 裁决：待定
-- [gemini-反驳][2026-06-14] 强制反驳：LangGraph 过底层、需手写大量状态流转，Draft-First 快速验证不如高层框架（Dify/Coze）快 10×。Claude：与 P1“production 级”取舍冲突，reference.html 同源学习目标支撑原选择，记录待裁。human-001 裁决：待定
+- [codex-002][2026-06-14] checkpoint ≠ 精确一次恢复：未定义幂等键/副作用去重，kill-retry 可能重复执行工具或重复发提醒 → 已立 BUG-001（idempotency_key + outbox + 去重 TC）。human-001 裁决：accept（2026-06-14）
+- [gemini-001][2026-06-14] agent-core(Mac) 与 PG checkpointer(NAS) 跨设备，ReAct 每步高频读写恐拖慢回复，建议 checkpointer 移 Mac 本地。Claude 校准：本 ADR Revisit Trigger 已含“p95 写入 > 500ms”，Gemini 称的“数秒”量级或高估（千兆 LAN 单写 ~1-5ms），建议 M1 实测后定 checkpointer 落点。human-001 裁决：pending——M1 实测延迟后再决定是否纳入（checkpointer 落点）
+- [gemini-反驳][2026-06-14] 强制反驳：LangGraph 过底层、需手写大量状态流转，Draft-First 快速验证不如高层框架（Dify/Coze）快 10×。Claude：与 P1“production 级”取舍冲突，reference.html 同源学习目标支撑原选择，记录待裁。human-001 裁决：reject——已有 LangGraph 项目经验、学习成本不高；Dify/Coze 可扩展性明显偏低、不符要求，保留 LangGraph

@@ -31,7 +31,7 @@ linked_reqs: [REQ-002]
 ## Decision
 
 **Phase 1（M1–M4）：docker-compose 分栈**——`runtime-stack`（Mac Mini M4：agent-core/网关/IdP/MQ）、`edge-stack`（Pi5：ChatUI/ingress/MCP）与 `nas-stack`（数据层）；618 Mac Mini 到货前，runtime 与 edge 暂并在 Pi5 4GB 上跑开发初期切片。compose 文件即部署文档，进 infra 配置库。
-**Phase 2（M5）：Pi5 + Mac Mini M4 两节点迁 K3s**（Mac Mini 为主 worker）；NAS 数据层**不进集群**（数据库进 K8S 对家庭场景纯增风险），以 external service 接入。
+**Phase 2（M5）：混合编排**——**只有 Pi5 跑 K3s**（control-plane + 边缘/部分服务的轻量集群）；**Mac Mini 不进 K3s**，继续以 compose/launchd 跑 agent-core/LiteLLM/Keycloak 等主运行时，作为 K3s 的**外部 runtime 节点**接入；NAS 数据层同样**不进集群**，以 external service 接入。（macOS 无法作 K3s 原生节点、M4 上 Asahi 无成熟支持，故不强行让 Mac 入集群；Pi5 性能不足时升级 16GB。裁决 2026-06-14，见 Review Notes codex-001。）
 
 为降低迁移成本，Phase 1 即遵守的 K8S 友好纪律：
 - 全部配置经环境变量/挂载文件注入（12-factor），无容器内状态
@@ -53,10 +53,10 @@ linked_reqs: [REQ-002]
 ## Revisit Trigger
 
 - M4 结束后 30 天内未启动 M5（在 GoalAgent 里会触发逾期提醒，需 human-001 显式决定推迟或取消）
-- ~~Pi5 资源不足以同时跑 K3s 与全部运行时（届时 MacMini 加入为必选项）~~ → 已落实：Mac Mini M4（16GB）618 加入承载主运行时，K3s 阶段作主 worker 节点
+- ~~Pi5 资源不足以同时跑 K3s 与全部运行时（届时 MacMini 加入为必选项）~~ → 已落实：Mac Mini M4（16GB）618 加入承载主运行时（compose/launchd），**K3s 阶段作为外部 runtime 节点、不进集群**（混合编排，裁决 2026-06-14）；Pi5 性能不足时升级 16GB
 
 ## Review Notes
 
-- [codex-001][2026-06-14] Mac Mini M4 写成 K3s 主 worker 但未定 OS：K3s 不能把 macOS 当原生节点（M4 上 Asahi 亦无成熟支持），M5 第一步即不可执行 → 必须裁决 OS 方案：裸机 Linux / Linux VM / 不进 K3s 仅跑 compose；若 VM 补资源/网络/持久化/重启自愈。Claude：这是 02/ADR-009 写“Mac 为主 worker”时漏掉的硬问题（→ 触发本 ADR 修订）。human-001 裁决：待定
-- [codex-006][2026-06-14] M5 检查单漏 external NAS 数据层接缝：DNS/service discovery、tailnet 路由、PG TLS、备份任务、NetworkPolicy、故障切换 → 已立 BUG-004（补 external service runbook + TC）。human-001 裁决：待定
-- [gemini-反驳][2026-06-14] 强制反驳 + 最可能后悔：单/双节点引入 K3s（Service/Ingress/PVC）纯属无谓抽象，排障认知负载远超收益，违背“单人 = 最大单点”；模块化单体 + compose 才是最优。Claude：与本 ADR“M5 才上 K3s、数据层不进集群”部分对齐，但“是否需要 K3s”本身值得 human 重审。human-001 裁决：待定
+- [codex-001][2026-06-14] Mac Mini M4 写成 K3s 主 worker 但未定 OS：K3s 不能把 macOS 当原生节点（M4 上 Asahi 亦无成熟支持），M5 第一步即不可执行 → 必须裁决 OS 方案：裸机 Linux / Linux VM / 不进 K3s 仅跑 compose；若 VM 补资源/网络/持久化/重启自愈。Claude：这是 02/ADR-009 写“Mac 为主 worker”时漏掉的硬问题（→ 触发本 ADR 修订）。human-001 裁决：**Mac Mini 不进 K3s**——Pi5 跑 K3s/control-plane（轻量集群），Mac Mini 以 compose/launchd 跑 agent-core/LiteLLM/Keycloak 等主运行时，作为 K3s 的外部 runtime 节点；ADR 改为「混合编排」；Pi5 性能不足时升级 16GB。正文已据此修订
+- [codex-006][2026-06-14] M5 检查单漏 external NAS 数据层接缝：DNS/service discovery、tailnet 路由、PG TLS、备份任务、NetworkPolicy、故障切换 → 已立 BUG-004（补 external service runbook + TC）。human-001 裁决：accept（2026-06-14, BUG-004）
+- [gemini-反驳][2026-06-14] 强制反驳 + 最可能后悔：单/双节点引入 K3s（Service/Ingress/PVC）纯属无谓抽象，排障认知负载远超收益，违背“单人 = 最大单点”；模块化单体 + compose 才是最优。Claude：与本 ADR“M5 才上 K3s、数据层不进集群”部分对齐，但“是否需要 K3s”本身值得 human 重审。human-001 裁决：同 codex-001——采「混合编排」：K3s 仅在 Pi5/边缘，Mac runtime 与数据层不进集群（不在双节点上堆全套 K8s 抽象）
