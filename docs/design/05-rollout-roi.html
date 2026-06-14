@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 05 — Rollout 计划与 ROI</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html" class="cur">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+  </div>
+
+  <div class="page-header">
+    <h1>05 — Rollout 计划与 ROI</h1>
+    <p class="subtitle">里程碑时间线、每 Agent 的 shadow→draft→assisted 放量节奏（承自 reference 的 rollout playbook）、token 最大化利用策略、成本核算与 ROI。节奏单位是"周末档"（工作日有限投入 + 周末主力推进）。</p>
+  </div>
+
+  <section>
+    <h2>1. 里程碑时间线</h2>
+    <div class="diagram-wrap">
+      <svg width="1060" height="300" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs><marker id="f1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#3F51B5"/></marker></defs>
+        <line x1="40" y1="150" x2="1030" y2="150" stroke="#3F51B5" stroke-width="2.5" marker-end="url(#f1)"/>
+
+        <!-- M0 -->
+        <circle cx="90" cy="150" r="7" fill="#C62828"/>
+        <rect x="30" y="60" width="160" height="70" rx="8" fill="#FFEBEE" stroke="#C62828"/>
+        <text x="110" y="82" text-anchor="middle" fill="#C62828" font-size="11" font-weight="700">M0 · 设计定稿</text>
+        <text x="110" y="100" text-anchor="middle" fill="#B71C1C" font-size="9">本设计稿 + 双评审闭环</text>
+        <text x="110" y="115" text-anchor="middle" fill="#B71C1C" font-size="9">REQ-001 · ~2 周末</text>
+
+        <!-- M1 -->
+        <circle cx="260" cy="150" r="7" fill="#E65100"/>
+        <rect x="190" y="170" width="170" height="86" rx="8" fill="#FFF3E0" stroke="#E65100"/>
+        <text x="275" y="192" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">M1 · 基座+GoalAgent ★</text>
+        <text x="275" y="210" text-anchor="middle" fill="#BF360C" font-size="9">REQ-002 基座最小集</text>
+        <text x="275" y="225" text-anchor="middle" fill="#BF360C" font-size="9">REQ-003 垂直切片+ChatUI v0</text>
+        <text x="275" y="240" text-anchor="middle" fill="#BF360C" font-size="9">dogfooding 开始 · ~6 周末</text>
+
+        <!-- M2 -->
+        <circle cx="450" cy="150" r="7" fill="#F9A825"/>
+        <rect x="380" y="60" width="160" height="70" rx="8" fill="#FFF8E1" stroke="#F9A825"/>
+        <text x="460" y="82" text-anchor="middle" fill="#F57F17" font-size="11" font-weight="700">M2 · 编排与治理</text>
+        <text x="460" y="100" text-anchor="middle" fill="#5D4037" font-size="9">IntentRouter + Planner</text>
+        <text x="460" y="115" text-anchor="middle" fill="#5D4037" font-size="9">Research + Compliance v0 · ~4 周末</text>
+
+        <!-- M3 -->
+        <circle cx="630" cy="150" r="7" fill="#2E7D32"/>
+        <rect x="560" y="170" width="160" height="86" rx="8" fill="#E8F5E9" stroke="#2E7D32"/>
+        <text x="640" y="192" text-anchor="middle" fill="#2E7D32" font-size="11" font-weight="700">M3 · 知识与学习</text>
+        <text x="640" y="210" text-anchor="middle" fill="#1B5E20" font-size="9">摄取管线 + pgvector + Neo4j</text>
+        <text x="640" y="225" text-anchor="middle" fill="#1B5E20" font-size="9">KnowledgeAgent + StudyAgent</text>
+        <text x="640" y="240" text-anchor="middle" fill="#1B5E20" font-size="9">kid 上线（全量审查）· ~6 周末</text>
+
+        <!-- M4 -->
+        <circle cx="810" cy="150" r="7" fill="#1565C0"/>
+        <rect x="740" y="60" width="160" height="70" rx="8" fill="#E3F2FD" stroke="#1565C0"/>
+        <text x="820" y="82" text-anchor="middle" fill="#1565C0" font-size="11" font-weight="700">M4 · 领域补全</text>
+        <text x="820" y="100" text-anchor="middle" fill="#0D47A1" font-size="9">Travel + Data + Stock</text>
+        <text x="820" y="115" text-anchor="middle" fill="#0D47A1" font-size="9">OpenClaw 通道接入 · ~6 周末</text>
+
+        <!-- M5 -->
+        <circle cx="970" cy="150" r="7" fill="#6A1B9A"/>
+        <rect x="900" y="170" width="150" height="70" rx="8" fill="#EDE7F6" stroke="#6A1B9A"/>
+        <text x="975" y="192" text-anchor="middle" fill="#6A1B9A" font-size="11" font-weight="700">M5 · K3s 迁移</text>
+        <text x="975" y="210" text-anchor="middle" fill="#4A148C" font-size="9">Helm 化 + 容灾演练</text>
+        <text x="975" y="225" text-anchor="middle" fill="#4A148C" font-size="9">~4 周末</text>
+
+        <text x="530" y="285" text-anchor="middle" fill="#888" font-size="10">原则：每个里程碑结束 = 一个家庭成员可感知的新能力上线 + 一次设计稿回写（变更走 ADR/REQ）。粗估总计 ~28 个周末档 ≈ 7–9 个月。</text>
+      </svg>
+    </div>
+    <div class="warn-box">⚠️ 进度风险的结构性对策：里程碑录入 GoalAgent（M1 后），逾期由 GoalAgent 周报暴露给自己——用系统自己管理系统的开发（dogfooding 的真实价值）。M4 后 30 天未启动 M5 触发 ADR-009 的显式裁决。</div>
+  </section>
+
+  <section>
+    <h2>2. 每 Agent 放量节奏（承自 reference 的 shadow → draft → assisted）</h2>
+    <table>
+      <tr><th style="width:110px">Agent</th><th>Shadow（只建议）</th><th>Draft（草稿+确认）</th><th>Assisted（低风险自动）</th><th style="width:170px">晋级度量（参考 reference 在线指标）</th></tr>
+      <tr><td>GoalAgent</td><td>M1：计划建议生成，人工录入</td><td>M1 末：计划/打卡写库走确认</td><td>M2：例行打卡提醒、报表自动生成</td><td>草稿采纳率 ≥70%；打卡留存 ≥4 周</td></tr>
+      <tr><td>StudyAgent</td><td>M3：解答仅家长可见试运行 2 周</td><td>M3：kid 可用，引导模式默认</td><td>不晋级——kid 场景永远保留输出审查</td><td>家长抽查满意率；拦截误报率 &lt;5%</td></tr>
+      <tr><td>TravelAgent</td><td>M4：攻略汇总只读</td><td>M4：行程草稿+确认</td><td>收藏夹整理类</td><td>行程草稿被实际采用 ≥1 次/季</td></tr>
+      <tr><td>StockAgent</td><td>M4：研究备忘录 only（长期停留）</td><td>仓位调整建议书</td><td>永不（下单类动作永久排除）</td><td>建议与实际决策的复盘一致性</td></tr>
+      <tr><td>Research/Knowledge/Data</td><td colspan="3">read-only 域，直接 assisted（无写风险），质量由 eval TC 守护</td><td>检索 top-5 命中 ≥80%</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. Token 最大化利用策略（订阅 + 按量的分工）</h2>
+    <table>
+      <tr><th style="width:200px">资源</th><th>用途分工</th><th>纪律</th></tr>
+      <tr><td><strong>Claude Code Pro</strong>（5h 窗口刷新）</td><td>开发主力：实现 REQ、写测试、重构。</td><td>窗口期开始前在 GoalAgent/REQ 里备好"本窗口任务批次"（设计已定稿的实现类任务优先），避免窗口内做发散探索；探索/调研类丢给 Gemini/Codex 预处理</td></tr>
+      <tr><td><strong>Codex Plus</strong></td><td>架构/代码评审（req_review、req_impl_review 状态的 owner 之一）；设计稿挑战者</td><td>评审产出按 harness §5 回流（BUG/REQ/ADR Review Notes），不直接改稿</td></tr>
+      <tr><td><strong>Gemini 家庭版</strong></td><td>第二评审视角；长文档/多模态预处理（如把教材截图整理成文本再入库）</td><td>同上</td></tr>
+      <tr><td><strong>DeepSeek V4 / Kimi（按量）</strong></td><td><strong>运行时主力</strong>：ReAct 循环、意图分类、LLM-judge、嵌入</td><td>经 LiteLLM 三档路由；prompt 静态段前置吃缓存；摄取去重避免重复嵌入</td></tr>
+      <tr><td><strong>Claude API（按量）</strong></td><td>运行时高档：Planner 复杂分解、StudyAgent 深度讲解、StockAgent 推理</td><td>仅高档场景路由；月预算上限在 LiteLLM 硬性设置</td></tr>
+      <tr><td><strong>Claude Design（credits）</strong></td><td>前端设计稿 = scope 边界产出（P7）</td><td>每屏设计稿冻结后才进开发队列，防止 UI 反复横跳烧 credits 和开发档期</td></tr>
+    </table>
+    <div class="highlight-box">✅ 结构性省钱三板斧（承自 reference 性能成本章）：① 模型分档路由（80% 请求走低中档）；② prompt 静态段缓存 + 检索 top-k 从 3 起步；③ 报表/摄取/图谱抽取全部异步批处理，绝不实时。Langfuse 月度成本报表回灌本表修正档位。</div>
+  </section>
+
+  <section>
+    <h2>4. 成本核算（月度，估算 → 上线后以 Langfuse/账单实测替换）</h2>
+    <table>
+      <tr><th>项目</th><th style="width:140px">月成本（估）</th><th>说明</th></tr>
+      <tr><td>电费（Pi5 ~7W + NAS ~30W + Mac Mini M4 ~10W 常载）</td><td>¥30–45</td><td>24×7；Mac Mini M4 618 加入后并入</td></tr>
+      <tr><td>域名 + Cloudflare 免费档 + Tailscale 免费档</td><td>≈¥10</td><td>域名年费摊销</td></tr>
+      <tr><td>VPS（备份 + 拨测，最低配即可）</td><td>¥15–30</td><td>或换 R2/B2 对象存储（ADR-011 反悔条件）</td></tr>
+      <tr><td>运行时 token（DeepSeek/Kimi 为主）</td><td>¥30–80</td><td>家庭日常使用量级；LiteLLM 预算硬顶 ¥150/月</td></tr>
+      <tr><td>Claude API 高档（按量）</td><td>¥20–50</td><td>仅高档路由；预算硬顶</td></tr>
+      <tr><td>已有订阅（Claude Pro/Codex/Gemini）</td><td>沉没成本</td><td>不计增量——本项目目标之一就是榨干其价值</td></tr>
+      <tr><td>一次性：Mac Mini M4（16GB+256GB）</td><td>≈¥3000（618 一次性）</td><td>已定 618 入手，作主运行时节点（02 §6 R1 的分流落点）+ OpenClaw 宿主；618 前以 Pi5 4GB + NAS 跑开发初期切片</td></tr>
+      <tr><th>合计（运行成本）</th><th>≈ ¥95–200/月</th><th>对照：全家商业 AI 订阅（多账号）≈ ¥300–600/月</th></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>5. ROI（双账本：家庭价值 + 学习价值）</h2>
+    <h3>5.1 家庭账本（reference 的 "hours saved" 框架）</h3>
+    <ul>
+      <li><strong>日程/目标管理</strong>：家长协调全家计划 ~2h/周 → GoalAgent 自动跟踪+报表，估省 1h/周</li>
+      <li><strong>学习辅导</strong>：作业答疑陪伴 ~5h/周 → StudyAgent 承接基础答疑（引导模式），估省 2–3h/周且质量更稳定</li>
+      <li><strong>旅行规划</strong>：每次出行收集攻略 ~8h → TravelAgent 收敛到 2–3h 确认型工作</li>
+      <li><strong>投研整理</strong>：盘后信息收集 ~3h/周 → StockAgent 备忘录化，估省 2h/周</li>
+      <li>量化锚点（上线后用真实数据替换）：≈ <strong>6–8 h/周</strong> 家庭时间回收，对照月成本 ¥95–200——按任何时薪折算都显著为正</li>
+    </ul>
+    <h3>5.2 学习账本（本项目的第二回报，与金钱无关但显式记账）</h3>
+    <ul>
+      <li>production 技能清单：LangGraph 长程编排 / MCP 工具治理 / OIDC+RLS 端到端租户隔离 / 混合检索与 eval / GraphRAG-lite / 零信任家庭网络 / K3s 迁移 / LLM 成本工程</li>
+      <li>方法论样本：FDE 式垂直切片落地、ADR 决策留痕、shadow→draft→assisted 放量、harness 人机协作——每一项都有本项目的真实案例可复述（面试/分享可用）</li>
+      <li>验收方式：每个里程碑结束写一篇复盘（存 KnowledgeAgent），M5 后输出一份"家庭版 → 企业版"差异分析作为学习闭环</li>
+    </ul>
+    <h3>5.3 风险登记（ROI 的负面清单）</h3>
+    <table>
+      <tr><th style="width:60px">编号</th><th>风险</th><th>对策（已在设计中落位）</th></tr>
+      <tr><td>R1</td><td>Pi5 仅 4GB，扛不住整套运行时（NAS 16GB 实测宽松，原"NAS 内存不足"已消解）</td><td>主运行时随 618 到货的 Mac Mini M4（16GB）落位，Pi5 降为轻量接入节点；618 前常驻进程少可暂撑（02 §6）</td></tr>
+      <tr><td>R2</td><td>个人时间投入中断导致烂尾</td><td>垂直切片保证每阶段都有可用产出；M1 后系统已自我管理进度</td></tr>
+      <tr><td>R3</td><td>家人不用（产品风险）</td><td>每里程碑以"家人可感知能力"验收；ChatUI 体验由 Claude Design 把关；Telegram 通道降低使用门槛</td></tr>
+      <tr><td>R4</td><td>kid 安全事故（最高声誉风险）</td><td>StudyAgent 上线前 shadow 2 周 + 永久输出审查 + 家长可见审计（03 §4）</td></tr>
+      <tr><td>R5</td><td>token 成本失控</td><td>LiteLLM 硬顶 + Langfuse 月报 + 三板斧（§3）</td></tr>
+    </table>
+  </section>
+
+</div>
+</body>
+</html>

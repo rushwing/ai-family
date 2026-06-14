@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 02 — 部署与网络安全设计</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    pre { background: #1E272E; color: #DFE6E9; padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.65; margin: 14px 0; font-family: 'Cascadia Code', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+    .danger-box { background: #FFEBEE; border-left: 4px solid #C62828; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #B71C1C; line-height: 1.7; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html" class="cur">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html">07 仓库与代码治理</a>
+  </div>
+
+  <div class="page-header">
+    <h1>02 — 部署与网络安全设计</h1>
+    <p class="subtitle">物理部署图（Phase 1 docker-compose 形态）、内外网穿透与信任边界、Tailscale ACL、威胁面分析、密钥管理、资源预算。决策依据：<a href="../adr/ADR-007-tailscale-cloudflare.md">ADR-007</a> / <a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a> / <a href="../adr/ADR-011-nas-storage-minio.md">ADR-011</a>。</p>
+  </div>
+
+  <section>
+    <h2>1. 物理部署图（Phase 1 · Pi5+NAS 起步，618 Mac Mini M4 接管主运行时）</h2>
+    <div class="diagram-wrap">
+      <svg width="1060" height="760" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs>
+          <marker id="b1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#757575"/></marker>
+          <marker id="b2" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#F57F17"/></marker>
+        </defs>
+
+        <!-- 公网区 -->
+        <rect x="20" y="16" width="1020" height="110" rx="10" fill="#FFF" stroke="#90A4AE" stroke-dasharray="6 4" stroke-width="1.5"/>
+        <text x="36" y="38" fill="#607D8B" font-weight="700" font-size="11">公网（Internet）</text>
+        <rect x="50" y="52" width="230" height="56" rx="8" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5"/>
+        <text x="165" y="74" text-anchor="middle" fill="#1565C0" font-size="11" font-weight="700">家人终端（外出时）</text>
+        <text x="165" y="92" text-anchor="middle" fill="#1565C0" font-size="9.5">浏览器 → https://chat.家庭域名</text>
+        <rect x="330" y="52" width="300" height="56" rx="8" fill="#FFF3E0" stroke="#E65100" stroke-width="1.5"/>
+        <text x="480" y="74" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">Cloudflare Edge</text>
+        <text x="480" y="92" text-anchor="middle" fill="#E65100" font-size="9.5">DNS · TLS · WAF · Access(OIDC 认证门) · Tunnel 接续点</text>
+        <rect x="680" y="52" width="330" height="56" rx="8" fill="#ECEFF1" stroke="#607D8B" stroke-width="1.5"/>
+        <text x="845" y="74" text-anchor="middle" fill="#455A64" font-size="11" font-weight="700">云端模型 API（数据出网的唯一边界）</text>
+        <text x="845" y="92" text-anchor="middle" fill="#455A64" font-size="9.5">DeepSeek · Moonshot/Kimi · Anthropic · 行情/地图 API</text>
+        <line x1="280" y1="80" x2="330" y2="80" stroke="#757575" stroke-width="1.8" marker-end="url(#b1)"/>
+
+        <!-- Tailscale overlay 横贯 -->
+        <rect x="20" y="146" width="1020" height="36" rx="8" fill="#FFF8E1" stroke="#F57F17" stroke-width="1.5"/>
+        <text x="530" y="169" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">Tailscale tailnet（WireGuard mesh · 所有节点间流量唯一通道 · ACL 见 §3 · 零公网入站端口）</text>
+
+        <!-- 家庭局域网 -->
+        <rect x="20" y="196" width="1020" height="404" rx="10" fill="#F1F8E9" stroke="#558B2F" stroke-width="1.5"/>
+        <text x="36" y="216" fill="#33691E" font-weight="700" font-size="11">家庭局域网（网关 192.168.110.1 · DX4600 固定 IP 192.168.110.54）</text>
+
+        <!-- Pi5 -->
+        <rect x="40" y="230" width="300" height="200" rx="8" fill="#FFF" stroke="#2E7D32" stroke-width="1.5"/>
+        <text x="190" y="252" text-anchor="middle" fill="#2E7D32" font-size="12" font-weight="700">树莓派5（4GB · 512G SSD）— 轻量接入节点</text>
+        <rect x="52" y="264" width="276" height="26" rx="5" fill="#2E7D32"/><text x="190" y="281" text-anchor="middle" fill="#fff" font-size="10">chatui（NextJS · 公网入口 UI）</text>
+        <rect x="52" y="296" width="276" height="26" rx="5" fill="#6A1B9A"/><text x="190" y="313" text-anchor="middle" fill="#fff" font-size="10">mcp-gateway + goal-mcp（M1）… 各域 mcp</text>
+        <rect x="52" y="328" width="276" height="26" rx="5" fill="#E65100"/><text x="190" y="345" text-anchor="middle" fill="#fff" font-size="10">cloudflared（Tunnel 出站）· tailscaled</text>
+        <rect x="52" y="360" width="276" height="26" rx="5" fill="#90A4AE"/><text x="190" y="377" text-anchor="middle" fill="#fff" font-size="10">node-exporter · cadvisor</text>
+        <text x="190" y="408" text-anchor="middle" fill="#666" font-size="9.5">内存 ≈1.5GB / 4GB（618 前临时兼任 agent-core 跑切片）</text>
+
+        <!-- Mac Mini M4（主运行时） -->
+        <rect x="360" y="230" width="320" height="318" rx="8" fill="#FFF" stroke="#7B1FA2" stroke-width="1.8"/>
+        <text x="520" y="252" text-anchor="middle" fill="#7B1FA2" font-size="12" font-weight="700">Mac Mini M4（16GB · 618 加入）— 主运行时节点</text>
+        <rect x="372" y="264" width="296" height="26" rx="5" fill="#2E7D32"/><text x="520" y="281" text-anchor="middle" fill="#fff" font-size="10">agent-core（LangGraph 全部图 + SSE API）</text>
+        <rect x="372" y="296" width="296" height="26" rx="5" fill="#455A64"/><text x="520" y="313" text-anchor="middle" fill="#fff" font-size="10">litellm（LLM 网关 · 厂商 key 唯一持有者）</text>
+        <rect x="372" y="328" width="296" height="26" rx="5" fill="#C62828"/><text x="520" y="345" text-anchor="middle" fill="#fff" font-size="10">keycloak（OIDC IdP）</text>
+        <rect x="372" y="360" width="142" height="26" rx="5" fill="#00695C"/><text x="443" y="377" text-anchor="middle" fill="#fff" font-size="10">redis</text>
+        <rect x="526" y="360" width="142" height="26" rx="5" fill="#00695C"/><text x="597" y="377" text-anchor="middle" fill="#fff" font-size="10">rabbitmq</text>
+        <rect x="372" y="392" width="296" height="26" rx="5" fill="#7B1FA2"/><text x="520" y="409" text-anchor="middle" fill="#fff" font-size="10">OpenClaw（web-search/日历/邮件 skills）</text>
+        <rect x="372" y="424" width="296" height="26" rx="5" fill="#8E24AA"/><text x="520" y="441" text-anchor="middle" fill="#fff" font-size="10">openclaw-mcp 桥（untrusted 工具组）</text>
+        <rect x="372" y="456" width="296" height="26" rx="5" fill="#AB47BC"/><text x="520" y="473" text-anchor="middle" fill="#fff" font-size="10">本地嵌入（BGE-M3 · M4 可选）· 重摄取任务</text>
+        <rect x="372" y="488" width="296" height="26" rx="5" fill="#E65100"/><text x="520" y="505" text-anchor="middle" fill="#fff" font-size="10">tailscaled</text>
+        <text x="520" y="536" text-anchor="middle" fill="#666" font-size="9.5">内存 ≈3.8GB / 16GB ✅ · 接管原 Pi5 重载 + OpenClaw 宿主</text>
+
+        <!-- NAS -->
+        <rect x="700" y="230" width="320" height="318" rx="8" fill="#FFF" stroke="#004D40" stroke-width="1.5"/>
+        <text x="860" y="252" text-anchor="middle" fill="#004D40" font-size="12" font-weight="700">绿联 NAS DX4600（N5105 · 16GB）— 数据节点</text>
+        <rect x="712" y="264" width="296" height="26" rx="5" fill="#004D40"/><text x="860" y="281" text-anchor="middle" fill="#fff" font-size="10">postgres16 + pgvector + zhparser</text>
+        <rect x="712" y="296" width="296" height="26" rx="5" fill="#004D40"/><text x="860" y="313" text-anchor="middle" fill="#fff" font-size="10">neo4j（家庭知识图谱）</text>
+        <rect x="712" y="328" width="296" height="26" rx="5" fill="#004D40"/><text x="860" y="345" text-anchor="middle" fill="#fff" font-size="10">minio（S3：member-*/library-inbox/artifacts/backups）</text>
+        <rect x="712" y="360" width="296" height="26" rx="5" fill="#37474F"/><text x="860" y="377" text-anchor="middle" fill="#fff" font-size="10">langfuse v3（+clickhouse）· grafana/prometheus/loki</text>
+        <rect x="712" y="392" width="296" height="26" rx="5" fill="#37474F"/><text x="860" y="409" text-anchor="middle" fill="#fff" font-size="10">ingest-worker（解析/嵌入/图谱抽取消费者）</text>
+        <rect x="712" y="424" width="296" height="26" rx="5" fill="#37474F"/><text x="860" y="441" text-anchor="middle" fill="#fff" font-size="10">registry:2（私有镜像库）· pgbackrest/restic</text>
+        <rect x="712" y="456" width="296" height="26" rx="5" fill="#26A69A"/><text x="860" y="473" text-anchor="middle" fill="#fff" font-size="10">SMB 共享：媒体库（平台只读挂载）</text>
+        <rect x="712" y="488" width="296" height="26" rx="5" fill="#E65100"/><text x="860" y="505" text-anchor="middle" fill="#fff" font-size="10">tailscaled</text>
+        <text x="860" y="536" text-anchor="middle" fill="#666" font-size="9.5">⚠ 绿联系统不可控：数据全可从备份重建 · ≈6.1GB / 16GB ✅</text>
+
+        <!-- VPS -->
+        <rect x="40" y="616" width="470" height="124" rx="10" fill="#FFF" stroke="#1565C0" stroke-width="1.5"/>
+        <text x="275" y="638" text-anchor="middle" fill="#1565C0" font-size="12" font-weight="700">云 VPS（小额 · 异地容灾）</text>
+        <rect x="56" y="650" width="438" height="24" rx="5" fill="#1565C0"/><text x="275" y="667" text-anchor="middle" fill="#fff" font-size="10">restic 仓库（PG/MinIO/Neo4j 加密备份 · append-only）</text>
+        <rect x="56" y="680" width="438" height="24" rx="5" fill="#1976D2"/><text x="275" y="697" text-anchor="middle" fill="#fff" font-size="10">uptime-kuma（外部视角拨测）</text>
+        <rect x="56" y="710" width="438" height="24" rx="5" fill="#E65100"/><text x="275" y="727" text-anchor="middle" fill="#fff" font-size="10">tailscaled（SSH 仅 tailnet）· 防火墙 deny-all 入站</text>
+
+        <!-- 说明 -->
+        <rect x="540" y="616" width="500" height="124" rx="10" fill="#ECEFF1"/>
+        <text x="560" y="640" fill="#455A64" font-size="10.5">· 家庭终端日常走 chat.家庭域名（经 CF Tunnel）；</text>
+        <text x="560" y="660" fill="#455A64" font-size="10.5">  管理面（Grafana/RabbitMQ/Neo4j Browser/Keycloak admin/</text>
+        <text x="560" y="678" fill="#455A64" font-size="10.5">  Langfuse/MinIO console）仅 tailnet ACL 内可达。</text>
+        <text x="560" y="702" fill="#455A64" font-size="10.5">· 阶段：现以 Pi5(4GB)+NAS 跑开发初期切片；618 Mac Mini</text>
+        <text x="560" y="720" fill="#455A64" font-size="10.5">  M4 到货后接管主运行时，Pi5 降为轻量接入/边缘节点。</text>
+
+        <!-- 连接 -->
+        <line x1="480" y1="108" x2="190" y2="230" stroke="#F57F17" stroke-width="2" marker-end="url(#b2)"/>
+        <text x="250" y="208" fill="#E65100" font-size="10">Tunnel（cloudflared 出站长连接，无入站端口）</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 内外网穿透与信任边界（流量视图）</h2>
+    <div class="diagram-wrap">
+      <svg width="1060" height="300" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs><marker id="c1" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#555"/></marker></defs>
+        <!-- 区块 -->
+        <rect x="20" y="40" width="150" height="60" rx="8" fill="#E3F2FD" stroke="#1565C0" stroke-width="1.5"/>
+        <text x="95" y="66" text-anchor="middle" fill="#1565C0" font-size="11" font-weight="700">浏览器</text>
+        <text x="95" y="84" text-anchor="middle" fill="#1565C0" font-size="9">家人（任意网络）</text>
+
+        <rect x="230" y="20" width="200" height="100" rx="8" fill="#FFF3E0" stroke="#E65100" stroke-width="1.5"/>
+        <text x="330" y="44" text-anchor="middle" fill="#E65100" font-size="11" font-weight="700">信任边界 1 · CF Edge</text>
+        <text x="330" y="64" text-anchor="middle" fill="#E65100" font-size="9.5">① WAF/限速</text>
+        <text x="330" y="80" text-anchor="middle" fill="#E65100" font-size="9.5">② Access：OIDC 登录（家庭邮箱白名单）</text>
+        <text x="330" y="96" text-anchor="middle" fill="#E65100" font-size="9.5">③ 签发 Access JWT</text>
+
+        <rect x="490" y="20" width="230" height="100" rx="8" fill="#E8F5E9" stroke="#2E7D32" stroke-width="1.5"/>
+        <text x="605" y="44" text-anchor="middle" fill="#2E7D32" font-size="11" font-weight="700">信任边界 2 · ChatUI（Pi5）</text>
+        <text x="605" y="64" text-anchor="middle" fill="#2E7D32" font-size="9.5">④ 校验 Access JWT（防 CF 配置失误）</text>
+        <text x="605" y="80" text-anchor="middle" fill="#2E7D32" font-size="9.5">⑤ Keycloak OIDC code+PKCE 会话</text>
+        <text x="605" y="96" text-anchor="middle" fill="#2E7D32" font-size="9.5">⑥ 业务 JWT（sub/role/allowed_tools）</text>
+
+        <rect x="780" y="20" width="260" height="100" rx="8" fill="#EDE7F6" stroke="#6A1B9A" stroke-width="1.5"/>
+        <text x="910" y="44" text-anchor="middle" fill="#6A1B9A" font-size="11" font-weight="700">信任边界 3 · 工具与数据</text>
+        <text x="910" y="64" text-anchor="middle" fill="#6A1B9A" font-size="9.5">⑦ MCP 网关验签 + 白名单 + 审计</text>
+        <text x="910" y="80" text-anchor="middle" fill="#6A1B9A" font-size="9.5">⑧ 工具侧鉴权（不信 Agent 参数）</text>
+        <text x="910" y="96" text-anchor="middle" fill="#6A1B9A" font-size="9.5">⑨ PG RLS 行级兜底</text>
+
+        <line x1="170" y1="70" x2="230" y2="70" stroke="#555" stroke-width="1.8" marker-end="url(#c1)"/>
+        <line x1="430" y1="70" x2="490" y2="70" stroke="#555" stroke-width="1.8" marker-end="url(#c1)"/>
+        <text x="460" y="58" text-anchor="middle" fill="#888" font-size="9">Tunnel</text>
+        <line x1="720" y1="70" x2="780" y2="70" stroke="#555" stroke-width="1.8" marker-end="url(#c1)"/>
+        <text x="750" y="58" text-anchor="middle" fill="#888" font-size="9">tailnet</text>
+
+        <rect x="20" y="160" width="1020" height="120" rx="8" fill="#FFEBEE" stroke="#C62828" stroke-width="1.2"/>
+        <text x="36" y="184" fill="#C62828" font-size="11" font-weight="700">不变量（任何变更不得破坏）</text>
+        <text x="36" y="208" fill="#B71C1C" font-size="10.5">I1 家庭局域网与 VPS 无任何公网入站端口；唯一入口是 CF Tunnel 的出站长连接。</text>
+        <text x="36" y="228" fill="#B71C1C" font-size="10.5">I2 管理面（Keycloak admin / Grafana / Langfuse / RabbitMQ / Neo4j Browser / MinIO console）永不经 Tunnel 发布，仅 tailnet ACL 内可达。</text>
+        <text x="36" y="248" fill="#B71C1C" font-size="10.5">I3 厂商 API key 仅存在于 litellm；DB 凭证仅存在于持有该数据面的服务；Agent 进程内无任何长期凭证（只有用户 JWT 短时透传）。</text>
+        <text x="36" y="268" fill="#B71C1C" font-size="10.5">I4 出网白名单：只允许 LLM/行情/地图 API 域名与 CF/Tailscale 控制面；其余出站默认拒绝（防 exfiltration，等价 VPC-SC 思想）。</text>
+      </svg>
+    </div>
+  </section>
+
+  <section>
+    <h2>3. Tailscale ACL（声明式网络策略 · 配置即文档）</h2>
+    <pre>// tags: infra=Pi5/MacMini/NAS/VPS, admin=家长管理设备, member=家人日常设备, kid=小孩设备
+{
+  "acls": [
+    // 基础设施互通：仅白名单端口（PG 5432、Redis 6379、AMQP 5672、S3 9000、MCP 8xxx…）
+    { "action": "accept", "src": ["tag:infra"], "dst": ["tag:infra:5432,6379,5672,9000,7474,7687,8000-8099"] },
+    // 管理设备：可达全部管理面端口
+    { "action": "accept", "src": ["tag:admin"], "dst": ["tag:infra:*"] },
+    // 家人设备：仅应急直连 ChatUI/IdP（日常走公网域名）
+    { "action": "accept", "src": ["tag:member"], "dst": ["tag:infra:3000,8443"] }
+    // kid 设备：无任何 tailnet 访问规则（默认拒绝）—— 只能走 CF 入口，受完整身份链约束
+  ],
+  "ssh": [ { "action": "check", "src": ["tag:admin"], "dst": ["tag:infra"], "users": ["ops"] } ]
+}</pre>
+    <div class="highlight-box">✅ 设计意图：ACL 文件进配置库，变更走 REQ —— 网络策略与代码同等对待（GitOps 纪律，为 M5 K3s NetworkPolicy 迁移预演）。</div>
+  </section>
+
+  <section>
+    <h2>4. 威胁面分析（家庭场景的现实排序）</h2>
+    <table>
+      <tr><th style="width:230px">威胁</th><th>缓解措施</th><th style="width:110px">残余风险</th></tr>
+      <tr><td>公网扫描 / 漏洞利用</td><td>零入站端口（I1）；CF WAF；服务监听 tailnet/localhost</td><td>低</td></tr>
+      <tr><td>ChatUI 认证绕过</td><td>CF Access 前置 + ChatUI 二次验签（边界 2 双保险）；Keycloak PKCE</td><td>低</td></tr>
+      <tr><td>提示注入（检索文档/网页/邮件内容夹带指令）</td><td>untrusted 内容定界 + Compliance 输入扫描；openclaw-*/第三方工具输出强制标记 untrusted（<a href="../adr/ADR-010-mcp-tool-architecture.md">ADR-010</a>）；写动作 Draft-First 兜底——即使注入成功也无法直接执行</td><td><strong>中</strong>（LLM 固有）</td></tr>
+      <tr><td>越权访问他人数据（应用 bug）</td><td>工具侧鉴权 + PG RLS 双层（边界 3）；跨成员读取 TC 为 P0 回归用例</td><td>低</td></tr>
+      <tr><td>kid 绕过内容策略</td><td>策略在引擎不在 prompt（P6）；kid 设备无 tailnet 规则；高风险工具对 kid 不可见而非拒绝</td><td>中低</td></tr>
+      <tr><td>LLM API 数据外泄（出网内容）</td><td>原则 P4 接受边界 + 出网白名单（I4）+ PII 上下文注入前最小化；高敏字段（持仓数量/成绩明细）不进 prompt</td><td>中（接受）</td></tr>
+      <tr><td>SaaS 控制面（Tailscale/CF）被攻破</td><td>数据面端到端 WireGuard；CF 仅见 ChatUI HTTP；管理面不在 CF 后</td><td>低（接受）</td></tr>
+      <tr><td>NAS 固件/绿联云组件风险</td><td>NAS 禁用厂商远程访问功能；平台数据全量可重建（备份在 VPS）</td><td>中低</td></tr>
+      <tr><td>物理损坏/盗窃/勒索</td><td>restic 加密异地备份 + 恢复演练（REQ-002 验收项）；备份仓库 append-only 模式防勒索软件追删</td><td>低</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>5. 密钥与配置管理</h2>
+    <ul>
+      <li><strong>Phase 1</strong>：secrets 用 <code>sops + age</code> 加密后进配置库（.env 不落明文 git）；compose 启动前解密注入。<strong>Phase 2（K3s）</strong>：sealed-secrets 接管，迁移路径已在 <a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a> 检查单。</li>
+      <li><strong>分发原则（I3）</strong>：每个 secret 只到达需要它的容器；轮换记录进 REQ；泄露应急 = 吊销 + 轮换 + 审计表回查使用记录。</li>
+      <li><strong>不自建 Vault</strong>：HashiCorp Vault 对家庭规模是运维负债，sops 即可达到"git 中无明文"的目标——此为有意识的降级，记录在 <a href="04-tech-selection.html">04 §3</a>。</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>6. 资源预算（设计时核算，上线后以 Grafana 实测修正）</h2>
+    <table>
+      <tr><th>节点</th><th>常驻服务内存估算</th><th>合计/上限</th></tr>
+      <tr><td><strong>Mac Mini M4 (16GB) · 618 加入 · 主运行时</strong></td><td>agent-core ~800MB · litellm ~300MB · keycloak ~800MB · redis ~100MB · rabbitmq ~200MB · OpenClaw+openclaw-mcp ~500MB · 本地嵌入(BGE-M3 可选) ~800MB · tailscaled ~80MB · 系统 ~1.2GB</td><td>≈3.8GB 常驻（开本地嵌入 ~4.6GB）→ <strong>4–5GB / 16GB</strong> ✅ 余量充足</td></tr>
+      <tr><td><strong>树莓派5 (4GB) · 轻量接入节点</strong></td><td>chatui ~300MB · mcp 组 ~500MB · cloudflared/tailscaled ~120MB · node-exporter/cadvisor ~80MB · 系统 ~500MB</td><td>≈1.5GB / 4GB ✅（618 前临时兼任 agent-core 跑垂直切片，峰值 ~2.8GB 仍可控）</td></tr>
+      <tr><td><strong>NAS DX4600 (N5105 · 16GB)</strong></td><td>postgres ~1.2GB · neo4j ~1GB · minio ~300MB · langfuse+clickhouse ~1.5GB · grafana 栈 ~700MB · ingest-worker ~400MB（峰值 1GB）· 绿联系统 ~1GB</td><td>≈6.1GB / 16GB ✅ 余量充足</td></tr>
+    </table>
+    <div class="warn-box">⚠️ <strong>R1 重定级（2026-06-13 实测修正）</strong>：原判「NAS 8GB 内存紧张」不成立——DX4600 实为 Intel N5105 + 16GB（双 Kingston 8GB 2667MHz），数据层 6.1GB 水位宽松。真正约束转移到 <strong>Pi5 仅 4GB</strong>：旧设计把整套运行时（~5.6GB）压在 Pi5 上已不可行。对策已落位：① 主运行时（agent-core/litellm/keycloak/redis/rabbitmq/OpenClaw）随 Mac Mini M4（618 到货 · 16GB+256GB · ~¥3000）落到该节点，Pi5 降为轻量接入/边缘（chatui + mcp + ingress）；② 618 前的开发初期常驻进程少，Pi5 4GB + NAS 暂可承载垂直切片；③ 仍保留水位告警 85%，上线后以 Grafana 实测修正分配。</div>
+    <div class="highlight-box">↗ <strong>横向扩展路径（备选，非当前预购）</strong>：Pi5 作公网入口/ingress 已定（待机功耗低、家庭场景延迟非瓶颈）。若后续 mcp/ingest 等常驻负载增长，规划升级或新增一台 <strong>16GB Pi5 作 offload 节点</strong>——scale-out 同构 ARM，正好预演 M5 K3s 多 worker（<a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a>）。存储/内存涨价期暂缓加购，按实测水位触发。</div>
+  </section>
+
+</div>
+</body>
+</html>

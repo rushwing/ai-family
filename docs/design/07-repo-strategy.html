@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ai-family 07 — 源码仓库与代码治理策略</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', Roboto, sans-serif; background: #F5F6FA; color: #212121; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 36px 24px; }
+    .nav { background: #1A237E; border-radius: 10px; padding: 10px 16px; margin-bottom: 24px; font-size: 13px; }
+    .nav a { color: #C5CAE9; text-decoration: none; margin-right: 14px; }
+    .nav a.cur { color: #fff; font-weight: 700; border-bottom: 2px solid #FFB300; }
+    .page-header { margin-bottom: 28px; }
+    .page-header h1 { font-size: 28px; color: #1A237E; margin-bottom: 6px; }
+    .page-header .subtitle { color: #555; font-size: 15px; line-height: 1.6; }
+    section { background: white; border-radius: 12px; padding: 28px 32px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    h2 { font-size: 18px; color: #283593; border-left: 4px solid #3F51B5; padding-left: 12px; margin-bottom: 18px; }
+    h3 { font-size: 14px; font-weight: 700; color: #424242; margin: 20px 0 8px; }
+    p { line-height: 1.75; color: #444; margin-bottom: 12px; font-size: 14px; }
+    ul, ol { padding-left: 22px; margin-bottom: 12px; }
+    li { line-height: 1.85; font-size: 14px; color: #444; }
+    code { background: #F5F5F5; padding: 2px 6px; border-radius: 4px; font-family: 'Cascadia Code', Menlo, monospace; font-size: 12.5px; color: #C62828; }
+    pre { background: #1E272E; color: #DFE6E9; padding: 20px 24px; border-radius: 10px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; margin: 14px 0; font-family: 'Cascadia Code', Menlo, monospace; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+    th { background: #E8EAF6; color: #283593; text-align: left; padding: 8px 10px; border: 1px solid #C5CAE9; }
+    td { padding: 8px 10px; border: 1px solid #E0E0E0; line-height: 1.6; color: #444; vertical-align: top; }
+    a { color: #1565C0; }
+    .q-box { background: #F3F6FF; border-left: 4px solid #3F51B5; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 8px 0 12px; font-size: 14px; color: #283593; line-height: 1.7; }
+    .highlight-box { background: #E8F5E9; border-left: 4px solid #2E7D32; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #1B5E20; line-height: 1.7; }
+    .warn-box { background: #FFF8E1; border-left: 4px solid #FFA000; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #5D4037; line-height: 1.7; }
+    .danger-box { background: #FFEBEE; border-left: 4px solid #C62828; padding: 12px 16px; border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 14px; color: #B71C1C; line-height: 1.7; }
+    .diagram-wrap { overflow-x: auto; background: #FAFAFA; border-radius: 10px; padding: 16px 8px; border: 1px solid #E0E0E0; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="nav">
+    <a href="00-overview.html">00 总览</a>
+    <a href="01-architecture.html">01 架构与组件</a>
+    <a href="02-deployment-network.html">02 部署与网络安全</a>
+    <a href="03-dataflow-tenancy.html">03 数据流与租户隔离</a>
+    <a href="04-tech-selection.html">04 选型决策矩阵</a>
+    <a href="05-rollout-roi.html">05 Rollout 与 ROI</a>
+    <a href="06-goalagent-vertical.html">06 GoalAgent 垂直切片</a>
+    <a href="07-repo-strategy.html" class="cur">07 仓库与代码治理</a>
+  </div>
+
+  <div class="page-header">
+    <h1>07 — 源码仓库与代码治理策略</h1>
+    <p class="subtitle">按 GCP Enterprise Foundations / Vertex Agent Starter Pack 与 Azure CAF / azd 对「SMB AI 方案」的风格，给出 Client 通道 / Agent / Toolset-MCP / Data / Security-Governance 五层的源码组织、仓库边界、CI/CD 与分支治理。本页是 <strong>ADR-013</strong>（待立项）的设计依据；衔接 <a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a>（compose→K3s）与 <a href="05-rollout-roi.html">05</a> 里程碑。</p>
+  </div>
+
+  <section>
+    <h2>1. 问题与约束</h2>
+    <p>需要决定的是：五层源码用<strong>一个仓还是多个仓</strong>、边界划在哪、各仓的 CI/CD 与权限怎么配。约束（事实/硬约束）决定了答案的形状：</p>
+    <div class="q-box">📘 <strong>约束（事实）</strong>：① 单人开发（rushwing），无团队边界红利可言；② 五层高度耦合——Agent 共享 LangGraph 基类、MCP 工具契约、checkpointer 状态 schema、JWT/RLS 鉴权契约；③ 既有 harness（REQ/TC/BUG）+ GLOSSARY 是<strong>单一权威</strong>，跨层引用频繁；④ 既有资产 <code>rushwing/goal-agent</code>（带历史）需并入；⑤ Phase 1 docker-compose、Phase 2 K3s（GitOps 友好，<a href="../adr/ADR-009-compose-to-k3s.md">ADR-009</a>）。</div>
+    <div class="danger-box">🚫 <strong>硬约束（kid 安全红线）</strong>：内容/合规策略「在引擎不在 prompt」（04 P6 / 03 §4）。谁能改 kid 安全策略、RLS、审计 schema，必须是比"改一个旅行 Agent"更小、更受控的圈子——这是仓库边界划分的<strong>第一性原则</strong>，而非可选项。</div>
+  </section>
+
+  <section>
+    <h2>2. 业界参照：GCP / Azure 对 SMB AI 的仓库风格</h2>
+    <p>两家公有云对「中小企业级 AI 方案」的官方风格高度一致：<strong>应用用模块化单体仓，按「安全 + 生命周期边界」拆出极少数仓，绝不按每个微服务/Agent 拆仓</strong>。Per-service 多仓只在组织级、多团队（康威定律）才出现。</p>
+    <table>
+      <tr><th style="width:90px">维度</th><th>Google Cloud</th><th>Microsoft Azure</th></tr>
+      <tr><td>应用代码</td><td>Architecture Center「仓库结构最佳实践」：紧耦合服务用 <strong>monorepo</strong>；Vertex AI <strong>Agent Starter Pack</strong> 样例即单仓（<code>app/ deployment/ tests/</code>）</td><td><strong>azd</strong>（Azure Developer CLI）模板即单仓（<code>src/ infra/ azure.yaml</code>）</td></tr>
+      <tr><td>基础设施</td><td><strong>Enterprise Foundations Blueprint</strong>：按 org/environments/networks/projects 等<strong>安全边界</strong>拆少量 IaC 仓（非按应用）</td><td><strong>CAF</strong> landing zone：平台仓（landing-zone/平台团队）与工作负载仓分离</td></tr>
+      <tr><td>AI 网关/治理</td><td>模型/工具治理经 Apigee/网关；策略与应用解耦</td><td><strong>AI Hub Gateway</strong> landing zone accelerator + AI Foundry：网关/治理仓独立于工作负载</td></tr>
+      <tr><td>部署模型</td><td>Cloud Build path 触发 + GKE Config Sync（GitOps）</td><td>GitHub Actions / Azure Pipelines + Bicep；GitOps（Flux）可选</td></tr>
+      <tr><td colspan="3" style="background:#E8F5E9;color:#1B5E20"><strong>共识</strong>：模块化单体仓（应用） + IaC/平台仓（安全与生命周期边界） + 治理/网关仓（职责分离）。拆仓的轴是「blast radius / 职责分离 / 独立生命周期」，不是「组件粒度」。</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>3. 三方案决策矩阵</h2>
+    <table>
+      <tr><th style="width:150px">维度</th><th>A 纯单体仓<br>（含 infra + governance）</th><th>B 平台仓 + 每 Agent 独立仓<br>（你的初始假设）</th><th>C 模块化单体仓 + 边界仓<br>（推荐）</th></tr>
+      <tr><td>原子跨层提交</td><td>✅ 最佳</td><td>❌ 一个特性跨 N 仓，PR 难对齐</td><td>✅ 应用层全在一仓</td></tr>
+      <tr><td>共享契约变更放大</td><td>✅ 一次改全见</td><td>❌ 改基类/工具契约 → N 仓版本对齐地狱</td><td>✅ libs/ 同仓，一次 PR</td></tr>
+      <tr><td>单人运维成本</td><td>✅ 低</td><td>❌ N+1 仓 / N+1 CI / 依赖矩阵</td><td>🟡 3 仓，可控</td></tr>
+      <tr><td>独立部署/发版</td><td>🟡 需 path filter</td><td>✅ 天然独立</td><td>✅ 模块 path-filtered CI + 独立镜像 tag</td></tr>
+      <tr><td>安全职责分离（kid 红线）</td><td>❌ 策略与业务同权限</td><td>🟡 分散，难统一管控</td><td>✅ governance 仓 CODEOWNERS 双签</td></tr>
+      <tr><td>生产 blast radius 隔离</td><td>❌ IaC 与应用同仓</td><td>🟡 取决于 infra 放哪</td><td>✅ infra 单独仓 + admin 权限</td></tr>
+      <tr><td>K3s/GitOps 迁移契合</td><td>🟡</td><td>🟡</td><td>✅ infra 仓即 GitOps 源（ADR-009）</td></tr>
+      <tr><td>未来可拆分（escape hatch）</td><td>🟡 需重构</td><td>✅ 已拆</td><td>✅ 模块边界 = <code>git subtree split</code> 缝</td></tr>
+      <tr><td style="background:#E8F5E9"><strong>结论</strong></td><td>过度集中：IaC/策略与业务同权限，违背职责分离</td><td><strong>过早优化</strong>：付 polyrepo 税，无团队边界红利；契约耦合使其反而不 scalable</td><td style="background:#E8F5E9"><strong>✅ 选定</strong>：SMB 段 GCP/Azure 共识，兼顾耦合现实与红线</td></tr>
+    </table>
+    <div class="highlight-box">✅ <strong>为什么 B（每 Agent 一仓）在此规模不成立</strong>：scalable 的真正瓶颈不是仓数量，而是<strong>共享契约的变更成本</strong>。Agent 共享基类/工具信封/状态 schema，把它们切到多仓只会把"一次提交"变成"跨仓协调"。等真正出现独立团队或要单独开源某 Agent 时，再用 subtree split 把那个模块切出去——届时收益 &gt; 成本，缝也早已预留。</div>
+  </section>
+
+  <section>
+    <h2>4. 推荐：模块化单体仓 + 两个边界仓（三仓）</h2>
+    <div class="diagram-wrap">
+      <svg width="1040" height="610" xmlns="http://www.w3.org/2000/svg" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC',sans-serif;display:block;margin:0 auto;">
+        <defs>
+          <marker id="ai" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#3F51B5"/></marker>
+          <marker id="og" markerWidth="9" markerHeight="7" refX="9" refY="3.5" orient="auto"><polygon points="0 0, 9 3.5, 0 7" fill="#E65100"/></marker>
+        </defs>
+
+        <text x="520" y="28" text-anchor="middle" fill="#455A64" font-size="11" font-weight="700">三仓边界：按「耦合度 + 安全/生命周期边界」拆分（GCP Foundations / Azure CAF 风格），而非按 Agent 拆</text>
+
+        <!-- ai-family 平台单体仓 -->
+        <rect x="30" y="50" width="560" height="450" rx="10" fill="#FFF" stroke="#3F51B5" stroke-width="1.8"/>
+        <text x="310" y="74" text-anchor="middle" fill="#283593" font-size="13" font-weight="700">ai-family —— 平台单体仓（modular monorepo）</text>
+
+        <rect x="44" y="86" width="532" height="36" rx="6" fill="#E3F2FD" stroke="#1565C0" stroke-width="1"/>
+        <text x="310" y="109" text-anchor="middle" fill="#1565C0" font-size="11">CLIENT 通道层 · apps/chatui(NextJS) + apps/channels(telegram·web)</text>
+
+        <rect x="44" y="130" width="532" height="132" rx="6" fill="#FFFFFF" stroke="#2E7D32" stroke-width="1.2"/>
+        <text x="310" y="148" text-anchor="middle" fill="#2E7D32" font-size="9.5" font-weight="700">AGENT 层 · agents/&lt;name&gt;/ — 各模块独立 pyproject · Dockerfile · CI(path filter) · 版本 tag</text>
+        <text x="50" y="176" fill="#33691E" font-size="9.5">编排</text>
+        <rect x="100" y="160" width="118" height="24" rx="5" fill="#455A64"/><text x="159" y="176" text-anchor="middle" fill="#fff" font-size="9.5">router</text>
+        <rect x="226" y="160" width="118" height="24" rx="5" fill="#455A64"/><text x="285" y="176" text-anchor="middle" fill="#fff" font-size="9.5">planner</text>
+        <rect x="352" y="160" width="150" height="24" rx="5" fill="#C62828"/><text x="427" y="176" text-anchor="middle" fill="#fff" font-size="9.5">compliance</text>
+        <text x="50" y="216" fill="#33691E" font-size="9.5">领域</text>
+        <rect x="100" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="131" y="216" text-anchor="middle" fill="#fff" font-size="9">goal</text>
+        <rect x="166" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="197" y="216" text-anchor="middle" fill="#fff" font-size="9">study</text>
+        <rect x="232" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="263" y="216" text-anchor="middle" fill="#fff" font-size="9">travel</text>
+        <rect x="298" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="329" y="216" text-anchor="middle" fill="#fff" font-size="9">stock</text>
+        <rect x="364" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="395" y="216" text-anchor="middle" fill="#fff" font-size="8.5">research</text>
+        <rect x="430" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="461" y="216" text-anchor="middle" fill="#fff" font-size="8">knowledge</text>
+        <rect x="496" y="200" width="62" height="24" rx="5" fill="#2E7D32"/><text x="527" y="216" text-anchor="middle" fill="#fff" font-size="9">data</text>
+        <text x="310" y="248" text-anchor="middle" fill="#888" font-size="9">（编排域 router/planner/compliance + 七领域 Agent，皆为同仓模块）</text>
+
+        <rect x="44" y="270" width="532" height="34" rx="6" fill="#EDE7F6" stroke="#6A1B9A" stroke-width="1"/>
+        <text x="310" y="292" text-anchor="middle" fill="#6A1B9A" font-size="11">TOOLSET / MCP 层 · toolsets/mcp/(gateway + goal-mcp … 各域 server)</text>
+
+        <rect x="44" y="312" width="532" height="34" rx="6" fill="#E0F2F1" stroke="#004D40" stroke-width="1"/>
+        <text x="310" y="334" text-anchor="middle" fill="#004D40" font-size="11">DATA 层 · data/(pg migrations · neo4j cypher · ingest-worker)</text>
+
+        <rect x="44" y="354" width="532" height="66" rx="6" fill="#FFF8E1" stroke="#FFA000" stroke-width="1"/>
+        <text x="310" y="376" text-anchor="middle" fill="#5D4037" font-size="10.5">共享底座 · libs/(agent-sdk · mcp-contracts · state-schema · auth)</text>
+        <text x="310" y="398" text-anchor="middle" fill="#5D4037" font-size="10.5">harness/(REQ·TC·BUG) · docs/(本设计稿) · GLOSSARY.md（术语唯一权威）</text>
+
+        <text x="310" y="452" text-anchor="middle" fill="#555" font-size="9.5">✔ 单仓内原子跨层提交；契约改动一次 PR 全量可见 · 模块边界 = 未来 subtree split 逃生口</text>
+
+        <!-- governance 仓 -->
+        <rect x="620" y="50" width="390" height="205" rx="10" fill="#FFF" stroke="#C62828" stroke-width="1.8"/>
+        <text x="815" y="74" text-anchor="middle" fill="#C62828" font-size="12" font-weight="700">🔒 ai-family-governance</text>
+        <text x="815" y="92" text-anchor="middle" fill="#B71C1C" font-size="9">（安全/合规 · 职责分离边界 · 初期 = 平台仓 governance/ 目录，M3 前升格独立仓）</text>
+        <text x="636" y="120" fill="#5D4037" font-size="10">· policy-as-code（OPA/Rego）· kid 安全策略集</text>
+        <text x="636" y="142" fill="#5D4037" font-size="10">· Keycloak realm 导出 · RLS/审计 schema</text>
+        <text x="636" y="164" fill="#5D4037" font-size="10">· Compliance 规则集 · 数据保留/脱敏策略</text>
+        <rect x="636" y="180" width="358" height="58" rx="6" fill="#FFEBEE"/>
+        <text x="815" y="200" text-anchor="middle" fill="#B71C1C" font-size="9.5">CODEOWNERS 强制 human-001 双签 = kid 红线</text>
+        <text x="815" y="218" text-anchor="middle" fill="#B71C1C" font-size="9.5">被 Agent/Compliance 以「只读 bundle」消费</text>
+        <text x="815" y="232" text-anchor="middle" fill="#B71C1C" font-size="8.5">（不反向写；版本化下发，03 §4 / 04 P6）</text>
+
+        <!-- infra 仓 -->
+        <rect x="620" y="272" width="390" height="228" rx="10" fill="#FFF" stroke="#E65100" stroke-width="1.8"/>
+        <text x="815" y="296" text-anchor="middle" fill="#E65100" font-size="12" font-weight="700">ai-family-infra（IaC + GitOps 源）</text>
+        <text x="636" y="324" fill="#5D4037" font-size="10">· compose →（M5）K3s Helm charts</text>
+        <text x="636" y="346" fill="#5D4037" font-size="10">· Terraform/cloud · Tailscale ACL（§02 §3）</text>
+        <text x="636" y="368" fill="#5D4037" font-size="10">· sops → sealed-secrets · CI/CD pipelines</text>
+        <text x="636" y="390" fill="#5D4037" font-size="10">· 私有 registry 配置 · 备份/恢复 runbook</text>
+        <rect x="636" y="406" width="358" height="78" rx="6" fill="#FFF3E0"/>
+        <text x="815" y="426" text-anchor="middle" fill="#E65100" font-size="9.5">独立 blast radius（可毁生产）→ 单独仓 + admin 权限</text>
+        <text x="815" y="444" text-anchor="middle" fill="#E65100" font-size="9.5">集群以 GitOps 拉取本仓声明部署（ADR-009 两阶段）</text>
+        <text x="815" y="464" text-anchor="middle" fill="#E65100" font-size="9.5">secrets 永不进平台仓；轮换走 REQ</text>
+
+        <!-- 运行集群 -->
+        <rect x="30" y="530" width="980" height="60" rx="10" fill="#ECEFF1" stroke="#90A4AE" stroke-width="1.2"/>
+        <text x="520" y="558" text-anchor="middle" fill="#455A64" font-size="11" font-weight="700">运行集群 · Pi5(ingress) + Mac Mini M4(运行时) + NAS(数据)</text>
+        <text x="520" y="576" text-anchor="middle" fill="#607D8B" font-size="9.5">← 镜像来自平台仓 CI（私有 registry）  ·  部署声明来自 infra 仓（GitOps apply）  ·  策略 bundle 来自 governance 仓</text>
+
+        <!-- 箭头 -->
+        <line x1="300" y1="500" x2="300" y2="530" stroke="#3F51B5" stroke-width="1.8" marker-end="url(#ai)"/>
+        <text x="262" y="520" text-anchor="end" fill="#3F51B5" font-size="9">CI 镜像</text>
+        <line x1="815" y1="500" x2="815" y2="530" stroke="#E65100" stroke-width="1.8" marker-end="url(#og)"/>
+        <text x="852" y="520" fill="#E65100" font-size="9">GitOps</text>
+      </svg>
+    </div>
+    <div class="highlight-box">✅ <strong>决策</strong>：采用 <strong>C — 三仓逻辑边界</strong>，分两步落地物理仓：<br>
+    · <strong>现在</strong>：<code>ai-family</code>（应用全层 + 共享库 + harness + docs，<strong>含受 CODEOWNERS 双签保护的 governance/ 目录</strong>）+ <code>ai-family-infra</code>（IaC/GitOps，因 blast radius <strong>第一天即独立</strong>）。<br>
+    · <strong>M3（kid 上线）前</strong>：将 <code>governance/</code> 升格为独立仓 <code>ai-family-governance</code>，把职责分离做到物理隔离。<br>
+    Agent 始终在平台仓内<strong>模块化但不拆仓</strong>。</div>
+    <p style="font-size:13px;color:#777"><strong>为什么 governance 先目录后独立</strong>：单人初期独立第三仓收益低、运维多一份；而平台仓内 <code>governance/</code> 目录 + 严格 <code>CODEOWNERS</code> 已能满足红线的"小圈子强审"。等 kid 场景临近上线、合规审计与职责分离的真实需求出现时再升格，迁移成本低（目录 → <code>git subtree split</code>）。<code>ai-family-infra</code> 则因"可毁生产"的 blast radius 不走此降级，第一天即独立。</p>
+  </section>
+
+  <section>
+    <h2>5. 平台仓目录结构（modular monorepo layout）</h2>
+    <pre>ai-family/                       # 平台单体仓（应用全层 + 共享 + harness + docs）
+├─ apps/
+│  ├─ chatui/                    # CLIENT：NextJS Web 入口（Pi5 ingress）
+│  └─ channels/                 # Telegram / Web 适配器
+├─ agents/                      # AGENT 层：每个子目录 = 可独立构建/发版的模块
+│  ├─ router/  planner/  compliance/      # 编排域
+│  ├─ goal/                     #   ├ pyproject.toml  ├ Dockerfile
+│  ├─ study/  travel/  stock/   #   ├ src/  tests/
+│  └─ research/ knowledge/ data/#   └ 版本 tag: goal-agent/vX.Y.Z
+├─ toolsets/
+│  └─ mcp/                      # TOOLSET/MCP：gateway + 各域 FastMCP server
+│     ├─ gateway/
+│     └─ goal-mcp/ study-mcp/ …
+├─ data/                        # DATA 层
+│  ├─ migrations/               #   PG（RLS · pgvector · zhparser）
+│  ├─ neo4j/                    #   本体 cypher / 约束
+│  └─ ingest/                   #   ingest-worker（解析/嵌入/图谱抽取）
+├─ libs/                        # 共享契约（变更即跨模块 → 必须同仓）
+│  ├─ agent-sdk/                #   LangGraph 基类 / ReAct 骨架
+│  ├─ mcp-contracts/            #   工具调用信封 / schema
+│  ├─ state-schema/             #   checkpointer 状态模型
+│  └─ auth/                     #   JWT/OIDC 校验 · RLS 会话变量
+├─ harness/                     # REQ / TC / BUG / ADR（既有约定，承自 OpenStock）
+├─ docs/                        # 设计稿 00–07 + GLOSSARY.md（术语唯一权威）
+├─ .github/
+│  ├─ CODEOWNERS                # 模块 owner；governance/ 路径强制 human-001
+│  └─ workflows/                # path-filtered CI：改 agents/goal/** 只构 goal-agent
+└─ compose.dev.yaml            # 本地起栈（生产声明在 ai-family-infra 仓）</pre>
+    <div class="q-box">📘 关键纪律：<strong>跨层共享的东西一律进 <code>libs/</code>，且只进 <code>libs/</code></strong>。Agent 之间不得横向 import 彼此的 <code>src/</code>，只能依赖 <code>libs/</code> 的契约——这条规则让"同仓"不等于"耦合成一坨"，也让未来 subtree split 单个 Agent 时依赖关系清晰可断。</div>
+  </section>
+
+  <section>
+    <h2>6. CI/CD 与发布纪律</h2>
+    <table>
+      <tr><th style="width:130px">关注点</th><th>做法</th><th>对应/承接</th></tr>
+      <tr><td>路径过滤构建</td><td>CI 按变更路径触发：改 <code>agents/goal/**</code> 只构建 goal-agent 镜像，改 <code>libs/**</code> 触发依赖它的模块全量回归</td><td>GCP Cloud Build path 触发同款</td></tr>
+      <tr><td>独立镜像与版本</td><td>每模块独立 Dockerfile + 镜像 tag（<code>goal-agent/vX.Y.Z</code>）；推私有 registry（NAS registry:2）</td><td>02 §1 / ADR-009</td></tr>
+      <tr><td>三仓流水线分工</td><td>平台仓 = build/test/push 镜像；infra 仓 = 渲染部署声明并 GitOps apply；governance 仓 = 策略 lint + bundle 版本化下发</td><td>本页 §4</td></tr>
+      <tr><td>密钥</td><td>secrets 永不进平台仓；<code>sops+age</code>→（K3s）sealed-secrets，全在 infra 仓</td><td>02 §5 / ADR-009</td></tr>
+      <tr><td>质量门</td><td>harness 的 TC 作为 CI 必过项；跨成员越权读取等 P0 回归用例阻断合并</td><td>02 §4 / 03</td></tr>
+    </table>
+  </section>
+
+  <section>
+    <h2>7. 分支与代码治理</h2>
+    <ul>
+      <li><strong>Trunk-based + 短命特性分支</strong>：主干常绿，特性分支命名带 <code>REQ-ID</code>，PR 标题/commit 关联 REQ/BUG（承 reference 的 harness 纪律）；不搞长命发布分支（家庭规模无并行版本需求）。</li>
+      <li><strong>CODEOWNERS 分层</strong>：<code>agents/*</code> 模块各自 owner（单人阶段都是自己，但保留结构）；<code>libs/**</code>（共享契约）改动需更谨慎的自审清单；<code>ai-family-governance</code> 全仓 / 或平台仓 <code>governance/</code> 路径 = <strong>human-001 强制双签</strong>。</li>
+      <li><strong>多 AI 评审入流水线</strong>：单人项目里"人审"形同虚设，由 Codex/Gemini 多视角评审补偿（05 §3）；评审意见按 harness 回流为 BUG/REQ/ADR Review Notes，<strong>不直接改稿</strong>。</li>
+      <li><strong>保护分支</strong>：main 禁止直推；CI 绿 + 评审通过方可合并。</li>
+    </ul>
+    <div class="danger-box">🚫 <strong>kid 红线的代码治理映射</strong>：任何触及 kid 安全策略 / Compliance 规则 / RLS / 审计 schema 的改动，必须落在受 CODEOWNERS 双签保护的 governance 边界内，且策略以<strong>版本化 bundle 只读下发</strong>给 Agent/Compliance 消费——Agent 仓的任何改动都无法绕过或反向篡改策略。这把"策略在引擎不在 prompt"从运行时一路保障到源码权限层。</div>
+  </section>
+
+  <section>
+    <h2>8. 落地步骤与 ADR-013 衔接</h2>
+    <ol>
+      <li><strong>M1 起即落骨架</strong>：建 <code>ai-family</code>（已是当前仓）的 <code>apps/ agents/ toolsets/ data/ libs/</code> 模块骨架 + path-filtered CI；<code>ai-family-infra</code> 第一天就独立建仓。</li>
+      <li><strong>并入既有资产</strong>：<code>rushwing/goal-agent</code> 用 <code>git subtree add</code> 导入 <code>agents/goal/</code>（<strong>保留提交历史</strong>），随 GoalAgent 垂直切片（06）改造（MariaDB→PG、header→OIDC、APScheduler→图唤醒）。</li>
+      <li><strong>governance 先目录后独立</strong>：单人初期可先用平台仓 <code>governance/</code> 目录 + CODEOWNERS；kid 上线（M3）前升格为独立仓 <code>ai-family-governance</code>。</li>
+      <li><strong>M5 K3s</strong>：<code>ai-family-infra</code> 的 compose 声明 Helm 化，转 GitOps（ADR-009 检查单）。</li>
+      <li><strong>立 ADR-013</strong>：本页结论经 Codex/Gemini 评审后，落 <code>ADR-013 源码仓库与代码治理</code>（proposed→accepted），与 ADR-001/009 交叉引用。</li>
+    </ol>
+  </section>
+
+  <section>
+    <h2>9. 风险与反悔条件</h2>
+    <table>
+      <tr><th style="width:60px">编号</th><th>风险</th><th>对策 / 反悔条件</th></tr>
+      <tr><td>RR1</td><td>monorepo 全量 CI 变慢</td><td>path filter + 依赖图增量构建 + 缓存；仍慢则按模块拆 CI workflow（不拆仓）</td></tr>
+      <tr><td>RR2</td><td>单人"评审"形同虚设</td><td>多 AI 评审 + harness Review Notes 回流（05 §3）补偿</td></tr>
+      <tr><td>RR3</td><td>某 Agent 真需独立团队/独立开源/独立发布节奏</td><td>触发 <code>git subtree split</code> 把该模块切出为独立仓——边界已预留，迁移成本低</td></tr>
+      <tr><td>RR4</td><td>三仓对单人偏重</td><td>governance 降级为目录 + CODEOWNERS；infra 因 blast radius 不降级</td></tr>
+      <tr><td>RR5</td><td>libs 变"上帝包"，模块隐性耦合</td><td>libs 按契约细分子包；Agent 间禁止横向 import（§5 纪律）；定期依赖审查</td></tr>
+    </table>
+    <div class="highlight-box">✅ 一句话总结：<strong>monorepo now, polyrepo-ready</strong> —— 用模块边界拿到 polyrepo 90% 的好处（独立构建/发版/所有权），用单仓避免它 90% 的成本（跨仓契约对齐）；只在 blast radius 与 kid 红线这两条真实边界上才拆出独立仓。</div>
+  </section>
+
+</div>
+</body>
+</html>

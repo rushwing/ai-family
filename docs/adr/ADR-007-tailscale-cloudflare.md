@@ -1,0 +1,66 @@
+---
+adr_id: ADR-007
+title: "内外网穿透：Tailscale mesh + Cloudflare Tunnel/Access（FRP+VPS 落选）"
+status: accepted
+date: 2026-06-11
+deciders: [human-001]
+informed_by: []
+supersedes: null
+linked_reqs: [REQ-002]
+---
+
+## Context（背景与约束）
+
+节点分布：家庭局域网（Pi5、NAS、MacMini）、云端（小额 VPS 备份机）、移动终端（家人手机/笔记本在外网）。
+需求：①节点间互访（管理、DB 访问、备份流量）；②家人在外网用公网域名访问 ChatUI；③**零公网入站端口**；
+④家有未成年人使用，入口必须有强认证。用户有公网域名，已拍板本方案。
+
+## Options
+
+### Option A: Tailscale（mesh VPN）+ Cloudflare Tunnel/Access（选定）
+**Pros:**
+- Tailscale：WireGuard mesh，NAT 穿透免配置，ACL 声明式管理"谁能访问哪个节点哪个端口"；全节点（含手机）一张内网
+- CF Tunnel：cloudflared 出站长连接发布 ChatUI，源站零入站端口；自带 WAF/DDoS/TLS
+- CF Access：在应用之前的认证层（可对接平台 IdP 的 OIDC），公网扫描者连登录页都看不到
+- 两者免费档完全覆盖家庭规模
+
+**Cons:** 控制面依赖两家外部 SaaS（Tailscale 协调服务器、Cloudflare）；CF Tunnel 对非 HTTP 流量支持有限；流量经 CF 有合规上的"第三方可见性"考量（TLS 到 CF 终止）
+
+### Option B: VPS + FRP + 自建反代（Nginx/Caddy）
+**Pros:** 全链路自主，端口/证书/防火墙全自己管，学习价值高
+**Cons:** 安全责任全在自己（证书轮换、fail2ban、补丁）；VPS 成为单点+攻击面；省下的 SaaS 依赖换成持续运维负担——对"家里有小孩账号"的系统，入口安全不容自建试错
+
+### Option C: 纯 Tailscale（无公网发布）
+**Pros:** 攻击面最小
+**Cons:** 家人设备必须全装 Tailscale 客户端，分享/临时访问不便；放弃公网域名价值
+
+## Decision
+
+**Tailscale 承载全部节点间流量（管理、DB、备份、MCP 内部调用）；Cloudflare Tunnel + Access 作为唯一公网入口，只发布 ChatUI（及后续 PWA）。**
+
+关键安全设计（详见 docs/design/02）：
+- Tailscale ACL：`tag:infra`（Pi5/NAS/VPS）互通受限端口白名单；`tag:client`（家人设备）只许达 ChatUI/IdP 端口；小孩设备 tag 不可达管理台
+- CF Access policy：仅允许家庭成员邮箱列表，会话时长 24h；Access JWT 在 ChatUI 侧二次校验（防 CF 配置失误直通）
+- 敏感面板（RabbitMQ 管理台、Langfuse、Neo4j Browser、IdP admin）**只在 Tailscale 内**，永不经 Tunnel 发布
+- VPS 防火墙：仅允许 Tailscale UDP 打洞与出站，SSH 仅监听 tailnet 地址
+
+## Trade-off
+
+- 接受 Tailscale/CF 两个 SaaS 控制面依赖（数据面 Tailscale 是端到端 WireGuard，CF 仅见 ChatUI HTTP 流量；高敏数据不经公网入口流动）
+- 放弃 FRP 自建的全链路掌控学习——以 Tailscale ACL/CF Access 策略工程作为替代学习面
+- 接受 TLS 在 CF 边缘终止（家庭非合规场景可接受；ChatUI 与后端间仍是 tailnet 加密）
+
+## Consequences
+
+- 所有服务监听 tailnet 接口或 localhost，docker-compose 网络不映射宿主公网端口
+- 域名 DNS 托管迁至 Cloudflare；Tunnel 配置文件进 infra 配置库（凭证走 secret）
+- 家人手机装 Tailscale 仅用于应急管理场景，日常走公网域名
+
+## Revisit Trigger
+
+- Tailscale/CF 免费档政策变化影响使用
+- 出现必须发布非 HTTP 服务到公网的需求（届时单独评估，而非放宽本决策）
+
+## Review Notes
+
+（待评审追加）
