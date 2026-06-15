@@ -7,12 +7,14 @@
 
 取自 Anthropic《[Harness Design for Long-Running Agentic Applications](https://www.anthropic.com/engineering/harness-design-long-running-apps)》：
 
-| 角色 | 职责 | 对应生命周期（requirement-standard §4） |
+| 角色 | 职责 | 承担状态（handles，= GLOSSARY §9 状态机 owner） |
 |---|---|---|
-| **Planner** | 把 REQ/目标展开为规格与方案（scope、技术方向、分解），不陷实现细节 | `draft` / `req_review` / `tc_design` |
-| **Generator** | 按规格迭代实现（代码/文档/TC），**交付前自检** | `tc_impl` / `req_impl` / `pr_draft` |
-| **Evaluator** | 独立质量把关：跑门禁 / 评审 / 对运行物验证，按显式标准判级 | `req_review` / `tc_review` / `tc_impl_review` / `req_impl_review` |
-| **human** | 人类编排者：scope 批准、最终合并、升级裁决（kid 红线/选型） | `req_review` / `req_impl_review` / `pr_draft` / `done` |
+| **Planner** | 把 REQ/目标展开为规格与方案（scope、技术方向、分解），不陷实现细节 | `req_review`（设计侧） |
+| **Generator** | 按规格迭代实现（TC 代码/需求代码/文档/迁移），**交付前自检** | `tc_review` / `tc_impl` / `req_impl` |
+| **Evaluator** | 独立质量把关：**写 TC 文本定验收标准** + 评审 + 跑门禁判级 | `req_review` / `tc_design` / `tc_impl_review` / `req_impl_review` |
+| **human** | 人类编排者：scope 批准、最终合并、blocked 解除、升级裁决（kid 红线/选型） | `draft` / `pr_draft` / `blocked` |
+
+> 🔑 **定标准者 ≠ 实现者**：`tc_design`（写 TC 文本=定验收标准）归 **Evaluator**，`tc_impl`/`req_impl`（写代码）归 **Generator**——同一条产物的"立标"与"实现"分属不同身份，强化分离原则。完整转移表见 [GLOSSARY §9.2](../GLOSSARY.md)。
 
 > 🔴 **分离原则（文章核心）**：Generator 与 Evaluator 必须是**不同身份**——模型对自己的产物有"自夸偏置"，独立 Evaluator 才能给出可迭代的客观反馈。本项目的多 AI 评审（Codex + Gemini）即两个 Evaluator 实例。
 

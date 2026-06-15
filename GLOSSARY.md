@@ -98,3 +98,47 @@
 | M3 | KnowledgeAgent（摄取管线/图谱）+ StudyAgent |
 | M4 | TravelAgent + DataAgent + StockAgent |
 | M5 | docker-compose → K3s 迁移 + 容灾演练 |
+
+## 9. REQ 状态机（单一权威 · 承自 OpenStock）
+
+抽象 agent 身份见 [harness/agent-registry.yml](harness/agent-registry.yml)（Planner/Generator/Evaluator/human，规范 [agent-standard.md](harness/agent-standard.md)）。当前由 human-001 手工推进转移；规则确定后可脚本/agent 自动推进。
+
+### 9.1 Status Enum
+
+| 状态 | 含义 | 持有 agent |
+|---|---|---|
+| `draft` | 已起草，未就绪开工 | human-001 |
+| `req_review` | 需求设计/评审环（planner ↔ evaluator） | planner-001 或 evaluator-* |
+| `tc_design` | Evaluator 写 TC 文本（**定验收标准**，与实现者分离） | evaluator-* |
+| `tc_review` | TC 文本评审环 | generator-001 或 evaluator-* |
+| `tc_impl` | Generator 写 TC 代码 | generator-001 |
+| `tc_impl_review` | Evaluator 评审 TC 代码 | evaluator-* |
+| `req_impl` | Generator 实现需求 | generator-001 |
+| `req_impl_review` | Evaluator 在 draft PR 上评审实现 | evaluator-* |
+| `pr_draft` | draft PR 就绪待人合并 | human-001 |
+| `done` | PR 合并、关联 req_bug 全闭（done 门禁，requirement-standard §4） | — |
+| `blocked` | 外部依赖 / 升级 / review_round ≥ 3 | unassigned |
+
+> `evaluator-*` = evaluator-001(Codex) / evaluator-002(Gemini) 多 AI 评审；owner 记主评审者，另一实例出第二视角（agent-standard §1）。
+
+### 9.2 状态转移表
+
+| # | From | Actor | Event | To | Owner after |
+|---|------|-------|-------|----|-------------|
+| T01 | `draft` | human-001 | 批准 scope | `req_review` | planner-001 |
+| T02 | `req_review` | planner-001 | 完成需求设计 | `req_review` | evaluator-001 |
+| T03 | `req_review` | evaluator-* | 通过 | `tc_design` | evaluator-001 |
+| T04 | `req_review` | evaluator-* | 打回 | `req_review` | planner-001（review_round+1） |
+| T05 | `req_review` | evaluator-* | 通过 + `tc_policy: exempt` | `req_impl` | generator-001 |
+| T06 | `tc_design` | evaluator-* | 完成 TC 文本 | `tc_review` | generator-001 |
+| T07 | `tc_review` | generator-001 | 通过 TC | `tc_impl` | generator-001 |
+| T08 | `tc_review` | generator-001 | 打回 | `tc_review` | evaluator-001（+round） |
+| T09 | `tc_impl` | generator-001 | 完成 TC 代码 | `tc_impl_review` | evaluator-001 |
+| T10 | `tc_impl_review` | evaluator-* | 通过 TC 代码 | `req_impl` | generator-001 |
+| T11 | `tc_impl_review` | evaluator-* | 打回 | `tc_impl` | generator-001（+round） |
+| T12 | `req_impl` | generator-001 | 实现完成 + CI 绿 + 开 draft PR | `req_impl_review` | evaluator-001 |
+| T13 | `req_impl_review` | evaluator-* | 通过 + `gh pr ready` | `pr_draft` | human-001 |
+| T14 | `req_impl_review` | evaluator-* | 打回 | `req_impl` | generator-001（+round） |
+| T15 | `pr_draft` | human-001 | 合并 PR | `done` | — |
+| T16 | any | any | 外部 blocker 或 review_round ≥ 3 | `blocked` | unassigned（记 blocked_from_status/owner） |
+| T17 | `blocked` | human-001 | blocker 解除 | `blocked_from_status` | `blocked_from_owner` |

@@ -24,33 +24,33 @@ agents:
     role: planner
     model: claude-opus-4-8
     fallbacks: [claude-sonnet-4-6]
-    description: "主 Planner —— 需求/架构设计、方案分解、里程碑排程"
-    handles: [draft, req_review, tc_design]
+    description: "主 Planner —— 需求/架构设计、方案分解、里程碑排程（设计侧）"
+    handles: [req_review]
 
   - uid: generator-001
     role: generator
     model: claude-sonnet-4-6
     fallbacks: [claude-opus-4-8]
-    description: "主 Generator —— 特性实现、TC 实现、文档/迁移落地、PR 起草"
-    handles: [tc_impl, req_impl, pr_draft]
+    description: "主 Generator —— TC 文本评审、TC 代码、需求实现、文档/迁移落地（构建侧）"
+    handles: [tc_review, tc_impl, req_impl]
 
   - uid: evaluator-001
     role: evaluator
     model: codex-5-5
     fallbacks: []
-    description: "Evaluator（Codex）—— 需求/TC/实现评审，跑门禁，按 TC 判级"
-    handles: [req_review, tc_review, tc_impl_review, req_impl_review]
+    description: "Evaluator（Codex）—— 需求评审、写 TC 文本（定标准）、TC/实现评审，跑门禁判级"
+    handles: [req_review, tc_design, tc_impl_review, req_impl_review]
 
   - uid: evaluator-002
     role: evaluator
     model: gemini-3-pro     # TODO(human-001): 确认 Gemini 具体型号字符串
     fallbacks: []
     description: "Evaluator（Gemini）—— 第二视角对抗评审（多 AI 评审，docs/design/05 §3）"
-    handles: [req_review, tc_review, tc_impl_review, req_impl_review]
+    handles: [req_review, tc_design, tc_impl_review, req_impl_review]
 
   - uid: human-001
     role: human
     model: human
     fallbacks: []
-    description: "人类编排者（Daniel/rushwing）—— scope 批准、最终合并、kid 红线/选型裁决"
-    handles: [req_review, req_impl_review, pr_draft, done]
+    description: "人类编排者（Daniel/rushwing）—— scope 批准、最终合并、blocked 解除、kid 红线/选型裁决"
+    handles: [draft, pr_draft, blocked]
