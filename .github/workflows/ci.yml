@@ -60,3 +60,26 @@ jobs:
           ruff check agents/goal
       - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
         run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
+
+  # —— REQ-002 RLS 集成（真实 PG16 service 跑 TC-002-04/05，BUG-002 核心）——
+  req002-rls:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest "psycopg[binary]"
+      - name: RLS 集成用例（TC-002-04/05）
+        env:
+          AIFAMILY_PG_DSN: postgresql://postgres:postgres@localhost:5432/postgres
+        run: pytest tests/integration/test_rls.py -v

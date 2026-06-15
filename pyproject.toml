@@ -14,3 +14,8 @@ extend-exclude = ["agents/goal"]  # goal-agent 沿用其自带 ruff 配置，迁
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+pythonpath = ["tests"]          # 让 `from conftest import require` 可解析
+testpaths = ["tests"]
+addopts = "-ra"
