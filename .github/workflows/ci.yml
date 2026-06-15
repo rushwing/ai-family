@@ -50,10 +50,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: ruff lint（agents/goal）
-        # 迁移期非阻塞：goal-agent 改造中（06/08），REQ-005 落地后转阻塞
+        # 迁移期非阻塞但失败可见：continue-on-error 不阻塞合并，但 ruff 失败仍标记该步骤失败
+        # （不要 `|| true`，否则退出码被吞 → 静默绿，BUG-026）。REQ-005 落地后去 continue-on-error 转阻塞。
         continue-on-error: true
         run: |
           pipx install ruff || pip install ruff
-          ruff check agents/goal || true
+          ruff check agents/goal
       - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
         run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
