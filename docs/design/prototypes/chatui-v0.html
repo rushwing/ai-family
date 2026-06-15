@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ai-family · ChatUI v0（GoalAgent · Claude Design 高保真原型）</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: {
+      canvas:'#EEF1EC', surface:'#FFFFFF', ink:'#1B2420', muted:'#5C6B62', line:'#D8DED4',
+      pine:'#155245', pine2:'#0E3B32', honey:'#E8943A', honeySoft:'#FBEAD2',
+      sky:'#2F6F8F', skySoft:'#E2EEF3', kid:'#6E5BD0', kidSoft:'#ECE9FB'
+    },
+    fontFamily: {
+      sans:['"PingFang SC"','"Noto Sans SC"','-apple-system','BlinkMacSystemFont','"Segoe UI"','sans-serif'],
+      display:['"Bricolage Grotesque"','"PingFang SC"','sans-serif']
+    }
+  }}
+}
+</script>
+<style>
+  body{background:#EEF1EC;color:#1B2420}
+  .tnum{font-variant-numeric:tabular-nums}
+  .eyebrow{font-family:"Bricolage Grotesque",sans-serif;letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:700}
+  /* 节拍带 signature */
+  .beat{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:12px;font-weight:700}
+  .beat-done{background:#155245;color:#fff}
+  .beat-today{background:#FBEAD2;color:#9A5B12;box-shadow:0 0 0 2px #E8943A}
+  .beat-todo{background:#fff;color:#9AA89F;border:1px dashed #C7D0C5}
+  .flame{filter:drop-shadow(0 2px 5px rgba(232,148,58,.45))}
+  /* streaming caret */
+  .caret::after{content:'';display:inline-block;width:7px;height:16px;background:#2F6F8F;margin-left:2px;border-radius:1px;animation:blink 1s steps(2) infinite;vertical-align:-2px}
+  @keyframes blink{0%,50%{opacity:1}51%,100%{opacity:0}}
+  .draft-card{background:repeating-linear-gradient(135deg,#fff,#fff 9px,#FFFCF6 9px,#FFFCF6 18px)}
+  .toast{transition:transform .25s ease,opacity .25s ease}
+  :focus-visible{outline:2px solid #2F6F8F;outline-offset:2px;border-radius:6px}
+  [hidden]{display:none!important}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body class="font-sans antialiased">
+
+<!-- ============ 原型控制条（非产品 UI，仅评审用） ============ -->
+<div class="bg-pine2 text-white/90 text-[12.5px]">
+  <div class="max-w-[1180px] mx-auto px-4 py-2 flex flex-wrap items-center gap-x-5 gap-y-2">
+    <span class="eyebrow text-honey">原型控制台</span>
+    <div class="flex items-center gap-1" role="tablist" aria-label="屏幕">
+      <span class="text-white/50 mr-1">屏</span>
+      <button data-screen="login"  class="screen-tab px-2.5 py-1 rounded-md">登录</button>
+      <button data-screen="chat"   class="screen-tab px-2.5 py-1 rounded-md">对话</button>
+      <button data-screen="board"  class="screen-tab px-2.5 py-1 rounded-md">目标看板</button>
+    </div>
+    <div class="flex items-center gap-1">
+      <span class="text-white/50 mr-1">身份</span>
+      <button data-role="parent" class="role-tab px-2.5 py-1 rounded-md">家长 admin</button>
+      <button data-role="adult"  class="role-tab px-2.5 py-1 rounded-md">成人 adult</button>
+      <button data-role="kid"    class="role-tab px-2.5 py-1 rounded-md">孩子 kid</button>
+    </div>
+    <a href="#scope" class="ml-auto underline decoration-white/30 hover:decoration-honey">ⓘ scope 对应（06/08）</a>
+  </div>
+</div>
+
+<!-- ============ 应用外壳 ============ -->
+<div class="max-w-[1180px] mx-auto px-3 md:px-4 py-4">
+<div class="bg-surface rounded-2xl border border-line shadow-[0_2px_18px_rgba(21,82,69,.07)] overflow-hidden grid grid-cols-1 md:grid-cols-[230px_1fr] min-h-[680px]">
+
+  <!-- 侧栏 -->
+  <aside class="hidden md:flex flex-col border-r border-line bg-[#F6F8F4]">
+    <div class="px-5 pt-5 pb-4">
+      <div class="font-display font-extrabold text-[19px] tracking-tight text-pine">ai‑family</div>
+      <div class="text-[11.5px] text-muted -mt-0.5">家庭目标 · GoalAgent</div>
+    </div>
+    <div class="px-3">
+      <div id="who" class="flex items-center gap-2.5 rounded-xl px-2.5 py-2 bg-white border border-line">
+        <span id="who-av" class="w-8 h-8 rounded-full grid place-items-center text-white text-[13px] font-bold bg-pine">林</span>
+        <div class="leading-tight">
+          <div id="who-name" class="text-[13.5px] font-semibold">林爸爸</div>
+          <div id="who-role" class="text-[11px] text-muted">家长 · admin</div>
+        </div>
+      </div>
+    </div>
+    <nav class="px-3 mt-3 space-y-0.5 text-[13.5px]">
+      <a data-screen="chat"  class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer"><span>💬</span>对话</a>
+      <a data-screen="board" class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer"><span>🎯</span>目标看板</a>
+      <a class="nav-item flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-not-allowed opacity-45"><span>📊</span>周报<span class="ml-auto text-[10px] text-muted">入口</span></a>
+    </nav>
+    <div class="mt-auto p-3">
+      <div id="kid-banner" hidden class="rounded-xl bg-kidSoft border border-kid/30 px-3 py-2.5 text-[11.5px] text-kid leading-snug">
+        🛡️ 孩子模式：内容受家长守护，部分功能与目标对你不可见。
+      </div>
+    </div>
+  </aside>
+
+  <!-- 主面板 -->
+  <main class="relative bg-canvas">
+
+    <!-- ====== 屏 1：登录 ====== -->
+    <section data-pane="login" class="pane min-h-[680px] grid place-items-center px-6">
+      <div class="w-full max-w-[400px] text-center">
+        <div class="mx-auto w-14 h-14 rounded-2xl bg-pine grid place-items-center text-white text-2xl mb-5 shadow-[0_8px_20px_rgba(21,82,69,.25)]">🏡</div>
+        <h1 class="font-display font-extrabold text-[30px] leading-none tracking-tight text-pine">欢迎回家</h1>
+        <p class="text-[14px] text-muted mt-3 leading-relaxed">一家人的目标、节拍与周报，都在这里。<br>选择你的家庭成员身份继续。</p>
+
+        <div class="flex justify-center -space-x-2 mt-6 mb-7">
+          <span class="w-10 h-10 rounded-full grid place-items-center text-white text-[13px] font-bold bg-pine ring-2 ring-canvas">林</span>
+          <span class="w-10 h-10 rounded-full grid place-items-center text-white text-[13px] font-bold bg-sky ring-2 ring-canvas">妈</span>
+          <span class="w-10 h-10 rounded-full grid place-items-center text-white text-[13px] font-bold bg-kid ring-2 ring-canvas">朵</span>
+          <span class="w-10 h-10 rounded-full grid place-items-center text-white text-[13px] font-bold bg-honey ring-2 ring-canvas">阳</span>
+        </div>
+
+        <button onclick="toast('正在跳转家庭身份中心…','sky')" class="w-full bg-pine hover:bg-pine2 text-white font-semibold text-[15px] rounded-xl py-3.5 transition-colors">
+          用家庭账号登录
+        </button>
+        <p class="text-[12px] text-muted mt-3 flex items-center justify-center gap-1.5">
+          <span>🔐</span>由家庭身份中心（Keycloak OIDC）处理 · 无独立密码表单
+        </p>
+        <p class="text-[11px] text-muted/80 mt-6 leading-relaxed">登录后能做什么由你的角色决定：孩子看到的是受守护的精简界面。</p>
+      </div>
+    </section>
+
+    <!-- ====== 屏 2：对话 ====== -->
+    <section data-pane="chat" class="pane flex flex-col min-h-[680px]" hidden>
+      <header class="px-5 py-3 border-b border-line bg-surface/70 backdrop-blur flex items-center gap-3">
+        <span class="w-8 h-8 rounded-lg bg-pine grid place-items-center text-white text-[15px]">🎯</span>
+        <div class="leading-tight">
+          <div class="text-[14px] font-semibold">GoalAgent</div>
+          <div class="text-[11px] text-muted">目标管家 · 单 Agent 直连（M1 无路由）</div>
+        </div>
+        <span class="ml-auto eyebrow text-pine/60">SSE 流式</span>
+      </header>
+
+      <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-5">
+        <!-- 用户 -->
+        <div class="flex justify-end"><div class="max-w-[78%] bg-pine text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed">帮我把"ai-family 平台建设"立成一个目标，按 M1–M5 排里程碑。</div></div>
+
+        <!-- Agent：计划确认卡（interrupt）—— 签名交互 -->
+        <div class="flex gap-2.5">
+          <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
+          <div class="max-w-[88%] space-y-2.5">
+            <div class="bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-3 text-[14px] leading-relaxed">好的，我草拟了一份计划。<b>这还没写入</b>——你确认后我才会落库。</div>
+            <div class="bg-surface border-2 border-sky/35 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(47,111,143,.10)]">
+              <div class="px-4 py-2.5 bg-skySoft flex items-center gap-2">
+                <span class="text-sky">📋</span><span class="text-[13px] font-semibold text-sky">计划确认 · Plan Mode</span>
+                <span class="ml-auto text-[11px] text-sky/70 tnum">预估 5 步 · 跨度 M1–M5</span>
+              </div>
+              <div class="px-4 py-3 text-[13.5px] space-y-2.5">
+                <div><span class="eyebrow text-muted">目标</span><div class="font-semibold">ai-family 平台建设</div></div>
+                <div><span class="eyebrow text-muted">里程碑</span>
+                  <ul class="mt-1 space-y-1">
+                    <li class="flex gap-2"><span class="text-pine">●</span>M1 基座 + GoalAgent 切片</li>
+                    <li class="flex gap-2"><span class="text-pine">●</span>M2 编排治理 · M3 知识学习</li>
+                    <li class="flex gap-2"><span class="text-pine">●</span>M4 领域补全 · M5 迁 K3s</li>
+                  </ul>
+                </div>
+                <div><span class="eyebrow text-muted">本周节拍</span><div class="text-muted">周末档开发任务 + 工作日轻量任务（评审/文档）</div></div>
+              </div>
+              <div class="px-4 py-3 border-t border-line flex flex-wrap gap-2">
+                <button onclick="toast('已批准 · 计划已写入（RLS 隔离）','pine')" class="bg-pine hover:bg-pine2 text-white text-[13.5px] font-semibold rounded-lg px-4 py-2 transition-colors">批准并写入</button>
+                <button onclick="toast('已转入修改 · 可继续对话调整','sky')" class="bg-skySoft text-sky text-[13.5px] font-semibold rounded-lg px-4 py-2">修改</button>
+                <button onclick="toast('已拒绝 · 未做任何写入','muted')" class="text-muted text-[13.5px] font-semibold rounded-lg px-4 py-2 hover:bg-canvas">拒绝</button>
+              </div>
+            </div>
+            <div class="text-[11.5px] text-muted pl-1">⚖️ 计划批准 ≠ 写操作批准：每个写动作仍会单独二次确认。</div>
+          </div>
+        </div>
+
+        <!-- Agent：流式中 -->
+        <div class="flex gap-2.5">
+          <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
+          <div class="max-w-[80%] bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-2.5 text-[14px] leading-relaxed"><span class="caret">已为你登记。今晚 21:00 我会提醒今天的</span></div>
+        </div>
+
+        <!-- 孩子拦截卡（仅 kid 可见）—— 温和守护，非报错 -->
+        <div data-kid-only hidden class="flex gap-2.5">
+          <span class="w-8 h-8 shrink-0 rounded-lg bg-honeySoft text-honey grid place-items-center text-[15px]">🛡️</span>
+          <div class="max-w-[82%] bg-honeySoft/60 border border-honey/40 rounded-2xl rounded-tl-md px-4 py-3 text-[13.5px] leading-relaxed text-[#7A4A12]">
+            <div class="font-semibold mb-0.5">这个先交给家长 🌱</div>
+            这条请求超出了你现在能做的范围。我已经把它<b>转给家长确认</b>，通过后就能继续。
+          </div>
+        </div>
+      </div>
+
+      <!-- 输入区 -->
+      <div class="px-4 md:px-6 py-3 border-t border-line bg-surface">
+        <div class="flex items-end gap-2 bg-canvas border border-line rounded-xl px-3 py-2 focus-within:border-sky/50">
+          <textarea rows="1" placeholder="和 GoalAgent 说点什么…" class="flex-1 bg-transparent resize-none outline-none text-[14px] py-1 max-h-28"></textarea>
+          <button onclick="toast('已发送（演示）','sky')" class="bg-pine hover:bg-pine2 text-white rounded-lg w-9 h-9 grid place-items-center shrink-0 transition-colors" aria-label="发送">↑</button>
+        </div>
+        <p class="text-[11px] text-muted mt-1.5 pl-1">引用资料会标注来源 · 写操作走两步确认</p>
+      </div>
+    </section>
+
+    <!-- ====== 屏 3：目标看板 ====== -->
+    <section data-pane="board" class="pane min-h-[680px] px-4 md:px-6 py-5" hidden>
+      <div class="flex items-end justify-between flex-wrap gap-3 mb-4">
+        <div>
+          <span class="eyebrow text-pine/60">今日 · 6 月 14 日（周六）</span>
+          <h1 class="font-display font-extrabold text-[24px] tracking-tight text-pine mt-0.5">目标看板</h1>
+        </div>
+        <!-- streak + XP signature -->
+        <div class="flex items-center gap-4">
+          <div class="flex items-center gap-2 bg-surface border border-line rounded-xl px-3.5 py-2">
+            <span class="text-[20px] flame">🔥</span><span class="font-display font-extrabold text-[20px] tnum text-honey leading-none">12</span>
+            <span class="text-[11px] text-muted leading-tight">连续<br>天数</span>
+          </div>
+          <div class="flex items-center gap-2 bg-surface border border-line rounded-xl px-3.5 py-2">
+            <span class="font-display font-extrabold text-[20px] tnum text-pine leading-none">1,840</span><span class="text-[11px] text-muted">XP</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 节拍带 signature -->
+      <div class="bg-surface border border-line rounded-2xl px-4 py-3.5 mb-4">
+        <div class="flex items-center justify-between mb-2.5"><span class="eyebrow text-muted">本周节拍</span><span class="text-[11px] text-muted">周末档 · 工作日轻量</span></div>
+        <div class="flex items-center gap-2">
+          <div class="beat beat-done">一</div><div class="beat beat-done">二</div><div class="beat beat-done">三</div>
+          <div class="beat beat-done">四</div><div class="beat beat-done">五</div>
+          <div class="beat beat-today">六</div><div class="beat beat-todo">日</div>
+          <span class="ml-2 text-[11.5px] text-muted">今天还有 <b class="text-ink">2</b> 项待打卡</span>
+        </div>
+      </div>
+
+      <div class="grid md:grid-cols-[1.4fr_1fr] gap-4">
+        <!-- 目标 + 里程碑 -->
+        <div class="bg-surface border border-line rounded-2xl p-4">
+          <div class="flex items-center gap-2 mb-3"><span class="eyebrow text-muted">进行中的目标</span><span data-kid-only hidden class="text-[10px] bg-kidSoft text-kid rounded-full px-2 py-0.5">仅显示你的目标</span></div>
+
+          <div data-adult-only class="rounded-xl border border-line p-3.5 mb-3">
+            <div class="flex items-center justify-between"><div class="font-semibold text-[15px]">ai-family 平台建设</div><span class="text-[11px] tnum text-muted">M1 · 42%</span></div>
+            <div class="h-2 rounded-full bg-canvas mt-2 overflow-hidden"><div class="h-full rounded-full bg-pine" style="width:42%"></div></div>
+            <div class="flex gap-1.5 mt-2.5 text-[11px]">
+              <span class="rounded-md bg-honeySoft text-[#9A5B12] px-2 py-0.5">里程碑 5</span>
+              <span class="rounded-md bg-canvas text-muted px-2 py-0.5">本周 4 任务</span>
+            </div>
+          </div>
+
+          <!-- kid 自己的目标 -->
+          <div data-kid-only hidden class="rounded-xl border border-kid/25 bg-kidSoft/40 p-3.5">
+            <div class="flex items-center justify-between"><div class="font-semibold text-[15px]">每天读 20 分钟</div><span class="text-[11px] tnum text-kid">本周 5/7</span></div>
+            <div class="h-2 rounded-full bg-white mt-2 overflow-hidden"><div class="h-full rounded-full bg-kid" style="width:71%"></div></div>
+          </div>
+
+          <!-- 家长/成人可见的他人目标占位 -->
+          <div data-adult-only class="rounded-xl border border-line p-3.5">
+            <div class="flex items-center justify-between"><div class="font-semibold text-[15px]">备考冲刺（朵朵）</div><span class="text-[11px] tnum text-muted">家长可见</span></div>
+            <div class="h-2 rounded-full bg-canvas mt-2 overflow-hidden"><div class="h-full rounded-full bg-sky" style="width:60%"></div></div>
+          </div>
+        </div>
+
+        <!-- 今日任务 + 打卡（Draft-First） -->
+        <div class="bg-surface border border-line rounded-2xl p-4">
+          <div class="eyebrow text-muted mb-3">今日任务</div>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
+              <span class="w-5 h-5 rounded-full bg-pine grid place-items-center text-white text-[11px]">✓</span>
+              <span class="text-[13.5px] line-through text-muted">回流 M0 评审意见</span><span class="ml-auto text-[11px] text-honey tnum">+30</span>
+            </li>
+            <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
+              <span class="w-5 h-5 rounded-full border-2 border-line"></span>
+              <span class="text-[13.5px]">写 08 架构设计稿</span>
+              <button onclick="openDraft('写 08 架构设计稿')" class="ml-auto bg-honey hover:brightness-95 text-white text-[12.5px] font-semibold rounded-lg px-3 py-1.5 transition">打卡</button>
+            </li>
+            <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
+              <span class="w-5 h-5 rounded-full border-2 border-line"></span>
+              <span class="text-[13.5px]">整理 ChatUI v0 三屏</span>
+              <button onclick="openDraft('整理 ChatUI v0 三屏')" class="ml-auto bg-honey hover:brightness-95 text-white text-[12.5px] font-semibold rounded-lg px-3 py-1.5 transition">打卡</button>
+            </li>
+          </ul>
+          <button onclick="toast('周报：本周完成 4/6，详见生成中…','sky')" class="w-full mt-3 text-[13px] font-semibold text-pine border border-pine/25 rounded-xl py-2.5 hover:bg-pine/5 transition">查看本周周报 →</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- scope 对应说明 -->
+<section id="scope" class="mt-5 bg-surface border border-line rounded-2xl p-5 text-[13px] leading-relaxed">
+  <h2 class="font-display font-extrabold text-[16px] text-pine mb-2">scope 对应（与 06 §3 / 08 / 01 一致）</h2>
+  <ul class="list-disc pl-5 space-y-1 text-muted">
+    <li><b class="text-ink">三屏锁定</b>（06 §3 / P7）：登录（Keycloak OIDC 跳转，无自建表单）· 对话（SSE 流式，单 Agent 直连）· 目标看板（目标/里程碑/今日任务/streak·XP + 打卡 + 周报入口）。</li>
+    <li><b class="text-ink">计划确认卡</b> = LangGraph <code>interrupt()</code> 渲染（01 §3 Plan Mode）；<b class="text-ink">打卡/写操作</b> = Draft-First 两段式（01/ADR-010）：先草稿后确认，"计划批准 ≠ 写操作批准"。</li>
+    <li><b class="text-ink">角色感知</b>（01/03）：kid 看不到的目标/工具<b>不出现</b>（非灰显）；孩子模式视觉可识别；拦截为温和守护卡而非报错。</li>
+    <li><b class="text-ink">明确不做</b>（超纲进 backlog）：深色模式 / 多语言 / 移动 App / 第二个 Agent 入口 / 通知中心。</li>
+    <li><b class="text-ink">pending 08 评审 delta</b>：若 08 评审改动三屏 scope 或 Draft-First/角色语义，本原型随之调整。</li>
+  </ul>
+</section>
+</div>
+
+<!-- Draft-First 弹层 -->
+<div id="draftModal" hidden class="fixed inset-0 bg-pine2/40 grid place-items-center z-30 px-4" onclick="if(event.target===this)closeDraft()">
+  <div class="draft-card w-full max-w-[420px] rounded-2xl border-2 border-dashed border-honey shadow-2xl overflow-hidden">
+    <div class="px-5 py-3 bg-honeySoft flex items-center gap-2">
+      <span>✍️</span><span class="text-[13.5px] font-semibold text-[#9A5B12]">Draft-First 确认</span>
+      <span class="ml-auto text-[11px] bg-honey text-white rounded-full px-2 py-0.5">待你确认</span>
+    </div>
+    <div class="px-5 py-4 text-[14px]">
+      <p class="text-muted text-[12.5px] mb-2">下面是即将写入的内容，确认后才会生效：</p>
+      <div class="rounded-xl bg-white border border-line px-4 py-3">
+        <div class="text-[12px] text-muted">打卡任务</div>
+        <div id="draftTask" class="font-semibold">—</div>
+        <div class="text-[12px] text-muted mt-2">效果：标记完成 · <span class="text-honey">+30 XP</span> · streak +1</div>
+      </div>
+    </div>
+    <div class="px-5 py-3 border-t border-line flex gap-2 bg-white">
+      <button onclick="confirmDraft()" class="flex-1 bg-pine hover:bg-pine2 text-white font-semibold text-[14px] rounded-lg py-2.5 transition-colors">确认打卡</button>
+      <button onclick="closeDraft()" class="text-muted font-semibold text-[14px] rounded-lg px-4 hover:bg-canvas">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast fixed bottom-5 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 z-40 bg-pine2 text-white text-[13.5px] rounded-xl px-4 py-2.5 shadow-xl"></div>
+
+<script>
+const A = (s,c=document)=>[...c.querySelectorAll(s)];
+const state = {screen:'login', role:'parent'};
+const ROLE = {
+  parent:{name:'林爸爸',av:'林',bg:'bg-pine',label:'家长 · admin',kid:false},
+  adult :{name:'林妈妈',av:'妈',bg:'bg-sky', label:'成人 · adult',kid:false},
+  kid   :{name:'朵朵',  av:'朵',bg:'bg-kid', label:'孩子 · kid',  kid:true}
+};
+
+function setScreen(s){
+  state.screen=s;
+  A('.pane').forEach(p=>p.hidden = p.dataset.pane!==s);
+  A('.screen-tab').forEach(b=>b.className='screen-tab px-2.5 py-1 rounded-md '+(b.dataset.screen===s?'bg-honey text-pine2 font-semibold':'hover:bg-white/10'));
+  A('.nav-item').forEach(n=>n.classList.toggle('bg-white', n.dataset && n.dataset.screen===s));
+  A('.nav-item').forEach(n=>{if(n.dataset&&n.dataset.screen)n.classList.toggle('text-pine',n.dataset.screen===s)});
+}
+function setRole(r){
+  state.role=r; const m=ROLE[r];
+  document.getElementById('who-name').textContent=m.name;
+  document.getElementById('who-role').textContent=m.label;
+  const av=document.getElementById('who-av'); av.textContent=m.av;
+  av.className='w-8 h-8 rounded-full grid place-items-center text-white text-[13px] font-bold '+m.bg;
+  A('.role-tab').forEach(b=>b.className='role-tab px-2.5 py-1 rounded-md '+(b.dataset.role===r?'bg-honey text-pine2 font-semibold':'hover:bg-white/10'));
+  document.getElementById('kid-banner').hidden = !m.kid;
+  A('[data-kid-only]').forEach(e=>e.hidden = !m.kid);
+  A('[data-adult-only]').forEach(e=>e.style.display = m.kid ? 'none':'');
+  document.body.classList.toggle('kidmode', m.kid);
+}
+A('[data-screen]').forEach(b=>b.addEventListener('click',()=>setScreen(b.dataset.screen)));
+A('[data-role]').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.role)));
+
+let _draftTask=null;
+function openDraft(t){_draftTask=t;document.getElementById('draftTask').textContent=t;document.getElementById('draftModal').hidden=false;}
+function closeDraft(){document.getElementById('draftModal').hidden=true;}
+function confirmDraft(){closeDraft();toast('已打卡：'+_draftTask+' · +30 XP','pine');}
+
+let _tt;
+function toast(msg,tone='pine'){
+  const el=document.getElementById('toast');
+  const bg={pine:'bg-pine2',sky:'bg-sky',honey:'bg-honey',muted:'bg-muted'}[tone]||'bg-pine2';
+  el.className='toast fixed bottom-5 left-1/2 -translate-x-1/2 z-40 text-white text-[13.5px] rounded-xl px-4 py-2.5 shadow-xl '+bg;
+  el.textContent=msg;
+  requestAnimationFrame(()=>{el.style.transform='translate(-50%,0)';el.style.opacity='1';});
+  clearTimeout(_tt);_tt=setTimeout(()=>{el.style.transform='translate(-50%,16px)';el.style.opacity='0';},2200);
+}
+
+// 深链：#<screen> 或 #<screen>:<role>，例 #board:kid
+function applyHash(){
+  const h=(location.hash||'').replace('#','');
+  let [sc,ro]=h.split(':');
+  setRole(ROLE[ro]?ro:'parent');
+  setScreen(['login','chat','board'].includes(sc)?sc:'login');
+}
+window.addEventListener('hashchange',applyHash);
+applyHash();
+</script>
+</body>
+</html>
