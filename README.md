@@ -4,7 +4,7 @@
 > 以 **GoalAgent 垂直切片** 为起点，以点到面，边做应用边夯实基座。
 > 同时这是一个学习项目：目标是完整走一遍企业级 AI 落地的设计→评审→灰度→放量流程。
 
-**当前阶段：M0 — 架构设计稿 v1（待 Codex / Gemini 架构评审）**
+**当前阶段：M1 — 设计稿定稿（Codex/Gemini 双轮评审闭环），进入实现 bootstrap（monorepo 骨架 + goal-agent 导入 + path-filtered CI）**
 
 ## 渐进式披露导航（按需深入，不要一次读完）
 
@@ -12,8 +12,8 @@
 |---|---|---|
 | **L0** | 本 README | 这是什么项目，现在处于什么阶段 |
 | **L1** | [docs/design/00-overview.html](docs/design/00-overview.html) | 全景架构、设计原则、文档地图 |
-| **L2** | [01 架构与组件](docs/design/01-architecture.html) · [02 部署与网络安全](docs/design/02-deployment-network.html) · [03 数据流与租户隔离](docs/design/03-dataflow-tenancy.html) · [04 选型决策矩阵](docs/design/04-tech-selection.html) · [05 Rollout 与 ROI](docs/design/05-rollout-roi.html) · [06 GoalAgent 垂直切片](docs/design/06-goalagent-vertical.html) | 每个领域的具体设计 |
-| **L3** | [docs/adr/](docs/adr/)（12 个决策记录） · [harness/tasks/](harness/tasks/)（REQ/TC/BUG） | 为什么这么选、当前在做什么 |
+| **L2** | [01 架构与组件](docs/design/01-architecture.html) · [02 部署与网络安全](docs/design/02-deployment-network.html) · [03 数据流与租户隔离](docs/design/03-dataflow-tenancy.html) · [04 选型决策矩阵](docs/design/04-tech-selection.html) · [05 Rollout 与 ROI](docs/design/05-rollout-roi.html) · [06 GoalAgent 垂直切片（盘点）](docs/design/06-goalagent-vertical.html) · [07 仓库与代码治理](docs/design/07-repo-strategy.html) · [08 GoalAgent 架构（L2 主依据）](docs/design/08-goalagent-architecture.html) | 每个领域的具体设计 |
+| **L3** | [docs/adr/](docs/adr/)（15 个决策记录） · [harness/tasks/](harness/tasks/)（REQ/TC/BUG） | 为什么这么选、当前在做什么 |
 
 ## 一图速览
 
@@ -22,6 +22,24 @@
 - **底座**：PostgreSQL 16（RLS 租户隔离 + pgvector）· Neo4j（家庭知识图谱）· RabbitMQ · Redis · MinIO/NAS。
 - **硬件**：树莓派5 4GB（轻量接入节点）+ 绿联 NAS DX4600（N5105 · 16GB · 数据层）+ Mac Mini M4 16GB（618 入手 · 主运行时 + OpenClaw 宿主）+ 小额 VPS（异地备份）。
 - **网络**：Tailscale mesh（零公网端口）+ Cloudflare Tunnel/Access（唯一对外入口）。
+
+## 仓库结构（modular monorepo · ADR-013 / [07](docs/design/07-repo-strategy.html)）
+
+模块化单体仓：各 `agents/<name>`、`toolsets/mcp/<server>`、`libs/<pkg>` 为可独立构建/发版的模块，靠 path-filtered CI 解耦；`infra/`、`governance/` 先以目录起步（不第一天分物理仓）。
+
+```
+apps/        CLIENT：chatui（NextJS）/ channels（通道适配）
+agents/      AGENT：goal/（已 git subtree 导入，保留历史）+ 后续 router/planner/compliance/study/…
+toolsets/mcp/ MCP 网关 + 各域 FastMCP server（gateway / goal-mcp / …）
+data/        PG 迁移（RLS/pgvector）/ neo4j 本体 / ingest 管线
+libs/        共享契约（agent-sdk / mcp-contracts / state-schema / auth）—— 跨层只进这里
+infra/       IaC / 部署声明（blast radius 独立，CODEOWNERS 加严）
+governance/  🔴 kid 安全/合规策略（CODEOWNERS 双签，M3 前评估升独立仓）
+harness/ docs/  REQ·TC·BUG·ADR / 设计稿 + GLOSSARY（单一权威）
+tools/       治理脚本（adr_gate.py / check_layout.py，CI 阻塞门）
+```
+
+CI：`adr_gate`（ADR 评审闭环 gate，BUG-006）+ `check_layout`（布局/分层纪律，REQ-006）为阻塞门；模块按变更路径触发构建（REQ-005 增量 CI 骨架）。
 
 ## 工程方法（harness engineering）
 

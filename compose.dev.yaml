@@ -1,0 +1,8 @@
+# 本地开发起栈（占位）—— ADR-013 / 07 §5
+#
+# 生产部署声明在 infra/（GitOps）。本文件用于本地一键起基座 + 切片。
+# 基座服务（PostgreSQL16+pgvector / Keycloak / Redis / RabbitMQ / LiteLLM / Langfuse / MinIO）
+# 随 REQ-002 落地；GoalAgent 切片（agent-core / goal-mcp / chatui）随 REQ-003 落地。
+#
+# bootstrap 期为占位，避免与 agents/goal/docker-compose.yml（goal-agent 原栈）混淆。
+services: {}
