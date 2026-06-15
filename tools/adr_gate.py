@@ -62,7 +62,9 @@ def main() -> int:
         #    - 裁决为 defer 但缺 Revisit Trigger → FAIL
         #    claude*/human-001 等记录/裁决类 bullet 非「意见」，豁免。
         PENDING = r"裁决[:：]\s*(pending|待定|未定|待|未)"
-        RULING = r"(?<!待)裁决[:：]\s*(?!pending|待定|未定|待|未)\S"  # 真实终裁（非 pending、非「待裁决」）
+        # 真实终裁必须是 human-001 的非-pending 裁决（标准 §4.1 规则2：每条意见带 human-001 裁决）；
+        # 仅有 "Claude 裁决：accept" 之类非人裁决不算（BUG-029）。
+        RULING = r"human-001\s*裁决[:：]\s*(?!pending|待定|未定|待|未)\S"
         for b in bullets:
             um = re.match(r"-\s*\[([^\]]+)\]", b)
             uid = um.group(1) if um else ""
