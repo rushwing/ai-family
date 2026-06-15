@@ -21,6 +21,8 @@ jobs:
         run: python tools/adr_gate.py
       - name: monorepo 布局纪律 gate（ADR-013 / REQ-006）
         run: python tools/check_layout.py
+      - name: agent registry gate（agent-standard / agent-registry.yml）
+        run: python tools/check_agents.py
 
   # —— 变更路径检测（REQ-005 增量 CI 骨架）——
   changes:

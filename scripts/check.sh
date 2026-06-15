@@ -14,4 +14,6 @@ echo "► ADR 评审闭环 gate（BUG-006 / adr-standard §4.2）"
 "$PY" tools/adr_gate.py
 echo "► monorepo 布局纪律 gate（ADR-013 / REQ-006）"
 "$PY" tools/check_layout.py
+echo "► agent registry gate（agent-standard / agent-registry.yml）"
+"$PY" tools/check_agents.py
 echo "✓ 治理门全过"

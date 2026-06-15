@@ -1,0 +1,56 @@
+---
+# Agent UID registry —— role ↔ model(+fallbacks) ↔ lifecycle handles 的单一真值。
+#
+# 抽象三角色取自 Anthropic《Harness Design for Long-Running Agentic Applications》
+#   （Planner / Generator / Evaluator）：
+#   https://www.anthropic.com/engineering/harness-design-long-running-apps
+# 机制参照 rushwing/my-invest-global 的 harness/agent-registry.yml，并扩展 fallbacks 候补。
+#
+# 约定：
+#   - 命名 `<role>-NNN`（如 planner-001）；human-001 为人类编排者。
+#   - model = 当前主绑定；fallbacks = 有序候补（主模型不可用/超额/限流时顺延，UID 不变 → 归属稳定）。
+#   - handles = 该 agent 可承担的生命周期状态，取自 harness/requirement-standard.md §4。
+#   - 一个 role 可有多个实例（如 evaluator-001/-002 = Codex/Gemini 多 AI 评审）。
+#   - 详见 harness/agent-standard.md；校验门 tools/check_agents.py（CI governance-gates 阻塞）。
+
+roles:   # 抽象身份（与具体 LLM 解耦）
+  planner:   "把 REQ/目标展开为规格与方案（scope、技术方向、任务分解），不陷实现细节"
+  generator: "按规格迭代实现（代码/文档/TC），交付前自检"
+  evaluator: "独立质量把关：跑门禁/评审、对运行物验证、按显式标准判级（与 generator 分离以避免自夸偏置）"
+  human:     "人类编排者：scope 批准、最终合并、升级裁决（kid 红线/选型）"
+
+agents:
+  - uid: planner-001
+    role: planner
+    model: claude-opus-4-8
+    fallbacks: [claude-sonnet-4-6]
+    description: "主 Planner —— 需求/架构设计、方案分解、里程碑排程"
+    handles: [draft, req_review, tc_design]
+
+  - uid: generator-001
+    role: generator
+    model: claude-sonnet-4-6
+    fallbacks: [claude-opus-4-8]
+    description: "主 Generator —— 特性实现、TC 实现、文档/迁移落地、PR 起草"
+    handles: [tc_impl, req_impl, pr_draft]
+
+  - uid: evaluator-001
+    role: evaluator
+    model: codex-5-5
+    fallbacks: []
+    description: "Evaluator（Codex）—— 需求/TC/实现评审，跑门禁，按 TC 判级"
+    handles: [req_review, tc_review, tc_impl_review, req_impl_review]
+
+  - uid: evaluator-002
+    role: evaluator
+    model: gemini-3-pro     # TODO(human-001): 确认 Gemini 具体型号字符串
+    fallbacks: []
+    description: "Evaluator（Gemini）—— 第二视角对抗评审（多 AI 评审，docs/design/05 §3）"
+    handles: [req_review, tc_review, tc_impl_review, req_impl_review]
+
+  - uid: human-001
+    role: human
+    model: human
+    fallbacks: []
+    description: "人类编排者（Daniel/rushwing）—— scope 批准、最终合并、kid 红线/选型裁决"
+    handles: [req_review, req_impl_review, pr_draft, done]
