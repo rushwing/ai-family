@@ -1,0 +1,22 @@
+# CODEOWNERS —— 分层所有权（ADR-013 / 07 §7）
+# 单人阶段 owner 均为 human-001，但保留结构；governance/ 与 kid 安全红线相关路径
+# 视为最高受控圈子（"策略在引擎不在 prompt" 保障到源码权限层）。
+
+# 默认
+*                       @rushwing
+
+# 共享契约（改动跨模块，更谨慎）
+/libs/                  @rushwing
+
+# 🔴 kid 安全红线 / 合规策略 / 数据隔离 / 审计 —— 最受控（M3 前升格独立仓评估）
+/governance/            @rushwing
+/data/migrations/       @rushwing
+/libs/auth/             @rushwing
+
+# 基础设施（可毁生产 blast radius）
+/infra/                 @rushwing
+
+# 治理与设计单一权威
+/harness/               @rushwing
+/docs/                  @rushwing
+/GLOSSARY.md            @rushwing

@@ -1,0 +1,16 @@
+# ai-family 平台单体仓 —— 根工程描述（bootstrap）
+#
+# 模块化单体仓（ADR-013 / docs/design/07）：各 agents/<name>、toolsets/mcp/<server>、
+# libs/<pkg> 为独立可构建模块，拥有各自的 pyproject。本根文件仅承载仓库级元数据与
+# 共享工具（ruff/治理脚本）的配置；不聚合各模块依赖（避免单一巨锁）。
+#
+# 完整 uv workspace / 依赖图增量构建随 REQ-005 落地。
+
+[tool.ruff]
+# 仓库级 lint 基线；各模块可在自身 pyproject 覆盖。bootstrap 仅约束治理脚本目录。
+target-version = "py312"
+line-length = 100
+extend-exclude = ["agents/goal"]  # goal-agent 沿用其自带 ruff 配置，迁移期不双重约束
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

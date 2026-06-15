@@ -1,0 +1,60 @@
+name: CI
+
+# path-filtered 增量 CI（ADR-013 / 07 §6）。bootstrap 期：
+#  - adr-gate / layout 为阻塞门（BUG-006 / REQ-006 护栏）
+#  - 模块级构建按变更路径触发（REQ-005 落地完整依赖图增量；此处为骨架）
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  # —— 治理门（始终运行，阻塞合并）——
+  governance-gates:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: ADR 评审闭环 gate（BUG-006 / adr-standard §4.2）
+        run: python tools/adr_gate.py
+      - name: monorepo 布局纪律 gate（ADR-013 / REQ-006）
+        run: python tools/check_layout.py
+
+  # —— 变更路径检测（REQ-005 增量 CI 骨架）——
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      goal: ${{ steps.filter.outputs.goal }}
+      libs: ${{ steps.filter.outputs.libs }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            goal:
+              - 'agents/goal/**'
+            libs:
+              - 'libs/**'
+
+  # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
+  goal-agent:
+    needs: changes
+    if: ${{ needs.changes.outputs.goal == 'true' || needs.changes.outputs.libs == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: ruff lint（agents/goal）
+        # 迁移期非阻塞但失败可见：continue-on-error 不阻塞合并，但 ruff 失败仍标记该步骤失败
+        # （不要 `|| true`，否则退出码被吞 → 静默绿，BUG-026）。REQ-005 落地后去 continue-on-error 转阻塞。
+        continue-on-error: true
+        run: |
+          pipx install ruff || pip install ruff
+          ruff check agents/goal
+      - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
+        run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
