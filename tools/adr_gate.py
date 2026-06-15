@@ -55,22 +55,26 @@ def main() -> int:
         if bullets and informed_by in ("[]", ""):
             failures.append(f"{name}: accepted 且有 Review Notes，但 informed_by 为空（§4.2①）")
 
-        # ② 悬空裁决，两条规则（BUG-027）：
-        #   (a) 任一 bullet 含显式 pending 裁决动词 → FAIL（逐 bullet，捕获如「裁决：pending」）
-        #   (b) 出现「待裁决」但全文无 [human-001] 的非-pending 裁决 bullet → FAIL
-        #       （起草说明列待决问题、其后已有 human-001 裁决者放行，如 ADR-015）
-        #   残留局限：「待裁决」与无关的人裁决共存时可能假阴性，由人工评审兜底。
-        PENDING_VERDICT = r"裁决[:：]\s*(pending|待定|未定|待|未)"
+        # ② 逐「意见」bullet 校验裁决（BUG-027/BUG-028，adr-standard §4.1 规则 2）：
+        #    每条 reviewer（codex-*/gemini-*）意见都必须带 human-001 终裁。
+        #    - pending / 待裁决            → FAIL（悬空）
+        #    - 无任何非-pending 的「裁决：」 → FAIL（普通未裁决意见）
+        #    - 裁决为 defer 但缺 Revisit Trigger → FAIL
+        #    claude*/human-001 等记录/裁决类 bullet 非「意见」，豁免。
+        PENDING = r"裁决[:：]\s*(pending|待定|未定|待|未)"
+        RULING = r"(?<!待)裁决[:：]\s*(?!pending|待定|未定|待|未)\S"  # 真实终裁（非 pending、非「待裁决」）
         for b in bullets:
-            if re.search(PENDING_VERDICT, b):
-                failures.append(f"{name}: 存在显式 pending 裁决条目（§4.2②a）：{b.strip()[:60]}…")
-        has_daizai = any("待裁决" in b for b in bullets)
-        has_human_ruling = any(
-            "[human-001]" in b and "裁决" in b and not re.search(PENDING_VERDICT, b)
-            for b in bullets
-        )
-        if has_daizai and not has_human_ruling:
-            failures.append(f"{name}: 出现「待裁决」但无 human-001 终裁 bullet 解决（§4.2②b）")
+            um = re.match(r"-\s*\[([^\]]+)\]", b)
+            uid = um.group(1) if um else ""
+            if not (uid.startswith("codex") or uid.startswith("gemini")):
+                continue  # 非 reviewer 意见（记录/裁决/对齐），豁免
+            short = b.strip()[:64]
+            if "待裁决" in b or re.search(PENDING, b):
+                failures.append(f"{name}: reviewer 意见悬空未裁（pending/待裁决，§4.1②）：{short}…")
+            elif not re.search(RULING, b):
+                failures.append(f"{name}: reviewer 意见缺 human-001 裁决（§4.1②）：{short}…")
+            elif re.search(r"裁决[:：]\s*\**defer", b) and not re.search(r"Revisit", b):
+                failures.append(f"{name}: defer 裁决缺 Revisit Trigger（§4.1②）：{short}…")
 
     if failures:
         print("✗ ADR gate 失败：")
