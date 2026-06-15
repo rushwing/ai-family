@@ -107,6 +107,13 @@
     </div>
     <div class="highlight-box">🟢 <strong>决策</strong>：M1 GoalAgent = 核心目标闭环 + 周/月报 + dogfooding + GoalGroup 向导（精简）。这是一条"从 ChatUI 打穿到 PG/RLS 数据层"的最小完整垂直切片，且每一项都与含 kid 的多成员平台相容。</div>
     <div class="danger-box">🔴 <strong>红线取舍</strong>：goal-agent 原有的 <strong>GitHub 自动 commit</strong> 与 <strong>Telegram 直连</strong> 是两条把家庭数据/通知送出家门或绕过统一出口的外部通道，含 kid 平台不可原样保留——M1 即改造为 MinIO+PG 归档与 <code>notify.out</code> 统一出口（数据不出家门 P4 / Agent 不直连渠道 ADR-006）。</div>
+    <h3>defer 项的可判定 Revisit Trigger（BUG-016）</h3>
+    <table>
+      <tr><th style="width:200px">defer 项</th><th>可进入实现的判定 gate（全满足）</th></tr>
+      <tr><td>web_research + feasibility</td><td><code>BUG-005 resolved</code> + <code>REQ-009 对抗测试集通过</code> + <code>kid 输出审查（Compliance v0）上线</code></td></tr>
+      <tr><td>Gamification+（排行榜/streak freeze/XP shop）</td><td>绑定明确用户留存/活跃指标阈值 <strong>或</strong> 独立 REQ 立项并 accepted</td></tr>
+      <tr><td>OpenClaw 插件通道</td><td><code>MCP 网关桥接</code> + <code>工具侧 JWT</code> + <code>untrusted_output 消毒</code> + <code>审计</code> 四项全部就绪</td></tr>
+    </table>
   </section>
 
   <section>
@@ -155,6 +162,7 @@
       </svg>
     </div>
     <div class="q-box">📘 <strong>层级修正</strong>：goal-agent 自带迁移计划停在"wizard 控制流换 StateGraph"。本稿把它上提一层——wizard 只是 GoalAgent 名下的一个<strong>子图</strong>，与主长程图共享 PG checkpointer、同受 OIDC/网关/RLS/审计约束。goal-agent 的 SQLite checkpointer、langchain-anthropic 直连均不沿用（统一走 PG checkpointer + LiteLLM）。</div>
+    <div class="danger-box">🔴 <strong>M1 kid 路径 = 结构化只路径（BUG-012）</strong>：Compliance Agent 是 M3，而 01/03/GLOSSARY 要求 kid I/O 必过 Compliance。故 M1 <strong>不让 kid 自由对话 GoalAgent</strong>：kid 仅 ① RLS 下只读自有目标 ② Draft-First 打卡（自有任务）③ <code>praise_engine</code> <strong>离线模板</strong>赞语（不走 LLM 自由生成）。kid <strong>不可创建/批准平台或他人目标写入</strong>，越界请求温和转家长。如此 M1 无未审 LLM 输出给 kid → 不需 Compliance 亦满足 P5 红线。kid 自由对话 + 完整 Compliance v0（输入注入/意图过滤 + 输出 kid 100% judge + PII 脱敏 + compliance_block 审计）顺延 M3。</div>
   </section>
 
   <section>
@@ -169,7 +177,7 @@
         <text x="30" y="32" fill="#33691E" font-size="11" font-weight="700">主长程图（目标全生命周期 · cron 唤醒每日循环）</text>
         <rect x="30" y="44" width="120" height="44" rx="7" fill="#283593"/><text x="90" y="70" text-anchor="middle" fill="#fff" font-size="10">intake</text>
         <rect x="180" y="44" width="130" height="44" rx="7" fill="#2E7D32"/><text x="245" y="70" text-anchor="middle" fill="#fff" font-size="10">decompose（LLM）</text>
-        <rect x="340" y="44" width="150" height="44" rx="7" fill="#F57F17"/><text x="415" y="64" text-anchor="middle" fill="#fff" font-size="10">🟠 ⏸ interrupt</text><text x="415" y="80" text-anchor="middle" fill="#FFF3E0" font-size="9">计划确认（Plan Mode）</text>
+        <rect x="340" y="44" width="150" height="44" rx="7" fill="#F57F17"/><text x="415" y="64" text-anchor="middle" fill="#fff" font-size="10">🟠 ⏸ interrupt</text><text x="415" y="80" text-anchor="middle" fill="#FFF3E0" font-size="9">计划确认（interrupt 门）</text>
         <rect x="520" y="44" width="130" height="44" rx="7" fill="#2E7D32"/><text x="585" y="64" text-anchor="middle" fill="#fff" font-size="10">commit_plan</text><text x="585" y="80" text-anchor="middle" fill="#C8E6C9" font-size="8.5">写库（RLS）</text>
         <rect x="680" y="44" width="150" height="44" rx="7" fill="#00695C"/><text x="755" y="64" text-anchor="middle" fill="#fff" font-size="10">schedule_daily</text><text x="755" y="80" text-anchor="middle" fill="#B2DFDB" font-size="8.5">cron→图唤醒</text>
         <line x1="150" y1="66" x2="180" y2="66" stroke="#555" stroke-width="1.5" marker-end="url(#n1)"/>
@@ -207,6 +215,15 @@
     </div>
     <div class="warn-box">🟠 <strong>取舍</strong>：goal-agent wizard 原路径含 <code>research_node</code>(fan-out 网页调研) + <code>feasibility_node</code>(可行性校验)。M1 移除这两个节点，wizard 走 <code>scope→targets→constraints→plan_gen→confirm</code> 线性精简路径——既保住"引导建组目标"这条已成型的 LangGraph 资产，又不把外部数据通道在消毒中间件（BUG-005）就绪前引入含 kid 的上下文。</div>
     <div class="highlight-box">🟢 <strong>幂等设计内建</strong>：每日循环可被 cron 重复唤醒、可在 <code>await_checkin</code> 挂起期被 kill 后恢复——因此 <code>daily_plan</code> 下发、<code>evaluate</code> 计分、提醒发送等副作用节点必须带 idempotency_key + outbox，重复执行不重复发提醒/不重复计分（BUG-001）。这是图设计的一等约束，不是事后验收。</div>
+    <h3>状态权威矩阵与节点事务契约（BUG-013）</h3>
+    <p>goal-agent 上游迁移稿（02-comparison）以业务表为 source of truth、checkpointer 只管控制流。本稿沿用并明确三者权威与恢复规则：</p>
+    <table>
+      <tr><th style="width:170px">存储</th><th>记录什么</th><th style="width:150px">恢复时的角色</th></tr>
+      <tr><td><strong>DB 业务表</strong>（goals/plans/checkins…）</td><td>业务真相（目标/计划/打卡/XP）</td><td>🟢 <strong>恢复权威</strong>（reconcile 基准）</td></tr>
+      <tr><td><strong>outbox</strong>（同库表）</td><td>待投递副作用（通知/报表）+ idempotency_key</td><td>重放去重，至少一次投递</td></tr>
+      <tr><td><strong>LangGraph checkpoint</strong></td><td>控制进度（走到哪个节点）</td><td>仅恢复控制流，<strong>非业务真相</strong></td></tr>
+    </table>
+    <div class="danger-box">🔴 <strong>节点事务契约</strong>：副作用节点的<strong>业务写入 + outbox 投递 + idempotency_key 落库必须在同一 DB 事务</strong>；checkpoint 在事务外另写。恢复规则：<strong>以 DB 业务状态为权威 reconcile</strong> checkpoint/outbox——若 commit 成功但 checkpoint 失败，重放时凭 idempotency_key 去重、不重复副作用；若 checkpoint 领先于 DB（业务事务回滚），以 DB 为准重做该节点。与 BUG-001 同源。</div>
   </section>
 
   <section>
@@ -214,8 +231,18 @@
     <p>原 REQ-003 把 BUG-001/002 列在"兜底验收"。本稿据 review 裁决将其上提为<strong>设计内建需求</strong>——在迁移与图设计阶段就落地，因为这些是 kid 安全与数据正确性的根，事后回填代价极大。</p>
     <div class="danger-box">🔴 <strong>BUG-002（RLS critical · kid 红线）</strong>：随数据层迁移步骤一次性内建——① 所有业务表 <code>FORCE ROW LEVEL SECURITY</code>；② 迁移/DDL 走受限 role，应用 role 无 BYPASSRLS；③ 后台 worker / 图节点写库必设 <code>member/shared</code> scope（不得以超级身份跑）；④ 默认禁 <code>SECURITY DEFINER</code> 函数，例外须评审；⑤ 若用 PgBouncer transaction 模式，必须事务内 <code>SET LOCAL</code> per-txn claim（禁 session 级，防连接复用串号）；⑥ CI 扫描：新增表无 RLS 策略即失败。详见 <a href="03-dataflow-tenancy.html">03</a> 与 <a href="../adr/ADR-003-postgres-rls-tenancy.md">ADR-003</a>。</div>
     <div class="danger-box">🔴 <strong>BUG-001（精确一次语义）</strong>：LangGraph checkpoint ≠ 精确一次。副作用节点（提醒、计分、报表、写库）须以 idempotency_key 去重 + outbox 投递，kill-retry 不产生重复工具执行或重复通知（见 §4 图 + <a href="../adr/ADR-001-langgraph-orchestration.md">ADR-001</a>）。</div>
-    <div class="danger-box">🔴 <strong>BUG-011（审计 append-only）</strong>："谁在何时让 AI 做了什么"写入不可变审计表（append-only），kid 无权删除/软删规避家长审计。审计是含未成年成员系统的不可协商项（见 <a href="../adr/ADR-012-observability-langfuse.md">ADR-012</a>）。</div>
-    <div class="q-box">📘 这三条与原 REQ-003 的关系：它们仍由 REQ-003 的实现承载（linked_req=REQ-003），但定位从"验收末端检查"改为"迁移①/图③/审计层的设计输入"。REQ-003 差距清单据此刷新。</div>
+    <div class="danger-box">🔴 <strong>BUG-011 + BUG-015（审计 append-only 落库约束）</strong>：审计须与<strong>可删会话历史物理分离</strong>——独立 <code>audit</code> schema、专用 <strong>INSERT-only DB role</strong>、用 trigger/policy <strong>禁 UPDATE/DELETE</strong>，必要时 hash chain / 只读副本。kid 删聊天、软删除、app 角色改写、后台误清理均不得触及审计。与 REQ-008（被遗忘权）的 retention 张力：被遗忘权作用于业务/会话数据，审计保留最小必要元数据（可加密/假名化），二者分层（见 <a href="../adr/ADR-012-observability-langfuse.md">ADR-012</a> / <a href="../adr/ADR-015-deletion-vs-audit.md">ADR-015</a>）。</div>
+    <div class="danger-box">🔴 <strong>BUG-014（RLS 覆盖平台状态表，不止业务表）</strong>：所有 tenant-bearing 表都必须有 <code>family_member_id</code>/shared scope + RLS + FORCE RLS（或更严格权限）。除业务表外，平台状态表清单同样纳入 CI RLS 扫描：
+      <table style="margin-top:8px">
+        <tr><th style="width:210px">平台表</th><th>含租户/权限数据</th><th style="width:180px">策略</th></tr>
+        <tr><td>langgraph checkpoint</td><td>会话/计划中间态（可含 kid 数据）</td><td>RLS by thread→member（03 §3 已要求）</td></tr>
+        <tr><td>outbox</td><td>待投递副作用（含成员目标内容）</td><td>RLS + member scope</td></tr>
+        <tr><td>audit</td><td>谁对谁做了什么</td><td>INSERT-only role + 读侧 RLS</td></tr>
+        <tr><td>confirm_token</td><td>写操作确认令牌（绑成员/来源）</td><td>RLS + 短 TTL + 来源校验</td></tr>
+        <tr><td>tool registry / call log</td><td>工具调用记录（含参数）</td><td>RLS + member scope</td></tr>
+      </table>
+      BUG-002 的加固范围据此扩展到上述平台表。</div>
+    <div class="q-box">📘 这些与原 REQ-003 的关系：仍由 REQ-003 的实现承载（linked_req=REQ-003），但定位从"验收末端检查"改为"迁移①/图③/审计层的设计输入"。REQ-003 差距清单据此刷新。</div>
   </section>
 
   <section>
@@ -233,6 +260,18 @@
       <tr><td>OpenClaw 插件（TS）</td><td>🔴 冻结</td><td>M1 以 ChatUI 为主通道；M4 再评估复活</td></tr>
       <tr><td>Gamification+（排行榜/streak freeze/XP shop）</td><td>🔴 defer</td><td>未建，核心闭环上线后增量</td></tr>
     </table>
+    <h3>goal-mcp tool manifest（机器可读雏形 · BUG-017）</h3>
+    <p>处置不止到"组"级：每个 tool 须可被机器核验 risk/角色/tenant scope/两段式/测试。下为按组的 manifest 雏形（逐 tool 完整清单随 <a href="../adr/ADR-010-mcp-tool-architecture.md">REQ-004</a> 注册门禁落地）：</p>
+    <table>
+      <tr><th style="width:120px">tool 组</th><th style="width:90px">risk</th><th style="width:120px">角色</th><th style="width:90px">tenant scope</th><th style="width:120px">两段式</th><th>回归测试</th></tr>
+      <tr><td>admin_*</td><td>high</td><td>admin</td><td>family</td><td>prepare/confirm</td><td>tc_admin_*</td></tr>
+      <tr><td>plan_*（写）</td><td>write</td><td>admin/adult</td><td>member</td><td>prepare/confirm</td><td>tc_plan_write</td></tr>
+      <tr><td>checkin_*（写）</td><td>write</td><td>全员（kid 限自有）</td><td>member</td><td>prepare/confirm</td><td>tc_checkin</td></tr>
+      <tr><td>report_*（读/生成）</td><td>read/draft</td><td>全员（kid 限自有）</td><td>member</td><td>—（读）</td><td>tc_report</td></tr>
+      <tr><td>tracks_*（读）</td><td>read</td><td>全员</td><td>shared</td><td>—</td><td>tc_tracks</td></tr>
+      <tr><td>wizard_*（写）</td><td>write</td><td>admin/adult</td><td>member</td><td>prepare/confirm + interrupt</td><td>tc_wizard</td></tr>
+    </table>
+    <div class="danger-box">🔴 <strong>入口收敛</strong>：M1 旧 FastAPI REST 直连入口与 OpenClaw 直调<strong>禁用</strong>，所有工具调用只走 MCP 网关（验签/白名单/工具侧 JWT）；确认令牌仅来自 ChatUI 用户点击、网关校验来源，Agent/Planner 不能自我确认（ADR-010）。无 auth metadata 或无测试的 tool <strong>拒绝注册</strong>（REQ-004）。</div>
   </section>
 
   <section>
@@ -251,7 +290,14 @@
       <tr><td>编排 LangGraph 化</td><td>🟢 主长程图 + wizard 精简子图；🔴 幂等内建（BUG-001）</td></tr>
       <tr><td>36 tools 补 risk/JWT</td><td>不变；明确注册门禁（无 auth/测试拒注册）</td></tr>
       <tr><td>（原"兜底验收"BUG-001/002）</td><td>🟢 上提为设计内建（§5）</td></tr>
-      <tr><td>（未列）web_research/Gamification+/OpenClaw</td><td>🔴 明确 defer + 复活触发（§2）</td></tr>
+      <tr><td>（未列）web_research/Gamification+/OpenClaw</td><td>🔴 明确 defer + 可判定触发（§2）</td></tr>
+      <tr><td colspan="2" style="background:#F6F8F4;font-weight:700;color:#155245">↓ 08 round-2 评审（codex-006~018）增补</td></tr>
+      <tr><td>M1 kid 路径（BUG-012）</td><td>🔴 结构化只路径：只读自有+Draft-First 打卡+模板赞语，不自由对话/不批写（§3）</td></tr>
+      <tr><td>状态权威与事务边界（BUG-013）</td><td>🟢 状态权威矩阵 + 同事务写入/outbox/idem + DB 为恢复权威（§4）</td></tr>
+      <tr><td>RLS 覆盖平台表（BUG-014）</td><td>🔴 checkpoint/outbox/audit/confirm_token/tool log 纳入 RLS + CI 扫描（§5）</td></tr>
+      <tr><td>审计落库约束（BUG-015）</td><td>🔴 独立 schema + INSERT-only role + 禁 UPDATE/DELETE（§5）</td></tr>
+      <tr><td>工具级 manifest（BUG-017）</td><td>🟢 risk/角色/scope/两段式/测试 manifest + 入口收敛（§6）</td></tr>
+      <tr><td>术语（BUG-018）</td><td>🟢 GoalAgent interrupt 确认门，Plan Mode 留给 M2 Planner</td></tr>
     </table>
     <div class="warn-box">🟠 范围纪律：本稿只定 M1 GoalAgent 的 scope 与架构。设计稿之外的功能请求一律先进 REQ backlog（P7）。defer 项均带复活触发条件，不是永久砍除。</div>
   </section>

@@ -134,52 +134,74 @@ tailwind.config = {
       </header>
 
       <div class="flex-1 overflow-y-auto px-4 md:px-6 py-5 space-y-5">
-        <!-- 用户 -->
-        <div class="flex justify-end"><div class="max-w-[78%] bg-pine text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed">帮我把"ai-family 平台建设"立成一个目标，按 M1–M5 排里程碑。</div></div>
 
-        <!-- Agent：计划确认卡（interrupt）—— 签名交互 -->
-        <div class="flex gap-2.5">
-          <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
-          <div class="max-w-[88%] space-y-2.5">
-            <div class="bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-3 text-[14px] leading-relaxed">好的，我草拟了一份计划。<b>这还没写入</b>——你确认后我才会落库。</div>
-            <div class="bg-surface border-2 border-sky/35 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(47,111,143,.10)]">
-              <div class="px-4 py-2.5 bg-skySoft flex items-center gap-2">
-                <span class="text-sky">📋</span><span class="text-[13px] font-semibold text-sky">计划确认 · Plan Mode</span>
-                <span class="ml-auto text-[11px] text-sky/70 tnum">预估 5 步 · 跨度 M1–M5</span>
-              </div>
-              <div class="px-4 py-3 text-[13.5px] space-y-2.5">
-                <div><span class="eyebrow text-muted">目标</span><div class="font-semibold">ai-family 平台建设</div></div>
-                <div><span class="eyebrow text-muted">里程碑</span>
-                  <ul class="mt-1 space-y-1">
-                    <li class="flex gap-2"><span class="text-pine">●</span>M1 基座 + GoalAgent 切片</li>
-                    <li class="flex gap-2"><span class="text-pine">●</span>M2 编排治理 · M3 知识学习</li>
-                    <li class="flex gap-2"><span class="text-pine">●</span>M4 领域补全 · M5 迁 K3s</li>
-                  </ul>
+        <!-- ===== 成人/家长对话（kid 不可见）：自由对话 + 计划确认写入 ===== -->
+        <div data-adult-only class="space-y-5">
+          <div class="flex justify-end"><div class="max-w-[78%] bg-pine text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed">帮我把"ai-family 平台建设"立成一个目标，按 M1–M5 排里程碑。</div></div>
+
+          <!-- Agent：计划确认卡（interrupt）—— 签名交互 -->
+          <div class="flex gap-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
+            <div class="max-w-[88%] space-y-2.5">
+              <div class="bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-3 text-[14px] leading-relaxed">好的，我草拟了一份计划。<b>这还没写入</b>——你确认后我才会落库。</div>
+              <div class="bg-surface border-2 border-sky/35 rounded-2xl overflow-hidden shadow-[0_4px_16px_rgba(47,111,143,.10)]">
+                <div class="px-4 py-2.5 bg-skySoft flex items-center gap-2">
+                  <span class="text-sky">📋</span><span class="text-[13px] font-semibold text-sky">计划确认 · GoalAgent interrupt 确认门</span>
+                  <span class="ml-auto text-[11px] text-sky/70 tnum">预估 5 步 · 跨度 M1–M5</span>
                 </div>
-                <div><span class="eyebrow text-muted">本周节拍</span><div class="text-muted">周末档开发任务 + 工作日轻量任务（评审/文档）</div></div>
+                <div class="px-4 py-3 text-[13.5px] space-y-2.5">
+                  <div><span class="eyebrow text-muted">目标</span><div class="font-semibold">ai-family 平台建设</div></div>
+                  <div><span class="eyebrow text-muted">里程碑</span>
+                    <ul class="mt-1 space-y-1">
+                      <li class="flex gap-2"><span class="text-pine">●</span>M1 基座 + GoalAgent 切片</li>
+                      <li class="flex gap-2"><span class="text-pine">●</span>M2 编排治理 · M3 知识学习</li>
+                      <li class="flex gap-2"><span class="text-pine">●</span>M4 领域补全 · M5 迁 K3s</li>
+                    </ul>
+                  </div>
+                  <div><span class="eyebrow text-muted">本周节拍</span><div class="text-muted">周末档开发任务 + 工作日轻量任务（评审/文档）</div></div>
+                </div>
+                <div class="px-4 py-3 border-t border-line flex flex-wrap gap-2">
+                  <button onclick="toast('已批准 · 计划已写入（RLS 隔离）· 已记审计','pine')" class="bg-pine hover:bg-pine2 text-white text-[13.5px] font-semibold rounded-lg px-4 py-2 transition-colors">批准并写入</button>
+                  <button onclick="toast('已转入修改 · 可继续对话调整','sky')" class="bg-skySoft text-sky text-[13.5px] font-semibold rounded-lg px-4 py-2">修改</button>
+                  <button onclick="toast('已拒绝 · 未做任何写入','muted')" class="text-muted text-[13.5px] font-semibold rounded-lg px-4 py-2 hover:bg-canvas">拒绝</button>
+                </div>
               </div>
-              <div class="px-4 py-3 border-t border-line flex flex-wrap gap-2">
-                <button onclick="toast('已批准 · 计划已写入（RLS 隔离）','pine')" class="bg-pine hover:bg-pine2 text-white text-[13.5px] font-semibold rounded-lg px-4 py-2 transition-colors">批准并写入</button>
-                <button onclick="toast('已转入修改 · 可继续对话调整','sky')" class="bg-skySoft text-sky text-[13.5px] font-semibold rounded-lg px-4 py-2">修改</button>
-                <button onclick="toast('已拒绝 · 未做任何写入','muted')" class="text-muted text-[13.5px] font-semibold rounded-lg px-4 py-2 hover:bg-canvas">拒绝</button>
-              </div>
+              <div class="text-[11.5px] text-muted pl-1">⚖️ 计划批准 ≠ 写操作批准：每个写动作仍走 Draft-First 二次确认（确认令牌仅来自本人 ChatUI 点击）。</div>
             </div>
-            <div class="text-[11.5px] text-muted pl-1">⚖️ 计划批准 ≠ 写操作批准：每个写动作仍会单独二次确认。</div>
+          </div>
+
+          <!-- Agent：流式中 -->
+          <div class="flex gap-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
+            <div class="max-w-[80%] bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-2.5 text-[14px] leading-relaxed"><span class="caret">已为你登记。今晚 21:00 我会提醒今天的</span></div>
           </div>
         </div>
 
-        <!-- Agent：流式中 -->
-        <div class="flex gap-2.5">
-          <span class="w-8 h-8 shrink-0 rounded-lg bg-skySoft text-sky grid place-items-center text-[15px]">🎯</span>
-          <div class="max-w-[80%] bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-2.5 text-[14px] leading-relaxed"><span class="caret">已为你登记。今晚 21:00 我会提醒今天的</span></div>
-        </div>
+        <!-- ===== 孩子对话（仅 kid 可见）：引导式 · 只做打卡/查看 · 越界转家长 ===== -->
+        <div data-kid-only hidden class="space-y-5">
+          <div class="rounded-xl bg-kidSoft border border-kid/25 px-3.5 py-2 text-[11.5px] text-kid">🛡️ 引导模式：你可以查看自己的目标、给今天打卡；复杂或写入别人的请求会自动转交家长。</div>
 
-        <!-- 孩子拦截卡（仅 kid 可见）—— 温和守护，非报错 -->
-        <div data-kid-only hidden class="flex gap-2.5">
-          <span class="w-8 h-8 shrink-0 rounded-lg bg-honeySoft text-honey grid place-items-center text-[15px]">🛡️</span>
-          <div class="max-w-[82%] bg-honeySoft/60 border border-honey/40 rounded-2xl rounded-tl-md px-4 py-3 text-[13.5px] leading-relaxed text-[#7A4A12]">
-            <div class="font-semibold mb-0.5">这个先交给家长 🌱</div>
-            这条请求超出了你现在能做的范围。我已经把它<b>转给家长确认</b>，通过后就能继续。
+          <div class="flex gap-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-lg bg-kidSoft text-kid grid place-items-center text-[15px]">🎯</span>
+            <div class="max-w-[82%] bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-3 text-[14px] leading-relaxed">嗨朵朵 👋 你的「每天读 20 分钟」差一次就满 <b>12 天</b> 连续啦。读完了就来打个卡吧！</div>
+          </div>
+          <div class="flex justify-end"><div class="max-w-[78%] bg-kid text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed">我今天读完啦！</div></div>
+          <div class="flex gap-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-lg bg-kidSoft text-kid grid place-items-center text-[15px]">🎯</span>
+            <div class="max-w-[82%] space-y-2">
+              <div class="bg-surface border border-line rounded-2xl rounded-tl-md px-4 py-3 text-[14px] leading-relaxed">太棒了 🌟 去看板点「打卡」，你自己确认后就 +XP。</div>
+              <button onclick="setScreen('board')" class="text-[13px] font-semibold text-kid border border-kid/30 rounded-lg px-3 py-1.5 hover:bg-kidSoft transition">去今日任务打卡 →</button>
+            </div>
+          </div>
+
+          <!-- 越界请求 → 温和守护 · 转家长（非报错） -->
+          <div class="flex justify-end"><div class="max-w-[78%] bg-kid text-white rounded-2xl rounded-br-md px-4 py-2.5 text-[14px] leading-relaxed">帮我把妈妈的"备考冲刺"改到下周</div></div>
+          <div class="flex gap-2.5">
+            <span class="w-8 h-8 shrink-0 rounded-lg bg-honeySoft text-honey grid place-items-center text-[15px]">🛡️</span>
+            <div class="max-w-[82%] bg-honeySoft/60 border border-honey/40 rounded-2xl rounded-tl-md px-4 py-3 text-[13.5px] leading-relaxed text-[#7A4A12]">
+              <div class="font-semibold mb-0.5">这个先交给家长 🌱</div>
+              修改别人的目标超出了你现在能做的范围。我已经把它<b>转给家长确认</b>（已记审计），通过后就会处理。
+            </div>
           </div>
         </div>
       </div>
@@ -254,7 +276,8 @@ tailwind.config = {
         <!-- 今日任务 + 打卡（Draft-First） -->
         <div class="bg-surface border border-line rounded-2xl p-4">
           <div class="eyebrow text-muted mb-3">今日任务</div>
-          <ul class="space-y-2">
+          <!-- 成人/家长：平台开发任务 -->
+          <ul data-adult-only class="space-y-2">
             <li class="flex items-center gap-3 rounded-xl border border-line px-3 py-2.5">
               <span class="w-5 h-5 rounded-full bg-pine grid place-items-center text-white text-[11px]">✓</span>
               <span class="text-[13.5px] line-through text-muted">回流 M0 评审意见</span><span class="ml-auto text-[11px] text-honey tnum">+30</span>
@@ -270,6 +293,14 @@ tailwind.config = {
               <button onclick="openDraft('整理 ChatUI v0 三屏')" class="ml-auto bg-honey hover:brightness-95 text-white text-[12.5px] font-semibold rounded-lg px-3 py-1.5 transition">打卡</button>
             </li>
           </ul>
+          <!-- 孩子：仅自己的结构化任务（RLS） -->
+          <ul data-kid-only hidden class="space-y-2">
+            <li class="flex items-center gap-3 rounded-xl border border-kid/25 px-3 py-2.5">
+              <span class="w-5 h-5 rounded-full border-2 border-kid/40"></span>
+              <span class="text-[13.5px]">每天读 20 分钟</span>
+              <button onclick="openDraft('每天读 20 分钟')" class="ml-auto bg-kid hover:brightness-95 text-white text-[12.5px] font-semibold rounded-lg px-3 py-1.5 transition">打卡</button>
+            </li>
+          </ul>
           <button onclick="toast('周报：本周完成 4/6，详见生成中…','sky')" class="w-full mt-3 text-[13px] font-semibold text-pine border border-pine/25 rounded-xl py-2.5 hover:bg-pine/5 transition">查看本周周报 →</button>
         </div>
       </div>
@@ -283,10 +314,11 @@ tailwind.config = {
   <h2 class="font-display font-extrabold text-[16px] text-pine mb-2">scope 对应（与 06 §3 / 08 / 01 一致）</h2>
   <ul class="list-disc pl-5 space-y-1 text-muted">
     <li><b class="text-ink">三屏锁定</b>（06 §3 / P7）：登录（Keycloak OIDC 跳转，无自建表单）· 对话（SSE 流式，单 Agent 直连）· 目标看板（目标/里程碑/今日任务/streak·XP + 打卡 + 周报入口）。</li>
-    <li><b class="text-ink">计划确认卡</b> = LangGraph <code>interrupt()</code> 渲染（01 §3 Plan Mode）；<b class="text-ink">打卡/写操作</b> = Draft-First 两段式（01/ADR-010）：先草稿后确认，"计划批准 ≠ 写操作批准"。</li>
-    <li><b class="text-ink">角色感知</b>（01/03）：kid 看不到的目标/工具<b>不出现</b>（非灰显）；孩子模式视觉可识别；拦截为温和守护卡而非报错。</li>
+    <li><b class="text-ink">计划确认卡</b> = GoalAgent 内部 LangGraph <code>interrupt()</code> 确认门（<b>非</b> M2 Planner 的 Plan Mode）；<b class="text-ink">打卡/写操作</b> = Draft-First 两段式（01/ADR-010）：<code>prepare→confirm</code>，确认令牌仅来自本人 ChatUI 点击、网关校验来源、写 append-only 审计，"计划批准 ≠ 写操作批准"。</li>
+    <li><b class="text-ink">kid 结构化只路径（M1）</b>（裁决 BUG-012）：kid 仅 RLS 看自有目标 + Draft-First 打卡 + 模板化赞语；<b>不可自由对话、不可创建/批准平台或他人目标写入</b>，越界请求温和转家长（守护卡而非报错）。kid 自由对话 + 完整 Compliance 顺延 M3。</li>
+    <li><b class="text-ink">角色感知</b>（01/03）：kid 看不到的目标/工具/任务<b>不出现</b>（非灰显）；孩子模式视觉可识别。</li>
     <li><b class="text-ink">明确不做</b>（超纲进 backlog）：深色模式 / 多语言 / 移动 App / 第二个 Agent 入口 / 通知中心。</li>
-    <li><b class="text-ink">pending 08 评审 delta</b>：若 08 评审改动三屏 scope 或 Draft-First/角色语义，本原型随之调整。</li>
+    <li><b class="text-ink">pending 08 评审 delta</b>：若 08 评审改动三屏 scope 或 Draft-First/角色语义，本原型随之调整。本文件单文件，但完整视觉需联网加载 Tailwind CDN（BUG-022）。</li>
   </ul>
 </section>
 </div>
@@ -296,14 +328,19 @@ tailwind.config = {
   <div class="draft-card w-full max-w-[420px] rounded-2xl border-2 border-dashed border-honey shadow-2xl overflow-hidden">
     <div class="px-5 py-3 bg-honeySoft flex items-center gap-2">
       <span>✍️</span><span class="text-[13.5px] font-semibold text-[#9A5B12]">Draft-First 确认</span>
-      <span class="ml-auto text-[11px] bg-honey text-white rounded-full px-2 py-0.5">待你确认</span>
+      <span class="ml-auto text-[11px] bg-honey text-white rounded-full px-2 py-0.5">pending · 待你确认</span>
     </div>
     <div class="px-5 py-4 text-[14px]">
-      <p class="text-muted text-[12.5px] mb-2">下面是即将写入的内容，确认后才会生效：</p>
+      <p class="text-muted text-[12.5px] mb-2"><code class="text-[11px]">prepare_checkin</code> 已生成草稿，<b>尚未写入</b>，确认后才执行 <code class="text-[11px]">confirm_checkin</code>：</p>
       <div class="rounded-xl bg-white border border-line px-4 py-3">
         <div class="text-[12px] text-muted">打卡任务</div>
         <div id="draftTask" class="font-semibold">—</div>
         <div class="text-[12px] text-muted mt-2">效果：标记完成 · <span class="text-honey">+30 XP</span> · streak +1</div>
+      </div>
+      <!-- confirm token 边界（ADR-010） -->
+      <div class="mt-3 rounded-lg bg-canvas/70 border border-line px-3 py-2 text-[11.5px] text-muted leading-relaxed">
+        🔑 确认令牌 <code class="text-[10.5px]">ck_3f9a…</code> · 有效期 <b>5:00</b> · 来源：<b>本人 ChatUI 点击</b>（网关校验来源）<br>
+        确认后写入 <b>append-only 审计</b>（不可改）。令牌不能由 Agent/Planner 自我生成。
       </div>
     </div>
     <div class="px-5 py-3 border-t border-line flex gap-2 bg-white">
@@ -350,7 +387,7 @@ A('[data-role]').forEach(b=>b.addEventListener('click',()=>setRole(b.dataset.rol
 let _draftTask=null;
 function openDraft(t){_draftTask=t;document.getElementById('draftTask').textContent=t;document.getElementById('draftModal').hidden=false;}
 function closeDraft(){document.getElementById('draftModal').hidden=true;}
-function confirmDraft(){closeDraft();toast('已打卡：'+_draftTask+' · +30 XP','pine');}
+function confirmDraft(){closeDraft();toast('已打卡：'+_draftTask+' · +30 XP · 已写审计','pine');}
 
 let _tt;
 function toast(msg,tone='pine'){
@@ -366,6 +403,11 @@ function toast(msg,tone='pine'){
 function applyHash(){
   const h=(location.hash||'').replace('#','');
   let [sc,ro]=h.split(':');
+  // 非 screen:role 的锚点（如 #scope）只滚动，不重置当前屏/角色
+  if(sc && !['login','chat','board'].includes(sc)){
+    const t=document.getElementById(sc); if(t) t.scrollIntoView({behavior:'smooth'});
+    return;
+  }
   setRole(ROLE[ro]?ro:'parent');
   setScreen(['login','chat','board'].includes(sc)?sc:'login');
 }
