@@ -83,7 +83,7 @@
         <!-- 主流程 -->
         <rect x="20" y="40" width="150" height="50" rx="8" fill="#283593"/><text x="95" y="61" text-anchor="middle" fill="#fff" font-size="10.5">intake</text><text x="95" y="78" text-anchor="middle" fill="#C5CAE9" font-size="9">目标意图结构化</text>
         <rect x="210" y="40" width="170" height="50" rx="8" fill="#2E7D32"/><text x="295" y="61" text-anchor="middle" fill="#fff" font-size="10.5">decompose</text><text x="295" y="78" text-anchor="middle" fill="#C8E6C9" font-size="9">目标→里程碑→周计划（LLM）</text>
-        <rect x="420" y="40" width="170" height="50" rx="8" fill="#F57F17"/><text x="505" y="61" text-anchor="middle" fill="#fff" font-size="10.5">⏸ interrupt: 计划确认</text><text x="505" y="78" text-anchor="middle" fill="#FFF3E0" font-size="9">用户批准/修改（Plan Mode）</text>
+        <rect x="420" y="40" width="170" height="50" rx="8" fill="#F57F17"/><text x="505" y="61" text-anchor="middle" fill="#fff" font-size="10.5">⏸ interrupt: 计划确认</text><text x="505" y="78" text-anchor="middle" fill="#FFF3E0" font-size="9">用户批准/修改（interrupt 确认门）</text>
         <rect x="630" y="40" width="170" height="50" rx="8" fill="#2E7D32"/><text x="715" y="61" text-anchor="middle" fill="#fff" font-size="10.5">commit_plan</text><text x="715" y="78" text-anchor="middle" fill="#C8E6C9" font-size="9">写库（goal-mcp tools · RLS）</text>
         <rect x="840" y="40" width="200" height="50" rx="8" fill="#00695C"/><text x="940" y="61" text-anchor="middle" fill="#fff" font-size="10.5">schedule_daily</text><text x="940" y="78" text-anchor="middle" fill="#B2DFDB" font-size="9">注册每日节拍（cron→图唤醒）</text>
         <line x1="170" y1="65" x2="210" y2="65" stroke="#555" stroke-width="1.6" marker-end="url(#g1)"/>
@@ -127,11 +127,11 @@
   </section>
 
   <section>
-    <h2>3. ChatUI v0（三屏，scope 锚定 Claude Design 稿）</h2>
+    <h2>3. ChatUI v0（三屏，scope 锚定 <a href="prototypes/chatui-v0.html">Claude Design 高保真原型</a>）</h2>
     <table>
       <tr><th style="width:140px">屏</th><th>内容</th><th>关键交互组件（设计稿必须覆盖）</th></tr>
       <tr><td>登录</td><td>Keycloak OIDC 跳转（code+PKCE），成员选择仅是 IdP 账号差异</td><td>无自建登录表单（ADR-008 纪律：不自建用户体系）</td></tr>
-      <tr><td>对话</td><td>SSE 流式回复；GoalAgent 单 Agent 直连（M1 无 Router）</td><td>① 计划确认卡片（interrupt 渲染：批准/修改/拒绝）② Draft-First 确认卡片 ③ 拦截提示样式（为 M3 Compliance 预留）</td></tr>
+      <tr><td>对话</td><td>SSE 流式回复；GoalAgent 单 Agent 直连（M1 无 Router）</td><td>① 计划确认卡片（interrupt 渲染：批准/修改/拒绝）② Draft-First 确认卡片 ③ kid 越界拦截→转家长（M1 结构化只路径的一部分，见 <a href="08-goalagent-architecture.html">08</a> §3；完整 Compliance v0 / kid 自由对话后置 M3）</td></tr>
       <tr><td>目标看板</td><td>目标/里程碑/今日任务/streak·XP 视图（读 goal-mcp）</td><td>打卡按钮（写操作 → 确认流）；周报入口</td></tr>
     </table>
     <div class="warn-box">⚠️ Scope 纪律（P7）：v0 就这三屏。设计稿之外的功能请求（深色模式、多语言、移动 App……）一律先进 REQ backlog，不进 M1。</div>
