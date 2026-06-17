@@ -1,8 +1,87 @@
-# 本地开发起栈（占位）—— ADR-013 / 07 §5
+# 本地开发起栈 —— REQ-002 平台基座最小集（ADR-013 / 07 §5 / 02）
 #
-# 生产部署声明在 infra/（GitOps）。本文件用于本地一键起基座 + 切片。
-# 基座服务（PostgreSQL16+pgvector / Keycloak / Redis / RabbitMQ / LiteLLM / Langfuse / MinIO）
-# 随 REQ-002 落地；GoalAgent 切片（agent-core / goal-mcp / chatui）随 REQ-003 落地。
-#
-# bootstrap 期为占位，避免与 agents/goal/docker-compose.yml（goal-agent 原栈）混淆。
-services: {}
+# ⚠️ 未本地验证：当前开发机无 Docker daemon，本文件按标准镜像编写但尚未 `docker compose up` 跑通。
+#    装 OrbStack/colima 后用 ./scripts/dev-up.sh 起栈核对，并把 TC-003/06/08/09/11 从 skip 转 passing。
+#    生产部署声明在 infra/（GitOps，ADR-009）。密钥经 .env（gitignored，见 infra/.env.example）。
+name: ai-family-dev
+
+services:
+  postgres:                       # NAS 数据节点（RLS · pgvector）
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+      POSTGRES_DB: ai_family
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./data/migrations:/docker-entrypoint-initdb.d:ro   # 首次启动按序应用 *.sql
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-aifam}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-aifam}
+    ports: ["5672:5672", "15672:15672"]   # 管理台 15672 —— 生产仅 tailnet 内（TC-002-07）
+
+  keycloak:                       # IdP（OIDC，ADR-008）
+    image: quay.io/keycloak/keycloak:25.0
+    command: ["start-dev"]        # realm/client/4 成员/三角色 provisioning 见 scripts/dev-up.sh（起栈后）
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/ai_family
+      KC_DB_USERNAME: postgres
+      KC_DB_PASSWORD: ${PG_PASSWORD:-postgres}
+    ports: ["8081:8080"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  litellm:                        # LLM 网关（ADR-002）—— 厂商 key 仅在此（BUG-003）
+    image: ghcr.io/berriai/litellm:main-stable
+    command: ["--config", "/app/config.yaml", "--port", "4000"]
+    volumes:
+      - ./infra/litellm/config.yaml:/app/config.yaml:ro
+    env_file: [infra/.env]        # DEEPSEEK_API_KEY / KIMI_API_KEY / ANTHROPIC_API_KEY 等
+    ports: ["4000:4000"]
+
+  langfuse:                       # 可观测（ADR-012）
+    image: langfuse/langfuse:2
+    environment:
+      DATABASE_URL: postgresql://postgres:${PG_PASSWORD:-postgres}@postgres:5432/ai_family
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-dev-secret-change-me}
+      SALT: ${LANGFUSE_SALT:-dev-salt-change-me}
+    ports: ["3001:3000"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  minio:                          # 制品/归档（ADR-011；GitHub 归档替换目标）
+    image: minio/minio
+    command: ["server", "/data", "--console-address", ":9001"]
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER:-aifam}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASSWORD:-aifam-dev-secret}
+    ports: ["9000:9000", "9001:9001"]
+    volumes:
+      - miniodata:/data
+
+volumes:
+  pgdata:
+  miniodata:

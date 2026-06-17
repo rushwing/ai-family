@@ -21,6 +21,8 @@ jobs:
         run: python tools/adr_gate.py
       - name: monorepo 布局纪律 gate（ADR-013 / REQ-006）
         run: python tools/check_layout.py
+      - name: agent registry gate（agent-standard / agent-registry.yml）
+        run: python tools/check_agents.py
 
   # —— 变更路径检测（REQ-005 增量 CI 骨架）——
   changes:
@@ -58,3 +60,33 @@ jobs:
           ruff check agents/goal
       - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
         run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
+
+  # —— REQ-002 集成（真实 PG16 + Redis service）：RLS 真表隔离/审计 append-only + Redis ——
+  req002-integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pytest "psycopg[binary]" redis
+      - name: RLS（模式+真表迁移）+ 审计 append-only + Redis（TC-002-04/05/06）
+        env:
+          AIFAMILY_PG_DSN: postgresql://postgres:postgres@localhost:5432/postgres
+          AIFAMILY_REDIS_URL: redis://localhost:6379/0
+        run: pytest tests/integration -v

@@ -1,0 +1,22 @@
+# LiteLLM 网关配置（ADR-002）—— 三后端路由；厂商 key 仅在网关侧（BUG-003），经 infra/.env 注入。
+# 模型名以家庭档位暴露；下游 Agent 只认档位名，拿不到原始 key。
+model_list:
+  - model_name: deepseek-chat        # 低价快档
+    litellm_params:
+      model: deepseek/deepseek-chat
+      api_key: os.environ/DEEPSEEK_API_KEY
+  - model_name: kimi                  # 长上下文档
+    litellm_params:
+      model: moonshot/moonshot-v1-128k
+      api_key: os.environ/KIMI_API_KEY
+  - model_name: claude               # 高质量档
+    litellm_params:
+      model: anthropic/claude-sonnet-4-6
+      api_key: os.environ/ANTHROPIC_API_KEY
+
+litellm_settings:
+  drop_params: true
+
+# per-user 预算与密钥（BUG-003 验收点）：生产经 master key + /key/generate 下发 per-user 虚拟 key。
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
