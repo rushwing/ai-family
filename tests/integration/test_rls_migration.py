@@ -69,3 +69,11 @@ def test_audit_cross_member_read_zero():
     c = _txn("A"); c.execute("INSERT INTO audit_log(family_member_id, actor, action) VALUES ('A','A','login')"); c.commit(); c.close()
     c = _txn("B"); rows = c.execute("SELECT * FROM audit_log").fetchall(); c.close()
     assert rows == []
+
+
+def test_audit_cross_member_write_blocked():
+    # claim=A 不能伪造 family_member_id='B' 的审计行（evaluator-001 round-1 缺口回归）
+    with pytest.raises(psycopg.errors.Error):
+        c = _txn("A")
+        c.execute("INSERT INTO audit_log(family_member_id, actor, action) VALUES ('B','A','spoof')")
+        c.commit()

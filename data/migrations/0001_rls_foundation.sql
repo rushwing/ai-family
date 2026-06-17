@@ -49,7 +49,7 @@ CREATE POLICY audit_member_read ON audit_log
   FOR SELECT USING (family_member_id = app_current_member());
 DROP POLICY IF EXISTS audit_insert ON audit_log;
 CREATE POLICY audit_insert ON audit_log
-  FOR INSERT WITH CHECK (true);                            -- 谁都能写审计（不可读他人）
+  FOR INSERT WITH CHECK (family_member_id = app_current_member());  -- 只能写当前 claim 的审计行（防跨成员伪造，evaluator-001 round-1）
 -- 仅授 INSERT + SELECT；显式不授 UPDATE/DELETE → app 角色无法改/删审计（append-only）
 REVOKE ALL ON audit_log FROM aifam_app;
 GRANT SELECT, INSERT ON audit_log TO aifam_app;
