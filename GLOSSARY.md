@@ -120,6 +120,7 @@
 | `blocked` | 外部依赖 / 升级 / review_round ≥ 3 | unassigned |
 
 > `evaluator-*` = evaluator-001(Codex) / evaluator-002(Gemini) 多 AI 评审；owner 记主评审者，另一实例出第二视角（agent-standard §1）。
+> env-gated（测试先行）用例的 `tc_impl_review` / `req_impl_review` 两段式评审标准见 [testcase-standard §4](harness/testcase-standard.md)：前者只审「代码名副其实」、后者验「真跑 skip→passing」。
 
 ### 9.2 状态转移表
 

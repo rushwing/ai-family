@@ -19,12 +19,15 @@ ENABLE = re.compile(r"ALTER TABLE\s+([A-Za-z_][\w.]*)\s+ENABLE ROW LEVEL SECURIT
 FORCE = re.compile(r"ALTER TABLE\s+([A-Za-z_][\w.]*)\s+FORCE ROW LEVEL SECURITY", re.I)
 
 
-def main() -> int:
+def main(mig_dir: Path | str | None = None) -> int:
+    # 默认扫仓库 data/migrations；可传目录（测试负例 / CI 隔离扫描，见 TC-003-01）。
+    mig = Path(mig_dir) if mig_dir is not None else MIG
     failures: list[str] = []
-    if not MIG.is_dir():
-        print(f"✓ RLS 扫描：无 {MIG.relative_to(MIG.parent.parent)}（跳过）")
+    if not mig.is_dir():
+        rel = mig if mig_dir is not None else mig.relative_to(mig.parent.parent)
+        print(f"✓ RLS 扫描：无 {rel}（跳过）")
         return 0
-    for sql in sorted(MIG.glob("*.sql")):
+    for sql in sorted(mig.glob("*.sql")):
         text = sql.read_text(encoding="utf-8")
         name = sql.name
         created = {m.group(1) for m in CREATE.finditer(text)}
@@ -56,4 +59,4 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else None))
