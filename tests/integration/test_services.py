@@ -1,9 +1,11 @@
 """REQ-002 服务类集成用例（env-gated；req_impl 起服务后转 passing）。
 
-TC-002-03 OIDC / -06 Redis / -08 LiteLLM / -09 Langfuse。
+TC-002-03 OIDC / -06 Redis / -08 LiteLLM(key 隔离+三后端) / -09 Langfuse。
 未设对应环境变量则 skip（见 tests/conftest.require）。
 """
 import json
+import os
+import urllib.error
 import urllib.request
 
 import pytest
@@ -36,13 +38,21 @@ def test_redis_set_get_ttl():
 
 
 # —— TC-002-08：LiteLLM 网关 ——
-def test_litellm_lists_three_backends():
-    base = require("litellm")
-    models = _get_json(base.rstrip("/") + "/v1/models")
-    ids = {m.get("id", "") for m in models.get("data", [])}
-    # 路由三后端（具体型号名以网关配置为准）
-    assert ids, "LiteLLM /v1/models 为空"
-    # TODO(req_impl): 断言含 DeepSeek/Kimi/Claude 三档 + per-user 预算计数 + 厂商 key 隔离（BUG-003）
+def test_litellm_key_isolation_and_backends():
+    base = require("litellm").rstrip("/")
+    # ① 无网关 key → 401/403（厂商 key 仅在网关，下游无 key 不可调用 —— BUG-003 隔离验证）
+    with pytest.raises(urllib.error.HTTPError) as ei:
+        urllib.request.urlopen(urllib.request.Request(base + "/v1/models"), timeout=10)  # noqa: S310
+    assert ei.value.code in (401, 403), f"无 key 应被拒，实得 {ei.value.code}"
+    # ② 带网关 key → 200 + 列出三后端档位
+    key = os.getenv("AIFAMILY_LITELLM_KEY")
+    if not key:
+        pytest.skip("设 AIFAMILY_LITELLM_KEY 验证带 key 列模型")
+    req = urllib.request.Request(base + "/v1/models", headers={"Authorization": f"Bearer {key}"})
+    with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
+        ids = {m.get("id", "") for m in json.loads(r.read()).get("data", [])}
+    assert {"deepseek-chat", "kimi", "claude"} <= ids, f"缺三后端档位，实得 {ids}"
+    # TODO(req_impl): per-user 预算计数（master key + /key/generate per-user 虚拟 key）
 
 
 # —— TC-002-09：Langfuse 可达 + trace 检索 ——
