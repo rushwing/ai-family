@@ -59,9 +59,12 @@ services:
     command: ["--config", "/app/config.yaml", "--port", "4000"]
     volumes:
       - ./infra/litellm/config.yaml:/app/config.yaml:ro
-    env_file: [infra/.env]        # DEEPSEEK_API_KEY / KIMI_API_KEY / ANTHROPIC_API_KEY 等
+    env_file: [infra/.env]        # 厂商 key + LANGFUSE_PUBLIC_KEY/SECRET_KEY（回调）
+    environment:
+      LANGFUSE_HOST: http://langfuse:3000
     ports: ["4000:4000"]
     networks: [default, agent_internal]   # litellm 跨内网+外网：Agent 经 agent_internal 达网关，网关经 default 出厂商
+    depends_on: [langfuse]
 
   langfuse:                       # 可观测（ADR-012）
     image: langfuse/langfuse:2
@@ -70,6 +73,12 @@ services:
       NEXTAUTH_URL: http://localhost:3001
       NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET:-dev-secret-change-me}
       SALT: ${LANGFUSE_SALT:-dev-salt-change-me}
+      LANGFUSE_INIT_ORG_ID: ${LANGFUSE_INIT_ORG_ID:-aifam}
+      LANGFUSE_INIT_PROJECT_ID: ${LANGFUSE_INIT_PROJECT_ID:-aifam-dev}
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_INIT_PROJECT_PUBLIC_KEY:-}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_INIT_PROJECT_SECRET_KEY:-}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL:-dev@ai-family.local}
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD:-}
     ports: ["3001:3000"]
     depends_on:
       postgres:

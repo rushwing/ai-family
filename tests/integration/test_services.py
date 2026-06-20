@@ -3,8 +3,10 @@
 TC-002-03 OIDC / -06 Redis / -08 LiteLLM(key 隔离+三后端) / -09 Langfuse。
 未设对应环境变量则 skip（见 tests/conftest.require）。
 """
+import base64
 import json
 import os
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -101,10 +103,43 @@ def test_litellm_key_isolation_and_backends():
     # TODO(req_impl): per-user 预算计数（master key + /key/generate per-user 虚拟 key）
 
 
-# —— TC-002-09：Langfuse 可达 + trace 检索 ——
+# —— TC-002-09：Langfuse 可达 ——
 def test_langfuse_reachable():
     base = require("langfuse")
-    # 健康检查；完整 trace 断言（token/cost/latency + trace_id 贯通）待 req_impl 接入 LiteLLM 出口
     with urllib.request.urlopen(base.rstrip("/") + "/api/public/health", timeout=10) as r:  # noqa: S310
         assert r.status == 200
-    # TODO(req_impl): 发起一次经 LiteLLM 的调用 → 按 trace_id 检索 → 断言字段完整
+
+
+# —— TC-002-09：一次 LiteLLM 调用 → Langfuse 完整 trace（token/成本/延迟）——
+def test_langfuse_trace_complete():
+    lf = require("langfuse").rstrip("/")
+    litellm = require("litellm").rstrip("/")
+    pk, sk = os.getenv("AIFAMILY_LANGFUSE_PK"), os.getenv("AIFAMILY_LANGFUSE_SK")
+    key = os.getenv("AIFAMILY_LITELLM_KEY")
+    if not (pk and sk and key):
+        pytest.skip("设 AIFAMILY_LANGFUSE_PK/SK + AIFAMILY_LITELLM_KEY 验证完整 trace")
+    # ① 发起一次经 LiteLLM 的调用（mock 档位，无需厂商 key 即产出真实 token/cost）
+    body = json.dumps({"model": "mock-test", "messages": [{"role": "user", "content": "tc-002-09"}]}).encode()
+    call = urllib.request.Request(
+        litellm + "/v1/chat/completions", data=body,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(call, timeout=15) as r:  # noqa: S310
+        assert r.status == 200
+    # ② 轮询 Langfuse，断言出现含 token/成本/延迟 的 GENERATION
+    auth = base64.b64encode(f"{pk}:{sk}".encode()).decode()
+    for _ in range(12):
+        time.sleep(1.5)
+        q = urllib.request.Request(
+            lf + "/api/public/observations?limit=10", headers={"Authorization": f"Basic {auth}"}
+        )
+        with urllib.request.urlopen(q, timeout=10) as r:  # noqa: S310
+            obs = json.loads(r.read()).get("data", [])
+        gens = [o for o in obs if o.get("type") == "GENERATION"
+                and o.get("promptTokens") and o.get("completionTokens")]
+        if gens:
+            o = gens[0]
+            assert o.get("latency") is not None, "trace 缺 latency"
+            assert o.get("calculatedTotalCost") is not None, "trace 缺 cost"
+            return
+    pytest.fail("未在 Langfuse 找到含 token/成本/延迟 的 GENERATION trace")
