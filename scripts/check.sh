@@ -16,4 +16,8 @@ echo "► monorepo 布局纪律 gate（ADR-013 / REQ-006）"
 "$PY" tools/check_layout.py
 echo "► agent registry gate（agent-standard / agent-registry.yml）"
 "$PY" tools/check_agents.py
+echo "► secret 扫描 gate（BUG-003 ①）"
+"$PY" tools/check_secrets.py
+echo "► 迁移 RLS 扫描 gate（TC-002-05 / BUG-002）"
+"$PY" tools/check_rls.py
 echo "✓ 治理门全过"

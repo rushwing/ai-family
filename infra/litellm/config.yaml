@@ -14,8 +14,14 @@ model_list:
       model: anthropic/claude-sonnet-4-6
       api_key: os.environ/ANTHROPIC_API_KEY
 
+  - model_name: mock-test          # dev：无需厂商 key 即可产生一次被追踪的调用（TC-002-09 trace 验证）
+    litellm_params:
+      model: gpt-3.5-turbo
+      mock_response: "ok（mock）"
+
 litellm_settings:
   drop_params: true
+  success_callback: ["langfuse"]   # 调用成功上报 Langfuse（token/成本/延迟 trace）
 
 # per-user 预算与密钥（BUG-003 验收点）：生产经 master key + /key/generate 下发 per-user 虚拟 key。
 general_settings:
