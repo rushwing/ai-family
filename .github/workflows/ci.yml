@@ -25,6 +25,8 @@ jobs:
         run: python tools/check_agents.py
       - name: secret 扫描 gate（BUG-003 ①：厂商 key 不入代码/配置）
         run: python tools/check_secrets.py
+      - name: 迁移 RLS 扫描 gate（TC-002-05 / BUG-002：新表须 RLS、禁 SECURITY DEFINER）
+        run: python tools/check_rls.py
 
   # —— 变更路径检测（REQ-005 增量 CI 骨架）——
   changes:
