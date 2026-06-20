@@ -2,6 +2,7 @@
   "realm": "ai-family",
   "enabled": true,
   "sslRequired": "none",
+  "accessTokenLifespan": 10,
   "roles": {
     "realm": [
       { "name": "admin", "description": "家长/管理者" },
@@ -17,7 +18,20 @@
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "redirectUris": ["*"],
-      "webOrigins": ["*"]
+      "webOrigins": ["*"],
+      "attributes": { "pkce.code.challenge.method": "S256" },
+      "protocolMappers": [
+        {
+          "name": "aud-ai-family-chatui",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "config": {
+            "included.client.audience": "ai-family-chatui",
+            "access.token.claim": "true",
+            "id.token.claim": "false"
+          }
+        }
+      ]
     }
   ],
   "users": [

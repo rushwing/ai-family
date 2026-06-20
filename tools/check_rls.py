@@ -16,6 +16,7 @@ from pathlib import Path
 MIG = Path(__file__).resolve().parent.parent / "data" / "migrations"
 CREATE = re.compile(r"CREATE TABLE(?:\s+IF NOT EXISTS)?\s+([A-Za-z_][\w.]*)", re.I)
 ENABLE = re.compile(r"ALTER TABLE\s+([A-Za-z_][\w.]*)\s+ENABLE ROW LEVEL SECURITY", re.I)
+FORCE = re.compile(r"ALTER TABLE\s+([A-Za-z_][\w.]*)\s+FORCE ROW LEVEL SECURITY", re.I)
 
 
 def main() -> int:
@@ -28,6 +29,7 @@ def main() -> int:
         name = sql.name
         created = {m.group(1) for m in CREATE.finditer(text)}
         rls_on = {m.group(1) for m in ENABLE.finditer(text)}
+        forced = {m.group(1) for m in FORCE.finditer(text)}
         # 行内豁免：CREATE TABLE 同行含 `-- rls-exempt`
         exempt = set()
         for line in text.splitlines():
@@ -36,6 +38,9 @@ def main() -> int:
                 exempt.add(cm.group(1))
         for t in created - rls_on - exempt:
             failures.append(f"{name}: 表 {t} 未 ENABLE ROW LEVEL SECURITY（① tenant 默认开；非租户表加 -- rls-exempt）")
+        # FORCE RLS：表 owner 也受约束，防 owner 绕过（BUG-002）
+        for t in (created & rls_on) - forced - exempt:
+            failures.append(f"{name}: 表 {t} 缺 FORCE ROW LEVEL SECURITY（owner 可绕过 RLS，BUG-002）")
         # ② SECURITY DEFINER
         for i, line in enumerate(text.splitlines(), 1):
             if re.search(r"SECURITY\s+DEFINER", line, re.I) and "security-definer-ok" not in line.lower():
