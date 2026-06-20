@@ -1,0 +1,49 @@
+{
+  "realm": "ai-family",
+  "enabled": true,
+  "sslRequired": "none",
+  "roles": {
+    "realm": [
+      { "name": "admin", "description": "家长/管理者" },
+      { "name": "adult", "description": "成人成员" },
+      { "name": "kid", "description": "未成年成员（受 Compliance 守护）" }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "ai-family-chatui",
+      "enabled": true,
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
+  "users": [
+    {
+      "username": "lin-dad", "enabled": true, "email": "dad@ai-family.local",
+      "firstName": "林", "lastName": "爸爸",
+      "credentials": [{ "type": "password", "value": "dev-pass-1234", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "lin-mom", "enabled": true, "email": "mom@ai-family.local",
+      "firstName": "林", "lastName": "妈妈",
+      "credentials": [{ "type": "password", "value": "dev-pass-1234", "temporary": false }],
+      "realmRoles": ["adult"]
+    },
+    {
+      "username": "duoduo", "enabled": true, "email": "duoduo@ai-family.local",
+      "firstName": "朵朵", "lastName": "林",
+      "credentials": [{ "type": "password", "value": "dev-pass-1234", "temporary": false }],
+      "realmRoles": ["kid"]
+    },
+    {
+      "username": "yangyang", "enabled": true, "email": "yangyang@ai-family.local",
+      "firstName": "阳阳", "lastName": "林",
+      "credentials": [{ "type": "password", "value": "dev-pass-1234", "temporary": false }],
+      "realmRoles": ["kid"]
+    }
+  ]
+}

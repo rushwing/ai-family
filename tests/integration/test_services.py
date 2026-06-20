@@ -6,6 +6,7 @@ TC-002-03 OIDC / -06 Redis / -08 LiteLLM(key 隔离+三后端) / -09 Langfuse。
 import json
 import os
 import urllib.error
+import urllib.parse
 import urllib.request
 
 import pytest
@@ -18,13 +19,58 @@ def _get_json(url: str):
         return json.loads(r.read())
 
 
+_OIDC_CLIENT = "ai-family-chatui"
+_OIDC_USERS = {"lin-dad": "admin", "lin-mom": "adult", "duoduo": "kid"}  # 代表性成员→角色
+_OIDC_PASSWORD = "dev-pass-1234"
+
+
+def _oidc_token(issuer: str, username: str) -> str:
+    body = urllib.parse.urlencode({
+        "grant_type": "password", "client_id": _OIDC_CLIENT,
+        "username": username, "password": _OIDC_PASSWORD, "scope": "openid",
+    }).encode()
+    req = urllib.request.Request(
+        issuer.rstrip("/") + "/protocol/openid-connect/token", data=body,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+    )
+    with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
+        return json.loads(r.read())["access_token"]
+
+
 # —— TC-002-03：IdP OIDC discovery ——
 def test_oidc_discovery_exposes_endpoints():
     issuer = require("oidc")
     doc = _get_json(issuer.rstrip("/") + "/.well-known/openid-configuration")
     for key in ("authorization_endpoint", "token_endpoint", "jwks_uri", "issuer"):
         assert key in doc, f"OIDC discovery 缺 {key}"
-    # TODO(req_impl): code+PKCE 取 token、校验 4 成员 / admin·adult·kid 角色 claim、过期/篡改拒绝
+
+
+# —— TC-002-03：JWT 签发 + JWKS 验签 + admin/adult/kid 三角色 claim ——
+def test_oidc_jwt_issues_and_verifies_role_claims():
+    issuer = require("oidc")
+    jwt = pytest.importorskip("jwt")  # pyjwt[crypto]
+    jwks = jwt.PyJWKClient(issuer.rstrip("/") + "/protocol/openid-connect/certs")
+    seen_roles = set()
+    for username, expected_role in _OIDC_USERS.items():
+        token = _oidc_token(issuer, username)                 # 签发（password grant）
+        key = jwks.get_signing_key_from_jwt(token).key
+        claims = jwt.decode(token, key, algorithms=["RS256"], options={"verify_aud": False})  # 验签
+        roles = claims.get("realm_access", {}).get("roles", [])
+        assert expected_role in roles, f"{username} 缺角色 {expected_role}：{roles}"
+        seen_roles.add(expected_role)
+    assert seen_roles == {"admin", "adult", "kid"}, f"三角色未齐：{seen_roles}"
+
+
+# —— TC-002-03：篡改 token 被拒 ——
+def test_oidc_tampered_token_rejected():
+    issuer = require("oidc")
+    jwt = pytest.importorskip("jwt")
+    token = _oidc_token(issuer, "duoduo")
+    jwks = jwt.PyJWKClient(issuer.rstrip("/") + "/protocol/openid-connect/certs")
+    key = jwks.get_signing_key_from_jwt(token).key
+    tampered = token[:-4] + ("aaaa" if not token.endswith("aaaa") else "bbbb")
+    with pytest.raises(jwt.InvalidSignatureError):
+        jwt.decode(tampered, key, algorithms=["RS256"], options={"verify_aud": False})
 
 
 # —— TC-002-06：Redis 会话缓存 ——

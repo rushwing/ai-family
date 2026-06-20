@@ -39,7 +39,9 @@ services:
 
   keycloak:                       # IdP（OIDC，ADR-008）
     image: quay.io/keycloak/keycloak:25.0
-    command: ["start-dev"]        # realm/client/4 成员/三角色 provisioning 见 scripts/dev-up.sh（起栈后）
+    command: ["start-dev", "--import-realm"]   # 导入 ai-family realm（3 角色 + 4 成员 + client）
+    volumes:
+      - ./infra/keycloak/realm-ai-family.json:/opt/keycloak/data/import/realm.json:ro
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
@@ -59,6 +61,7 @@ services:
       - ./infra/litellm/config.yaml:/app/config.yaml:ro
     env_file: [infra/.env]        # DEEPSEEK_API_KEY / KIMI_API_KEY / ANTHROPIC_API_KEY 等
     ports: ["4000:4000"]
+    networks: [default, agent_internal]   # litellm 跨内网+外网：Agent 经 agent_internal 达网关，网关经 default 出厂商
 
   langfuse:                       # 可观测（ADR-012）
     image: langfuse/langfuse:2
@@ -85,3 +88,11 @@ services:
 volumes:
   pgdata:
   miniodata:
+
+networks:
+  default:
+  # egress 白名单拓扑（BUG-003 ②）：Agent 容器（REQ-003 agent-core）**只**接此 internal 网，
+  # 可达 litellm:4000 但无外网出口 → 技术上禁止 Agent 直连厂商域名（厂商 key 只在网关）。
+  # 当前 REQ-002 无 Agent 容器，故为拓扑声明；执行/验证在 REQ-003 接入 agent-core 时（见 BUG-030）。
+  agent_internal:
+    internal: true
