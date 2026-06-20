@@ -78,8 +78,13 @@ def _txn(member=None, role="aifam_app"):
 # ───────────────────── FK 感知依赖顺序 seeder（PG 目标 schema） ─────────────────────
 
 
-def _pk_col(conn, schema, name):
-    r = conn.execute(
+# 注：introspection 用独立 `admin`（超级用户）连接——`information_schema` 的
+# key_column_usage/constraint_column_usage 按当前角色权限过滤，在 aifam_app 角色下查不到
+# 外键，会导致 FK 列被当普通整数填 0。写入仍走 `conn`（aifam_app + claim）。
+
+
+def _pk_col(admin, schema, name):
+    r = admin.execute(
         "SELECT a.attname FROM pg_index i "
         "JOIN pg_attribute a ON a.attrelid=i.indrelid AND a.attnum = ANY(i.indkey) "
         "JOIN pg_class c ON c.oid=i.indrelid JOIN pg_namespace n ON n.oid=c.relnamespace "
@@ -89,8 +94,8 @@ def _pk_col(conn, schema, name):
     return r[0] if r else "id"
 
 
-def _fk_map(conn, schema, name):
-    rows = conn.execute(
+def _fk_map(admin, schema, name):
+    rows = admin.execute(
         "SELECT kcu.column_name, ccu.table_schema, ccu.table_name, ccu.column_name "
         "FROM information_schema.table_constraints tc "
         "JOIN information_schema.key_column_usage kcu "
@@ -103,8 +108,8 @@ def _fk_map(conn, schema, name):
     return {r[0]: (r[1], r[2], r[3]) for r in rows}
 
 
-def _enum_label(conn, udt_name):
-    r = conn.execute(
+def _enum_label(admin, udt_name):
+    r = admin.execute(
         "SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON t.oid=e.enumtypid "
         "WHERE t.typname=%s ORDER BY e.enumsortorder LIMIT 1",
         (udt_name,),
@@ -112,15 +117,15 @@ def _enum_label(conn, udt_name):
     return r[0] if r else "x"
 
 
-def _fields_values(conn, table, member, cache):
+def _fields_values(conn, admin, table, member, cache):
     """构造 `table` 在 `member` 下的一行（fields, values），按需递归先建父行（同成员）。"""
     schema, name = _split(table)
-    cols = conn.execute(
+    cols = admin.execute(
         "SELECT column_name, data_type, udt_name, is_nullable, column_default "
         "FROM information_schema.columns WHERE table_schema=%s AND table_name=%s",
         (schema, name),
     ).fetchall()
-    fks = _fk_map(conn, schema, name)
+    fks = _fk_map(admin, schema, name)
     fields, values = [], []
     for col, dtype, udt, is_nullable, default in cols:
         if not (is_nullable == "NO" and default is None):
@@ -129,9 +134,9 @@ def _fields_values(conn, table, member, cache):
             fields.append(col); values.append(member)
         elif col in fks:
             rs, rt, _rc = fks[col]
-            fields.append(col); values.append(_seed(conn, f"{rs}.{rt}", member, cache))
+            fields.append(col); values.append(_seed(conn, admin, f"{rs}.{rt}", member, cache))
         elif dtype == "USER-DEFINED":
-            fields.append(col); values.append(_enum_label(conn, udt))
+            fields.append(col); values.append(_enum_label(admin, udt))
         elif dtype in ("integer", "bigint", "numeric", "smallint", "real", "double precision"):
             fields.append(col); values.append(0)
         elif dtype == "boolean":
@@ -145,14 +150,14 @@ def _fields_values(conn, table, member, cache):
     return fields, values
 
 
-def _seed(conn, table, member, cache):
+def _seed(conn, admin, table, member, cache):
     """插入一行（及其必填父行），返回该行 PK 值；按 (table, member) 缓存避免重复。"""
     key = (table, member)
     if key in cache:
         return cache[key]
     schema, name = _split(table)
-    fields, values = _fields_values(conn, table, member, cache)
-    pk = _pk_col(conn, schema, name)
+    fields, values = _fields_values(conn, admin, table, member, cache)
+    pk = _pk_col(admin, schema, name)
     placeholders = ", ".join(["%s"] * len(fields))
     row = conn.execute(
         f'INSERT INTO {table} ({", ".join(fields)}) VALUES ({placeholders}) RETURNING {pk}',
@@ -326,25 +331,29 @@ def test_tenant_table_has_member_scope_and_force_rls(table):
 def test_tenant_table_rls_behavior_blocks_cross_member(table):
     """依赖顺序 factory 建 M1 真实子树 → 跨成员 SELECT=0 + WITH CHECK 拒（捕获 USING(true) 泄漏）。"""
     cache: dict = {}
-    # 1) M1 真实子树（FK 解析到 M1 父行），提交
-    c = _txn("M1")
-    _seed(c, table, "M1", cache)
-    c.commit()
-    c.close()
-    # 2) M2 看不到 M1 的行（USING(true) 会在此泄漏 → 断言失败）
-    c = _txn("M2")
-    leaked = c.execute(f"SELECT count(*) FROM {table} WHERE family_member_id='M1'").fetchone()[0]
-    c.close()
-    assert leaked == 0, f"{table}：跨成员读到 M1 数据（疑似 USING(true) 泄漏）"
-    # 3) M1 claim 伪造 family_member_id=M2（复用已提交 M1 父行，FK 合法）→ WITH CHECK 拒
-    c = _txn("M1")
-    fields, values = _fields_values(c, table, "M1", cache)  # cache 命中已提交父行，不重插
-    values = ["M2" if f == "family_member_id" else v for f, v in zip(fields, values)]
-    placeholders = ", ".join(["%s"] * len(fields))
-    with pytest.raises(psycopg.errors.Error):
-        c.execute(f'INSERT INTO {table} ({", ".join(fields)}) VALUES ({placeholders})', values)
+    admin = psycopg.connect(DSN, autocommit=True)  # introspection 走超级用户（避开 info_schema 角色过滤）
+    try:
+        # 1) M1 真实子树（FK 解析到 M1 父行），提交
+        c = _txn("M1")
+        _seed(c, admin, table, "M1", cache)
         c.commit()
-    c.close()
+        c.close()
+        # 2) M2 看不到 M1 的行（USING(true) 会在此泄漏 → 断言失败）
+        c = _txn("M2")
+        leaked = c.execute(f"SELECT count(*) FROM {table} WHERE family_member_id='M1'").fetchone()[0]
+        c.close()
+        assert leaked == 0, f"{table}：跨成员读到 M1 数据（疑似 USING(true) 泄漏）"
+        # 3) M1 claim 伪造 family_member_id=M2（复用已提交 M1 父行，FK 合法）→ WITH CHECK 拒
+        c = _txn("M1")
+        fields, values = _fields_values(c, admin, table, "M1", cache)  # cache 命中已提交父行，不重插
+        values = ["M2" if f == "family_member_id" else v for f, v in zip(fields, values)]
+        placeholders = ", ".join(["%s"] * len(fields))
+        with pytest.raises(psycopg.errors.Error):
+            c.execute(f'INSERT INTO {table} ({", ".join(fields)}) VALUES ({placeholders})', values)
+            c.commit()
+        c.close()
+    finally:
+        admin.close()
 
 
 def test_app_role_has_no_bypassrls():
