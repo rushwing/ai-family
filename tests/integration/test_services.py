@@ -29,7 +29,7 @@ def _get_json(url: str):
 
 _OIDC_CLIENT = "ai-family-chatui"
 _OIDC_AUD = "ai-family-chatui"
-_OIDC_USERS = {"lin-dad": "admin", "lin-mom": "adult", "duoduo": "kid"}  # 代表性成员→角色
+_OIDC_USERS = {"lin-dad": "admin", "lin-mom": "adult", "duoduo": "kid", "yangyang": "kid"}  # 4 家庭成员→角色
 _OIDC_PASSWORD = "dev-pass-1234"
 _OIDC_REDIRECT = "http://localhost:9999/callback"
 
@@ -39,8 +39,8 @@ class _NoRedirect(urllib.request.HTTPRedirectHandler):
         return None
 
 
-def _oidc_code_pkce_token(issuer: str, username: str, password: str = _OIDC_PASSWORD) -> str:
-    """完整 Authorization Code + PKCE(S256) 流程（模拟浏览器登录身份链）。"""
+def _oidc_login(issuer: str, username: str, password: str = _OIDC_PASSWORD) -> dict:
+    """完整 Authorization Code + PKCE(S256) 流程（模拟浏览器登录身份链）；返回 token 响应（含 access_token + id_token）。"""
     issuer = issuer.rstrip("/")
     verifier = secrets.token_urlsafe(64)
     challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
@@ -73,7 +73,7 @@ def _oidc_code_pkce_token(issuer: str, username: str, password: str = _OIDC_PASS
     with urllib.request.urlopen(  # noqa: S310
         urllib.request.Request(issuer + "/protocol/openid-connect/token", data=tok,
                                headers={"Content-Type": "application/x-www-form-urlencoded"}), timeout=10) as r:
-        return json.loads(r.read())["access_token"]
+        return json.loads(r.read())
 
 
 # —— TC-002-03：IdP OIDC discovery ——
@@ -84,19 +84,26 @@ def test_oidc_discovery_exposes_endpoints():
         assert key in doc, f"OIDC discovery 缺 {key}"
 
 
-# —— TC-002-03：code+PKCE 登录 → JWKS 验签 + aud + admin/adult/kid 三角色 ——
-def test_oidc_code_pkce_verifies_aud_and_roles():
+# —— TC-002-03：4 家庭成员 code+PKCE 登录 → access+id token 验签/aud/sub + 三角色 ——
+def test_oidc_four_members_access_and_id_token():
     issuer = require("oidc")
     jwt = pytest.importorskip("jwt")  # pyjwt[crypto]
     jwks = jwt.PyJWKClient(issuer.rstrip("/") + "/protocol/openid-connect/certs")
-    seen_roles = set()
+    seen_roles, subs = set(), set()
     for username, expected_role in _OIDC_USERS.items():
-        token = _oidc_code_pkce_token(issuer, username)           # code+PKCE 签发
-        key = jwks.get_signing_key_from_jwt(token).key
-        claims = jwt.decode(token, key, algorithms=["RS256"], audience=_OIDC_AUD)  # 验签 + aud + exp
-        roles = claims.get("realm_access", {}).get("roles", [])
-        assert expected_role in roles, f"{username} 缺角色 {expected_role}：{roles}"
+        tokens = _oidc_login(issuer, username)                    # code+PKCE 签发
+        at, idt = tokens["access_token"], tokens.get("id_token")
+        assert idt, f"{username} 未签发 id_token"
+        akey = jwks.get_signing_key_from_jwt(at).key
+        ac = jwt.decode(at, akey, algorithms=["RS256"], audience=_OIDC_AUD)        # access token 验签+aud+exp
+        ic = jwt.decode(idt, jwks.get_signing_key_from_jwt(idt).key,              # id token 验签+aud(client)+exp
+                        algorithms=["RS256"], audience=_OIDC_CLIENT)
+        assert ac.get("sub") and ac["sub"] == ic.get("sub"), f"{username} access/id token sub 不一致"
+        assert ic.get("preferred_username") == username, f"{username} id token 用户名不符：{ic.get('preferred_username')}"
+        assert expected_role in ac.get("realm_access", {}).get("roles", []), f"{username} 缺角色 {expected_role}"
         seen_roles.add(expected_role)
+        subs.add(ac["sub"])
+    assert len(subs) == 4, f"应为 4 个不同成员 sub，实得 {len(subs)}"   # 第 4 成员被删/错映射 → 此处失败
     assert seen_roles == {"admin", "adult", "kid"}, f"三角色未齐：{seen_roles}"
 
 
@@ -104,7 +111,7 @@ def test_oidc_code_pkce_verifies_aud_and_roles():
 def test_oidc_tampered_token_rejected():
     issuer = require("oidc")
     jwt = pytest.importorskip("jwt")
-    token = _oidc_code_pkce_token(issuer, "duoduo")
+    token = _oidc_login(issuer, "duoduo")["access_token"]
     key = jwt.PyJWKClient(issuer.rstrip("/") + "/protocol/openid-connect/certs").get_signing_key_from_jwt(token).key
     tampered = token[:-4] + ("aaaa" if not token.endswith("aaaa") else "bbbb")
     with pytest.raises(jwt.InvalidSignatureError):
@@ -115,7 +122,7 @@ def test_oidc_tampered_token_rejected():
 def test_oidc_expired_token_rejected():
     issuer = require("oidc")
     jwt = pytest.importorskip("jwt")
-    token = _oidc_code_pkce_token(issuer, "duoduo")
+    token = _oidc_login(issuer, "duoduo")["access_token"]
     key = jwt.PyJWKClient(issuer.rstrip("/") + "/protocol/openid-connect/certs").get_signing_key_from_jwt(token).key
     time.sleep(12)  # 超过 10s lifespan
     with pytest.raises(jwt.ExpiredSignatureError):
