@@ -132,22 +132,43 @@ def test_redis_set_get_ttl():
     assert 0 < client.ttl("aifam:test") <= 30
 
 
-# —— TC-002-08：LiteLLM 网关 ——
-def test_litellm_key_isolation_and_backends():
+def _litellm_completion(base: str, key: str, model: str):
+    body = json.dumps({"model": model, "messages": [{"role": "user", "content": "route-probe"}]}).encode()
+    req = urllib.request.Request(
+        base + "/v1/chat/completions", data=body,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as r:  # noqa: S310
+            return r.status, r.read().decode()
+    except urllib.error.HTTPError as e:
+        return e.code, e.read().decode()
+
+
+# —— TC-002-08（REQ-002 网关层）：key 隔离 + 三后端路由 dispatch ——
+#    真实 provider completion + per-user 预算计数/超限/缺 user 拒绝 → REQ-003 / BUG-030（agent 侧 + 真实凭证）
+def test_litellm_key_isolation_and_dispatch():
     base = require("litellm").rstrip("/")
-    # ① 无网关 key → 401/403（厂商 key 仅在网关，下游无 key 不可调用 —— BUG-003 隔离验证）
+    # ① 无网关 key → 401/403（厂商 key 仅在网关，下游无 key 不可调用 —— BUG-003 隔离）
     with pytest.raises(urllib.error.HTTPError) as ei:
         urllib.request.urlopen(urllib.request.Request(base + "/v1/models"), timeout=10)  # noqa: S310
     assert ei.value.code in (401, 403), f"无 key 应被拒，实得 {ei.value.code}"
-    # ② 带网关 key → 200 + 列出三后端档位
     key = os.getenv("AIFAMILY_LITELLM_KEY")
     if not key:
-        pytest.skip("设 AIFAMILY_LITELLM_KEY 验证带 key 列模型")
+        pytest.skip("设 AIFAMILY_LITELLM_KEY 验证带 key 路由")
+    # ② /v1/models 列出三后端档位
     req = urllib.request.Request(base + "/v1/models", headers={"Authorization": f"Bearer {key}"})
     with urllib.request.urlopen(req, timeout=10) as r:  # noqa: S310
         ids = {m.get("id", "") for m in json.loads(r.read()).get("data", [])}
     assert {"deepseek-chat", "kimi", "claude"} <= ids, f"缺三后端档位，实得 {ids}"
-    # TODO(req_impl): per-user 预算计数（master key + /key/generate per-user 虚拟 key）
+    # ③ dispatch：每档路由到**对应 provider**（dev 无真实厂商 key → 返回该 provider 专属鉴权错，
+    #    证明 model_name 被解析并路由到正确后端，而非 'model not found'）
+    for model, provider in {"deepseek-chat": "deepseek", "kimi": "moonshot", "claude": "anthropic"}.items():
+        code, text = _litellm_completion(base, key, model)
+        assert code in (401, 500), f"{model} 期望 provider 鉴权错，实得 {code}：{text[:80]}"
+        assert provider in text.lower(), f"{model} 未路由到 {provider}：{text[:120]}"
+    # ④ 未配置 model → 网关拒为 'Invalid model name'（非路由）
+    code, text = _litellm_completion(base, key, "bogus-model-xyz")
+    assert code == 400 and "invalid model name" in text.lower(), f"bogus 期望 400 invalid model：{code} {text[:80]}"
 
 
 # —— TC-002-09：Langfuse 可达 ——
