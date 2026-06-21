@@ -131,10 +131,14 @@ def authorize_tool(token: str | None, tool: str, *, member: str | None = None) -
         raise AuthorizationError(
             f"角色 {claims['role']} 无权调用 {tool}（需 {sorted(roles)}）"
         )
-    if scope == _M and member is not None and member != claims["family_member_id"]:
-        raise AuthorizationError(
-            f"跨成员越权：claim={claims['family_member_id']} 请求 member={member}"
-        )
+    if scope == _M:
+        # member-scoped 工具必须显式给出目标成员；缺失即 fail-closed（防调用方遗漏 tenant scope 绕过）
+        if member is None:
+            raise AuthorizationError(f"{tool} 为 member-scoped，必须显式传 member（fail-closed）")
+        if member != claims["family_member_id"]:
+            raise AuthorizationError(
+                f"跨成员越权：claim={claims['family_member_id']} 请求 member={member}"
+            )
     return True
 
 
