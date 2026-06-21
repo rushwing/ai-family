@@ -21,9 +21,10 @@ INSERT INTO best_pals (id, name, telegram_chat_id, is_admin) VALUES
   (2, 'parent-B', 1002, 0);
 
 -- 各自一名 go_getter
-INSERT INTO go_getters (id, best_pal_id, name, display_name, grade, telegram_chat_id) VALUES
-  (1, 1, 'kid-A', 'Kid A', 'G3', 2001),
-  (2, 2, 'kid-B', 'Kid B', 'G4', 2002);
+INSERT INTO go_getters (id, best_pal_id, name, display_name, grade, telegram_chat_id,
+                        xp_total, streak_current, streak_longest) VALUES
+  (1, 1, 'kid-A', 'Kid A', 'G3', 2001, 1250, 7, 14),
+  (2, 2, 'kid-B', 'Kid B', 'G4', 2002, 880, 3, 9);
 
 -- vacation_type 为 Enum NOT NULL 无默认（alembic 001），必填。
 INSERT INTO targets (id, go_getter_id, title, subject, description, vacation_type, vacation_year, priority, status) VALUES
@@ -42,9 +43,10 @@ INSERT INTO tasks (id, milestone_id, day_of_week, sequence_in_day, title, descri
   (1, 1, 1, 1, 'Task A', 'task desc A', 'practice', 'active'),
   (2, 2, 1, 1, 'Task B', 'task desc B', 'reading', 'active');
 
-INSERT INTO check_ins (id, task_id, go_getter_id, status) VALUES
-  (1, 1, 1, 'completed'),
-  (2, 2, 2, 'completed');
+INSERT INTO check_ins (id, task_id, go_getter_id, status, xp_earned, streak_at_checkin,
+                       duration_minutes, notes) VALUES
+  (1, 1, 1, 'completed', 10, 7, 35, 'done A'),
+  (2, 2, 2, 'completed', 10, 3, 20, 'done B');
 
 INSERT INTO reports (id, go_getter_id, report_type, period_start, period_end, content_md) VALUES
   (1, 1, 'weekly', '2026-01-01', '2026-01-07', 'report A'),

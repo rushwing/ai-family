@@ -30,11 +30,12 @@ CHECK_RLS = REPO / "tools" / "check_rls.py"
 MARIADB_FIXTURE = Path(__file__).resolve().parent.parent / "fixtures" / "mariadb_seed.sql"
 MIGRATE_SCRIPT = REPO / "agents" / "goal" / "scripts" / "migrate_mariadb_to_pg.py"
 
-BUSINESS_TABLES = ["target", "plan", "weekly_milestone", "task", "check_in", "report"]
+BUSINESS_TABLES = ["go_getter", "target", "plan", "weekly_milestone", "task", "check_in", "report"]
 PLATFORM_TABLES = ["lg_checkpoint", "outbox", "audit.event", "confirm_token", "tool_call_log"]
 TENANT_TABLES = BUSINESS_TABLES + PLATFORM_TABLES
 
 SRC_TO_PG = {
+    "go_getters": "go_getter",
     "targets": "target",
     "plans": "plan",
     "weekly_milestones": "weekly_milestone",
@@ -95,15 +96,21 @@ def _pk_col(admin, schema, name):
 
 
 def _fk_map(admin, schema, name):
+    # pg_catalog 按 ordinality 正确配对本地↔引用列，支持复合外键；
+    # （information_schema 对复合 FK 会因 constraint_name 交叉连接而错配。）
     rows = admin.execute(
-        "SELECT kcu.column_name, ccu.table_schema, ccu.table_name, ccu.column_name "
-        "FROM information_schema.table_constraints tc "
-        "JOIN information_schema.key_column_usage kcu "
-        "  ON kcu.constraint_name=tc.constraint_name AND kcu.constraint_schema=tc.constraint_schema "
-        "JOIN information_schema.constraint_column_usage ccu "
-        "  ON ccu.constraint_name=tc.constraint_name AND ccu.constraint_schema=tc.constraint_schema "
-        "WHERE tc.constraint_type='FOREIGN KEY' AND tc.table_schema=%s AND tc.table_name=%s",
-        (schema, name),
+        "SELECT att.attname, rns.nspname, rel.relname, fatt.attname "
+        "FROM pg_constraint con "
+        "JOIN pg_class c ON c.oid=con.conrelid "
+        "JOIN pg_namespace cns ON cns.oid=c.relnamespace "
+        "JOIN pg_class rel ON rel.oid=con.confrelid "
+        "JOIN pg_namespace rns ON rns.oid=rel.relnamespace "
+        "JOIN LATERAL unnest(con.conkey) WITH ORDINALITY AS lk(attnum, ord) ON true "
+        "JOIN LATERAL unnest(con.confkey) WITH ORDINALITY AS fk(attnum, ord) ON fk.ord=lk.ord "
+        "JOIN pg_attribute att ON att.attrelid=con.conrelid AND att.attnum=lk.attnum "
+        "JOIN pg_attribute fatt ON fatt.attrelid=con.confrelid AND fatt.attnum=fk.attnum "
+        "WHERE con.contype='f' AND c.relname=%s AND cns.nspname=%s",
+        (name, schema),
     ).fetchall()
     return {r[0]: (r[1], r[2], r[3]) for r in rows}
 
@@ -287,6 +294,40 @@ def test_migration_preserves_fields_and_relations(migrated):
         assert row and row[0] == "Math Mastery A", "搬迁未保留 target↔plan 关联"
 
 
+def test_migration_is_lossless(migrated):
+    """搬迁不丢字段：逐表与源按列顺序比对（描述/日期/优先级/vacation/XP·streak/打卡详情/报告周期）。"""
+    src, _ = migrated
+
+    def _both(cur, mysql_sql, pg_sql, admin):
+        cur.execute(mysql_sql)
+        s = tuple(cur.fetchone())
+        return tuple(admin.execute(pg_sql).fetchone()), s
+
+    with src.cursor() as cur, psycopg.connect(DSN, autocommit=True) as admin:
+        p, s = _both(cur,
+            "SELECT description, vacation_type, vacation_year, priority FROM targets WHERE id=1",
+            "SELECT description, vacation_type, vacation_year, priority FROM target WHERE id=1", admin)
+        assert p == s, f"target 描述/vacation/优先级丢失：源 {s} 目标 {p}"
+
+        p, s = _both(cur,
+            "SELECT xp_total, streak_current, streak_longest FROM go_getters WHERE id=1",
+            "SELECT xp_total, streak_current, streak_longest FROM go_getter "
+            "WHERE family_member_id='member-go-1'", admin)
+        assert p == s, f"go_getter XP/streak 丢失：源 {s} 目标 {p}"
+
+        p, s = _both(cur,
+            "SELECT status, xp_earned, streak_at_checkin, duration_minutes, notes "
+            "FROM check_ins WHERE id=1",
+            "SELECT status, xp_earned, streak_at_checkin, duration_minutes, notes "
+            "FROM check_in WHERE id=1", admin)
+        assert p == s, f"打卡详情丢失：源 {s} 目标 {p}"
+
+        p, s = _both(cur,
+            "SELECT period_start, period_end FROM reports WHERE id=1",
+            "SELECT period_start, period_end FROM report WHERE id=1", admin)
+        assert p == s, f"报告周期丢失：源 {s} 目标 {p}"
+
+
 def test_migration_partitions_members(migrated):
     with psycopg.connect(DSN, autocommit=True) as admin:
         a = admin.execute("SELECT family_member_id FROM target WHERE title='Math Mastery A'").fetchone()[0]
@@ -352,6 +393,38 @@ def test_tenant_table_rls_behavior_blocks_cross_member(table):
             c.execute(f'INSERT INTO {table} ({", ".join(fields)}) VALUES ({placeholders})', values)
             c.commit()
         c.close()
+    finally:
+        admin.close()
+
+
+@pytest.mark.parametrize(
+    "child,parent_col,parent",
+    [
+        ("plan", "target_id", "target"),
+        ("weekly_milestone", "plan_id", "plan"),
+        ("task", "milestone_id", "weekly_milestone"),
+        ("check_in", "task_id", "task"),
+    ],
+)
+def test_cross_member_fk_rejected(child, parent_col, parent):
+    """成员 A 不得用成员 B 的 parent_id 建立子行（复合 FK 强制父子同租户，堵 BUG-002 侧信道）。"""
+    admin = psycopg.connect(DSN, autocommit=True)
+    try:
+        # B 建一个父行，拿到其 id
+        cb = _txn("B")
+        b_parent_id = _seed(cb, admin, f"public.{parent}", "B", {})
+        cb.commit()
+        cb.close()
+        # 为 A 构造一个合法子行（含 A 自己的父链），再把父列改成 B 的 id
+        ca = _txn("A")
+        fields, values = _fields_values(ca, admin, f"public.{child}", "A", {})
+        values = [b_parent_id if f == parent_col else v for f, v in zip(fields, values)]
+        placeholders = ", ".join(["%s"] * len(fields))
+        # 复合 FK 找不到 (A, b_parent_id) → 拒（堵跨成员关系 / 存在性侧信道）
+        with pytest.raises(psycopg.errors.Error):
+            ca.execute(f'INSERT INTO {child} ({", ".join(fields)}) VALUES ({placeholders})', values)
+            ca.commit()
+        ca.close()
     finally:
         admin.close()
 
