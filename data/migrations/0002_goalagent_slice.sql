@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS target (
   vacation_year smallint,
   priority smallint NOT NULL DEFAULT 3,
   status text NOT NULL DEFAULT 'active',
-  subcategory_id bigint,
-  group_id bigint,
   created_at timestamptz NOT NULL DEFAULT now(),
+  -- 注：track 子类(subcategory_id) / GoalGroup(group_id) 关联随其父表的受控迁移再加列+FK；
+  --     WP-1 不携带这些列（避免悬空引用），搬迁脚本对非空关联 fail-closed。
   UNIQUE (family_member_id, id)
 );
 ALTER TABLE target ENABLE ROW LEVEL SECURITY;

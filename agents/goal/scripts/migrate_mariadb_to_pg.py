@@ -60,6 +60,35 @@ def main() -> int:
             c.execute(sql)
             return list(c.fetchall())
 
+    def scalar(sql: str) -> int:
+        with my.cursor() as c:
+            c.execute(sql)
+            return list(c.fetchone().values())[0]
+
+    # fail-closed：WP-1 切片不支持 GoalGroup / wizard / 重规划 / track 关联的搬迁。
+    # 发现非空即拒绝（而非写入悬空引用 / 丢关系）；这些走独立受控迁移（后续 WP）。
+    unsupported = {
+        "goal_groups": scalar("SELECT count(*) FROM goal_groups"),
+        "goal_group_wizards": scalar("SELECT count(*) FROM goal_group_wizards"),
+        "targets.subcategory_id/group_id": scalar(
+            "SELECT count(*) FROM targets WHERE subcategory_id IS NOT NULL OR group_id IS NOT NULL"
+        ),
+        "plans.superseded_by_id/group_id/wizard_id": scalar(
+            "SELECT count(*) FROM plans "
+            "WHERE superseded_by_id IS NOT NULL OR group_id IS NOT NULL OR wizard_id IS NOT NULL"
+        ),
+    }
+    offending = {k: v for k, v in unsupported.items() if v}
+    if offending:
+        my.close()
+        print(
+            "[migrate_mariadb_to_pg] 拒绝迁移：源含 WP-1 未支持的关联数据 "
+            f"{offending}。请先用 GoalGroup/wizard/track 受控迁移路径处理这些依赖表与关系"
+            "（避免悬空引用 / 丢失重规划关系）。",
+            file=sys.stderr,
+        )
+        return 2
+
     go_getters = fetch(
         "SELECT id, display_name, grade, xp_total, streak_current, streak_longest, "
         "streak_last_date, is_active FROM go_getters"
@@ -68,7 +97,7 @@ def main() -> int:
 
     targets = fetch(
         "SELECT id, go_getter_id, title, subject, description, vacation_type, vacation_year, "
-        "priority, status, subcategory_id, group_id, created_at FROM targets"
+        "priority, status, created_at FROM targets"
     )
     member_of_target = {t["id"]: member_of_gg[t["go_getter_id"]] for t in targets}
 
@@ -110,10 +139,10 @@ def main() -> int:
 
             _upsert(cur, "target",
                 ["id", "family_member_id", "title", "subject", "description", "vacation_type",
-                 "vacation_year", "priority", "status", "subcategory_id", "group_id", "created_at"],
+                 "vacation_year", "priority", "status", "created_at"],
                 [(t["id"], member_of_target[t["id"]], t["title"], t["subject"], t["description"],
                   t["vacation_type"], t["vacation_year"], t["priority"], t["status"],
-                  t["subcategory_id"], t["group_id"], t["created_at"]) for t in targets])
+                  t["created_at"]) for t in targets])
 
             _upsert(cur, "plan",
                 ["id", "family_member_id", "target_id", "title", "overview", "start_date",

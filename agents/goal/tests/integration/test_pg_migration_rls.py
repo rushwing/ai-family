@@ -328,6 +328,31 @@ def test_migration_is_lossless(migrated):
         assert p == s, f"报告周期丢失：源 {s} 目标 {p}"
 
 
+def test_migration_refuses_unsupported_associations():
+    """fail-closed：源含 GoalGroup/wizard/重规划/track 关联（WP-1 未支持）时，搬迁须拒绝而非写悬空引用。"""
+    mysql_dsn = os.getenv("AIFAMILY_MARIADB_DSN")
+    if not mysql_dsn:
+        pytest.skip("设 AIFAMILY_MARIADB_DSN 运行 fail-closed 用例")
+    if not MIGRATE_SCRIPT.exists():
+        pytest.skip("搬迁脚本尚未落地（WP-1）")
+    src = _mysql_conn(mysql_dsn)
+    try:
+        _load_mariadb_fixture(src)
+        with src.cursor() as cur:
+            # 注入一个非空 track 关联（subcategory 取已 seed 的 taxonomy 行，避免 FK 错）
+            cur.execute("UPDATE targets SET subcategory_id=(SELECT MIN(id) FROM track_subcategories) WHERE id=1")
+        res = subprocess.run(
+            [sys.executable, str(MIGRATE_SCRIPT)], capture_output=True, text=True,
+            env={**os.environ, "AIFAMILY_MARIADB_DSN": mysql_dsn, "AIFAMILY_PG_DSN": DSN},
+        )
+        assert res.returncode != 0, "源含未支持关联时搬迁应 fail-closed（非 0 退出）"
+        assert "拒绝迁移" in res.stderr, f"应给出拒绝原因，实际 stderr：{res.stderr}"
+    finally:
+        with src.cursor() as cur:
+            cur.execute("UPDATE targets SET subcategory_id=NULL WHERE id=1")
+        src.close()
+
+
 def test_migration_partitions_members(migrated):
     with psycopg.connect(DSN, autocommit=True) as admin:
         a = admin.execute("SELECT family_member_id FROM target WHERE title='Math Mastery A'").fetchone()[0]
