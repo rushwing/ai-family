@@ -25,6 +25,7 @@ dependencies = [
     "langgraph>=1.0",
     "langgraph-checkpoint-sqlite>=2.0",
     "pyjwt[crypto]>=2.9",
+    "psycopg[binary]>=3.2",        # agent-core PG 运行时（app/graph 事务性 outbox/幂等，WP-3）
 ]
 
 [project.optional-dependencies]
