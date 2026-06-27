@@ -2,6 +2,7 @@
 
 import logging
 import random
+import re
 from typing import Optional
 
 from app.services import llm_service
@@ -100,6 +101,25 @@ def get_offline_praise(mood_score: int, streak: int) -> str:
     templates = TEMPLATES.get((mb, sb), TEMPLATES[("mid", "start")])
     template = random.choice(templates)
     return template.format(streak=streak)
+
+
+# —— kid 结构化只路径（REQ-003 WP-7 / TC-003-07 / BUG-012）：模板化赞语，绝不走 LLM ——
+
+_TEMPLATE_PATTERNS = [
+    re.compile("^" + re.escape(t).replace(r"\{streak\}", r"\d+") + "$")
+    for lst in TEMPLATES.values()
+    for t in lst
+]
+
+
+def is_template(msg: str) -> bool:
+    """判定赞语是否源自离线模板（而非 LLM 自由生成）。"""
+    return any(p.match(msg) for p in _TEMPLATE_PATTERNS)
+
+
+def praise(member: str, streak: int, mood: int = 3) -> str:
+    """kid 模板化赞语：仅离线模板，**不调用 LLM**（结构化只路径，BUG-012）。"""
+    return get_offline_praise(mood, streak)
 
 
 async def generate_praise(

@@ -5,10 +5,45 @@
 env-gated：kid 结构化路径 enforcement（WP-7）尚未落地时 skip；
 req_impl 接 RLS 只读 + Draft-First + 模板赞语后转 passing。
 """
+import os
+from pathlib import Path
+
 import pytest
+
+DSN = os.getenv("AIFAMILY_PG_DSN")
+pytestmark = pytest.mark.skipif(not DSN, reason="设 AIFAMILY_PG_DSN 运行 kid 结构化路径用例")
 
 kid = pytest.importorskip("app.services.kid_path", reason="kid 结构化路径未落地（WP-7）")
 praise = pytest.importorskip("app.services.praise_engine")
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _seed():
+    """应用迁移 + 种数据：kid 一条目标链（target→plan→milestone→task）+ adult 一个目标（跨成员隔离）。"""
+    psycopg = pytest.importorskip("psycopg")
+    repo = Path(__file__).resolve().parents[4]
+    with psycopg.connect(DSN, autocommit=True) as admin:
+        for f in sorted((repo / "data" / "migrations").glob("*.sql")):
+            admin.execute(f.read_text(encoding="utf-8"))
+        for tbl in ("check_in", "task", "weekly_milestone", "plan", "target"):
+            admin.execute(f"DELETE FROM {tbl} WHERE family_member_id IN ('kid','adult')")
+        admin.execute("DELETE FROM audit.event WHERE family_member_id IN ('kid','adult','A','B')")
+        tid = admin.execute(
+            "INSERT INTO target (family_member_id, title) VALUES ('kid','Kid Goal') RETURNING id"
+        ).fetchone()[0]
+        pid = admin.execute(
+            "INSERT INTO plan (family_member_id, target_id, title) VALUES ('kid',%s,'P') RETURNING id",
+            (tid,),
+        ).fetchone()[0]
+        mid = admin.execute(
+            "INSERT INTO weekly_milestone (family_member_id, plan_id, title) VALUES ('kid',%s,'M') "
+            "RETURNING id", (pid,),
+        ).fetchone()[0]
+        admin.execute(
+            "INSERT INTO task (family_member_id, milestone_id, title) VALUES ('kid',%s,'T')", (mid,)
+        )
+        admin.execute("INSERT INTO target (family_member_id, title) VALUES ('adult','Adult Goal')")
+    yield
 
 
 @pytest.fixture
