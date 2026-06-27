@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import uuid
 from dataclasses import dataclass
 
 import psycopg
@@ -23,6 +24,10 @@ _goal_writes: dict[str, int] = {}
 
 class RedirectToParent(Exception):
     """kid 越界操作 —— 转家长处理。"""
+
+
+class ConfirmRequired(Exception):
+    """Draft-First 红线：打卡须凭有效（已 prepare、未消费、任务匹配）的 confirm token 才能写。"""
 
 
 @dataclass
@@ -101,10 +106,41 @@ def list_goals(member: str, owner: str | None = None) -> list[Goal]:
         conn.close()
 
 
-def submit_checkin(member: str, task_id: int, draft_first: bool = False) -> CheckinResult:
-    """Draft-First 打卡（kid 唯一写动作）：落 check_in + 审计 allow，**不调 LLM**。"""
+def prepare_checkin(member: str, task_id: int) -> str:
+    """Draft-First 第一段：为该成员的指定任务发一个一次性 confirm token（**不写 check_in**）。"""
+    token = uuid.uuid4().hex
     conn = _txn(member)
     try:
+        conn.execute(
+            "INSERT INTO confirm_token (family_member_id, token, tool, task_id) "
+            "VALUES (%s, %s, 'checkin', %s)",
+            (member, token, task_id),
+        )
+        conn.commit()
+        return token
+    finally:
+        conn.close()
+
+
+def submit_checkin(member: str, task_id: int, confirm_token: str | None) -> CheckinResult:
+    """Draft-First 第二段：凭有效 confirm token 落 check_in + 审计 allow，并**消费** token。
+
+    无 token / token 错 / 任务不符 / 已消费 → ConfirmRequired（红线：不可绕过 Draft-First）。**不调 LLM**。
+    """
+    if not confirm_token:
+        raise ConfirmRequired("缺少 confirm token：kid 打卡须先 prepare（Draft-First）")
+    conn = _txn(member)
+    try:
+        # 原子消费：仅当 token 属本成员、为 checkin、任务匹配且未消费时置 consumed_at
+        consumed = conn.execute(
+            "UPDATE confirm_token SET consumed_at = now() "
+            "WHERE token=%s AND family_member_id=%s AND tool='checkin' "
+            "AND task_id=%s AND consumed_at IS NULL RETURNING id",
+            (confirm_token, member, task_id),
+        ).fetchone()
+        if consumed is None:
+            conn.rollback()
+            raise ConfirmRequired("confirm token 无效 / 任务不符 / 已消费：Draft-First 不可绕过")
         conn.execute(
             "INSERT INTO check_in (family_member_id, task_id, status) VALUES (%s, %s, 'completed')",
             (member, task_id),

@@ -57,9 +57,27 @@ def llm_spy(monkeypatch):
 def test_kid_can_read_own_goal_and_draft_first_checkin(llm_spy):
     goals = kid.list_goals(member="kid")
     assert all(g.family_member_id == "kid" for g in goals)
-    result = kid.submit_checkin(member="kid", task_id=goals[0].tasks[0].id, draft_first=True)
+    task_id = goals[0].tasks[0].id
+    # Draft-First 两段式：prepare 发 token → submit 凭 token 写
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    result = kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
     assert result.accepted
     assert llm_spy == [], "kid 打卡不得调用 LLM 自由生成"
+
+
+def test_kid_checkin_requires_draft_first_confirm(llm_spy):
+    """红线：kid 打卡不可绕过 Draft-First —— 无 / 错 / 已消费的 confirm token 一律拒写。"""
+    task_id = kid.list_goals(member="kid")[0].tasks[0].id
+    # 无 token / 伪造 token → 拒
+    for bad in (None, "bogus-token"):
+        with pytest.raises(kid.ConfirmRequired):
+            kid.submit_checkin(member="kid", task_id=task_id, confirm_token=bad)
+    # 一次性：消费后重用同 token → 拒
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    assert kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token).accepted
+    with pytest.raises(kid.ConfirmRequired):
+        kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
+    assert llm_spy == []
 
 
 def test_kid_cannot_view_other_member_goal():
@@ -82,7 +100,9 @@ def test_kid_praise_is_offline_template(llm_spy):
 
 
 def test_deny_and_allow_are_audited():
-    kid.submit_checkin(member="kid", task_id=kid.list_goals(member="kid")[0].tasks[0].id)
+    task_id = kid.list_goals(member="kid")[0].tasks[0].id
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
     with pytest.raises(kid.RedirectToParent):
         kid.dispatch(member="kid", action="create_goal", payload={})
     events = kid.recent_audit(member="kid")
