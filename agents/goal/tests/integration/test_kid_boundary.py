@@ -5,10 +5,45 @@
 env-gated：kid 结构化路径 enforcement（WP-7）尚未落地时 skip；
 req_impl 接 RLS 只读 + Draft-First + 模板赞语后转 passing。
 """
+import os
+from pathlib import Path
+
 import pytest
+
+DSN = os.getenv("AIFAMILY_PG_DSN")
+pytestmark = pytest.mark.skipif(not DSN, reason="设 AIFAMILY_PG_DSN 运行 kid 结构化路径用例")
 
 kid = pytest.importorskip("app.services.kid_path", reason="kid 结构化路径未落地（WP-7）")
 praise = pytest.importorskip("app.services.praise_engine")
+
+
+@pytest.fixture(scope="module", autouse=True)
+def _seed():
+    """应用迁移 + 种数据：kid 一条目标链（target→plan→milestone→task）+ adult 一个目标（跨成员隔离）。"""
+    psycopg = pytest.importorskip("psycopg")
+    repo = Path(__file__).resolve().parents[4]
+    with psycopg.connect(DSN, autocommit=True) as admin:
+        for f in sorted((repo / "data" / "migrations").glob("*.sql")):
+            admin.execute(f.read_text(encoding="utf-8"))
+        for tbl in ("check_in", "task", "weekly_milestone", "plan", "target"):
+            admin.execute(f"DELETE FROM {tbl} WHERE family_member_id IN ('kid','adult')")
+        admin.execute("DELETE FROM audit.event WHERE family_member_id IN ('kid','adult','A','B')")
+        tid = admin.execute(
+            "INSERT INTO target (family_member_id, title) VALUES ('kid','Kid Goal') RETURNING id"
+        ).fetchone()[0]
+        pid = admin.execute(
+            "INSERT INTO plan (family_member_id, target_id, title) VALUES ('kid',%s,'P') RETURNING id",
+            (tid,),
+        ).fetchone()[0]
+        mid = admin.execute(
+            "INSERT INTO weekly_milestone (family_member_id, plan_id, title) VALUES ('kid',%s,'M') "
+            "RETURNING id", (pid,),
+        ).fetchone()[0]
+        admin.execute(
+            "INSERT INTO task (family_member_id, milestone_id, title) VALUES ('kid',%s,'T')", (mid,)
+        )
+        admin.execute("INSERT INTO target (family_member_id, title) VALUES ('adult','Adult Goal')")
+    yield
 
 
 @pytest.fixture
@@ -22,9 +57,27 @@ def llm_spy(monkeypatch):
 def test_kid_can_read_own_goal_and_draft_first_checkin(llm_spy):
     goals = kid.list_goals(member="kid")
     assert all(g.family_member_id == "kid" for g in goals)
-    result = kid.submit_checkin(member="kid", task_id=goals[0].tasks[0].id, draft_first=True)
+    task_id = goals[0].tasks[0].id
+    # Draft-First 两段式：prepare 发 token → submit 凭 token 写
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    result = kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
     assert result.accepted
     assert llm_spy == [], "kid 打卡不得调用 LLM 自由生成"
+
+
+def test_kid_checkin_requires_draft_first_confirm(llm_spy):
+    """红线：kid 打卡不可绕过 Draft-First —— 无 / 错 / 已消费的 confirm token 一律拒写。"""
+    task_id = kid.list_goals(member="kid")[0].tasks[0].id
+    # 无 token / 伪造 token → 拒
+    for bad in (None, "bogus-token"):
+        with pytest.raises(kid.ConfirmRequired):
+            kid.submit_checkin(member="kid", task_id=task_id, confirm_token=bad)
+    # 一次性：消费后重用同 token → 拒
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    assert kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token).accepted
+    with pytest.raises(kid.ConfirmRequired):
+        kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
+    assert llm_spy == []
 
 
 def test_kid_cannot_view_other_member_goal():
@@ -47,7 +100,9 @@ def test_kid_praise_is_offline_template(llm_spy):
 
 
 def test_deny_and_allow_are_audited():
-    kid.submit_checkin(member="kid", task_id=kid.list_goals(member="kid")[0].tasks[0].id)
+    task_id = kid.list_goals(member="kid")[0].tasks[0].id
+    token = kid.prepare_checkin(member="kid", task_id=task_id)
+    kid.submit_checkin(member="kid", task_id=task_id, confirm_token=token)
     with pytest.raises(kid.RedirectToParent):
         kid.dispatch(member="kid", action="create_goal", payload={})
     events = kid.recent_audit(member="kid")
