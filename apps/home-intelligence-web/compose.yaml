@@ -1,0 +1,14 @@
+services:
+  home-graph:
+    build: .
+    container_name: home-graph
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - home-graph-state:/app/.wrangler/state
+    environment:
+      TZ: Asia/Shanghai
+
+volumes:
+  home-graph-state:

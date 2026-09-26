@@ -1,0 +1,127 @@
+schema_version: 1
+product_id: home-intelligence
+product_name: "知微 Home Intelligence"
+version: "0.1"
+updated_at: "2026-09-27"
+source:
+  product_definition: PRD.md
+  requirement_baseline: requirements.xlsx
+  note: "本文件是 Excel 基线的机器可读层级索引；两者必须同版本提交。"
+
+levels:
+  - Roadmap
+  - Epic
+  - Story
+  - Task
+
+releases:
+  - id: P0
+    name: "定义与契约"
+  - id: P1
+    name: "可控设备孪生"
+  - id: P2
+    name: "场景闭环"
+  - id: P3
+    name: "Agent 工作流"
+  - id: P4
+    name: "治理与规模化"
+
+roadmaps:
+  - id: ZW-RM-01
+    title: "可信设备孪生"
+    outcome: "让空间、网络、设备、能力和状态形成可信、可扩展的数字映射。"
+    target_release: P1
+    epics:
+      - id: ZW-EP-01
+        title: "空间与设备登记"
+        story_ids: [ZW-ST-0101, ZW-ST-0102, ZW-ST-0103, ZW-ST-0104]
+      - id: ZW-EP-02
+        title: "Device Profile 与 Ontology"
+        story_ids: [ZW-ST-0201, ZW-ST-0202, ZW-ST-0203, ZW-ST-0204]
+      - id: ZW-EP-03
+        title: "状态同步与离线语义"
+        story_ids: [ZW-ST-0301, ZW-ST-0302, ZW-ST-0303, ZW-ST-0304]
+      - id: ZW-EP-04
+        title: "网络拓扑"
+        story_ids: [ZW-ST-0401, ZW-ST-0402, ZW-ST-0403]
+
+  - id: ZW-RM-02
+    title: "自然设备交互"
+    outcome: "让不同设备的控制方式一眼可懂，并在手机、折叠屏、平板和桌面保持一致。"
+    target_release: P1
+    epics:
+      - id: ZW-EP-05
+        title: "按房间的 Widget 首页"
+        story_ids: [ZW-ST-0501, ZW-ST-0502, ZW-ST-0503]
+      - id: ZW-EP-06
+        title: "标准化设备控件"
+        story_ids: [ZW-ST-0601, ZW-ST-0602, ZW-ST-0603, ZW-ST-0604, ZW-ST-0605, ZW-ST-0606, ZW-ST-0607, ZW-ST-0608, ZW-ST-0609, ZW-ST-0610, ZW-ST-0611]
+      - id: ZW-EP-07
+        title: "跨终端体验与可访问性"
+        story_ids: [ZW-ST-0701, ZW-ST-0702, ZW-ST-0703]
+
+  - id: ZW-RM-03
+    title: "场景与流程"
+    outcome: "把多设备动作组织成可审阅、可发布、可逐步执行的家庭场景和长程流程。"
+    target_release: P2
+    epics:
+      - id: ZW-EP-08
+        title: "场景卡片编排器"
+        story_ids: [ZW-ST-0801, ZW-ST-0802, ZW-ST-0803, ZW-ST-0804]
+      - id: ZW-EP-09
+        title: "预置家庭场景"
+        story_ids: [ZW-ST-0901, ZW-ST-0902]
+      - id: ZW-EP-10
+        title: "自然语言工作流与 Plan Mode"
+        story_ids: [ZW-ST-1001, ZW-ST-1002, ZW-ST-1003]
+      - id: ZW-EP-11
+        title: "流程运行与结果"
+        story_ids: [ZW-ST-1101, ZW-ST-1102, ZW-ST-1103]
+
+  - id: ZW-RM-04
+    title: "Agent 与 MCP 平台"
+    outcome: "用统一任务契约、MCP 网关和 Agent 编排安全连接设备与家庭服务。"
+    target_release: P3
+    epics:
+      - id: ZW-EP-12
+        title: "普通与优先任务队列"
+        story_ids: [ZW-ST-1201, ZW-ST-1202, ZW-ST-1203, ZW-ST-1204]
+      - id: ZW-EP-13
+        title: "MCP 网关与设备适配器"
+        story_ids: [ZW-ST-1301, ZW-ST-1302, ZW-ST-1303]
+      - id: ZW-EP-14
+        title: "IntentRouter 与 Planner"
+        story_ids: [ZW-ST-1401, ZW-ST-1402, ZW-ST-1403]
+
+  - id: ZW-RM-05
+    title: "安全与治理"
+    outcome: "让权限、风险、审计、成本和运行状态可控、可查、可回溯。"
+    target_release: P4
+    epics:
+      - id: ZW-EP-15
+        title: "身份、策略与审计"
+        story_ids: [ZW-ST-1501, ZW-ST-1502, ZW-ST-1503, ZW-ST-1504]
+      - id: ZW-EP-16
+        title: "可观察性与成本治理"
+        story_ids: [ZW-ST-1601, ZW-ST-1602, ZW-ST-1603]
+
+  - id: ZW-RM-06
+    title: "工程交付与运营"
+    outcome: "把产品定义、架构、需求、代码、测试、发布和运行证据连成可自动读取的链。"
+    target_release: P0
+    epics:
+      - id: ZW-EP-17
+        title: "需求到发布追溯"
+        story_ids: [ZW-ST-1701, ZW-ST-1702, ZW-ST-1703, ZW-ST-1704]
+      - id: ZW-EP-18
+        title: "NAS 部署与运行保障"
+        story_ids: [ZW-ST-1801, ZW-ST-1802, ZW-ST-1803]
+
+promotion_policy:
+  story_to_req:
+    required_status: Ready
+    approver: human-001
+    target: harness/tasks/features/REQ-NNN.md
+    rule: "只有可在一个迭代内独立验收的 Story 才能进入 Harness。"
+  task_policy:
+    rule: "只有跨人、跨会话、持续多日或阻塞其他工作的 Task 才持久化。"

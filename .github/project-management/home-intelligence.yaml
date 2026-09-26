@@ -1,0 +1,108 @@
+schema_version: 1
+project:
+  title: "知微 Home Intelligence"
+  owner: rushwing
+  purpose: "管理产品目标、Roadmap、Epic、Release 和组合进度；不替代 Harness。"
+  materialize_after_merge: true
+
+canonical_sources:
+  product: docs/product/home-intelligence/PRD.md
+  backlog: docs/product/home-intelligence/requirements.xlsx
+  hierarchy: docs/product/home-intelligence/roadmap.yaml
+  engineering: harness/tasks
+
+fields:
+  - name: Status
+    type: single_select
+    options: [Draft, "Design & Test", "In Progress", Review, "Ready to Merge", Blocked, Done]
+  - name: Logical ID
+    type: text
+  - name: Level
+    type: single_select
+    options: [Roadmap, Epic, Story, Task, Bug]
+  - name: Roadmap Goal
+    type: single_select
+    options: [ZW-RM-01, ZW-RM-02, ZW-RM-03, ZW-RM-04, ZW-RM-05, ZW-RM-06]
+  - name: Release
+    type: single_select
+    options: [P0, P1, P2, P3, P4]
+  - name: Priority
+    type: single_select
+    options: [P0, P1, P2, P3]
+  - name: Owner Role
+    type: single_select
+    options: [human, planner, generator, evaluator, product, frontend, platform, agent, security, devops, qa]
+  - name: Risk
+    type: single_select
+    options: [Low, Medium, High]
+  - name: Story Points
+    type: number
+  - name: Start Date
+    type: date
+  - name: Target Date
+    type: date
+  - name: Harness Path
+    type: text
+
+milestones:
+  - {title: "P0 定义与契约", release: P0}
+  - {title: "P1 可控设备孪生", release: P1}
+  - {title: "P2 场景闭环", release: P2}
+  - {title: "P3 Agent 工作流", release: P3}
+  - {title: "P4 治理与规模化", release: P4}
+
+views:
+  - name: "产品 Roadmap"
+    layout: roadmap
+    filter: "Level:Epic"
+    group_by: "Roadmap Goal"
+    start_field: "Start Date"
+    target_field: "Target Date"
+    markers: [milestones]
+    zoom: quarter
+  - name: "当前 Release"
+    layout: table
+    filter: "Level:Story -Status:Done"
+    group_by: Epic
+    columns: [Logical ID, Title, Status, Priority, "Owner Role", Release, Risk, "Target Date"]
+  - name: "交付看板"
+    layout: board
+    filter: "Level:Story"
+    column_field: Status
+    group_by: "Owner Role"
+  - name: "Epic 进度"
+    layout: table
+    filter: "Level:Epic"
+    group_by: "Roadmap Goal"
+    columns: [Logical ID, Title, Release, Status, "Sub-issue Progress", "Target Date"]
+  - name: "Agent 队列"
+    layout: table
+    filter: "Level:Story -Status:Done"
+    group_by: "Owner Role"
+    columns: [Logical ID, Title, Status, Priority, "Harness Path", "Target Date"]
+  - name: "风险与阻塞"
+    layout: table
+    filter: "Risk:High,Status:Blocked"
+    group_by: Status
+    columns: [Logical ID, Title, Level, Priority, "Owner Role", Release, Risk, "Target Date"]
+
+harness_status_mapping:
+  draft: Draft
+  req_review: "Design & Test"
+  tc_design: "Design & Test"
+  tc_review: "Design & Test"
+  tc_impl: "In Progress"
+  tc_impl_review: Review
+  req_impl: "In Progress"
+  req_impl_review: Review
+  pr_draft: "Ready to Merge"
+  blocked: Blocked
+  done: Done
+
+sync:
+  direction: "Harness -> GitHub"
+  github_to_harness: forbidden
+  close_issue_when: done
+  dry_run_first: true
+  issue_title: "[{logical_id}] {title}"
+  issue_banner: "> Canonical source: {harness_path}\n> 本 Issue 用于 Project 展示与讨论。状态和验收标准以 Harness 为准。"
