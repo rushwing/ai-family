@@ -23,8 +23,14 @@ Home Intelligence API / BFF
 Task Service ─► RabbitMQ ──────────────► MCP Gateway
         │                                  │
         ▼                                  ▼
-PostgreSQL / Audit                  Device & Service MCP
+PostgreSQL / Audit                  Home & Service MCP
                                            │
+                                           ▼
+                                   Home Device Fabric
+                             ┌─────────────┼─────────────┐
+                             ▼             ▼             ▼
+                     Home Assistant   MQTT / Matter   Native Adapter
+                             └─────────────┼─────────────┘
                                            ▼
                                   家庭设备 / NAS / 第三方服务
 ```
@@ -35,12 +41,25 @@ PostgreSQL / Audit                  Device & Service MCP
 |---|---|---|
 | Web | `apps/home-intelligence-web/` | 响应式设备总览、拓扑、场景编排和任务状态 |
 | API/BFF | 预留 `apps/home-intelligence-api/` | 面向 Web 聚合鉴权后的读模型和任务命令 |
-| MCP | 预留 `toolsets/mcp/home-mcp/` | 设备、NAS、场景工具的统一 MCP 暴露 |
-| 契约 | 预留 `libs/mcp-contracts/`、`libs/state-schema/` | Device Profile、Task、Event、Scene Schema |
+| MCP | 预留 `toolsets/mcp/home-mcp/` | 向 Agent 暴露设备资源和受治理的类型化动作，不直连终端协议 |
+| Device Fabric | 预留 `toolsets/iot/home-device-fabric/` | Home Assistant、MQTT/Matter、Zigbee 和原生 API 的适配与状态归一化 |
+| 契约 | 预留 `libs/mcp-contracts/`、`libs/state-schema/` | WoT Device Profile、Task、Event、Scene Schema 和协议映射 |
 | Ontology | 预留 `data/ontology/home/` | 空间、设备、能力、成员、网络节点和任务关系 |
 | 部署 | 预留 `infra/home-intelligence/` | NAS/树莓派部署、健康检查、备份和回滚 |
 
 预留目录不在本 PR 中创建空实现。正式落地必须由对应 REQ 和 ADR 驱动。
+
+## 家庭设备接入层
+
+采用分层的 Home Device Fabric，不把 Home Assistant、MQTT 或 MCP 当作同一种协议：
+
+- Home Assistant 作为优先的设备集成中枢，复用其 Device/Entity/Area、状态机、Action 和社区集成；
+- Matter/Thread、Zigbee2MQTT、厂商本地/云 API 和 NAS/路由器原生 API 位于南向适配层；
+- MQTT 5 只承载设备侧状态、事件、availability 和桥接命令；RabbitMQ 继续承担平台任务队列，不被 MQTT 替换；
+- W3C WoT Thing Description 的 Property/Action/Event 作为规范化能力契约，并按需引用 SAREF、Brick 与 `zhiwei:` 扩展语义；
+- `home-mcp` 是 Agent 的北向入口。终端设备不需要实现 MCP，Agent 也不得直接调用任意 Home Assistant Action 或厂商 API。
+
+知微保存稳定 `device_id`、空间归属、能力、策略和底层实体映射；设备确认状态仍来自接入适配器。自然语言描述用于 Agent 理解，但执行必须依赖版本化的能力 ID、JSON Schema、风险等级和完成条件。详细取舍见 [ADR-016](../../adr/ADR-016-home-device-fabric.md)。
 
 ## API 边界
 
@@ -59,6 +78,8 @@ PostgreSQL / Audit                  Device & Service MCP
 ## 任务模型
 
 普通队列用于下载、统计、通知和批处理。优先队列用于窗帘、卷帘、扫地等需要过程反馈的操作。
+
+RabbitMQ 是平台任务分发与重试的权威队列；MQTT 若被适配器使用，只存在于设备接入边界。两者通过 `task_id`、`idempotency_key` 和 `trace_id` 关联，不共享“已入队即已完成”的错误语义。
 
 优先队列约束：
 
@@ -79,6 +100,7 @@ queued → accepted → running → succeeded | failed | cancelled | timed_out
 ## 状态一致性
 
 - 前端区分目标状态与设备确认状态；
+- 数字孪生显式区分 `desired_state`、`reported_state`、`availability` 和状态新鲜度；
 - “任务已发送”不能显示成“设备已完成”；
 - 窗帘运动过程中隐藏不可信百分比，停止后读取真实状态；
 - 状态事件必须带 `observed_at`、版本或游标，不能让旧事件覆盖新状态；

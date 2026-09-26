@@ -13,7 +13,7 @@
 | **L0** | 本 README | 这是什么项目，现在处于什么阶段 |
 | **L1** | [docs/design/00-overview.html](docs/design/00-overview.html) · [知微 Home Intelligence](docs/product/home-intelligence/README.md) | 平台全景，以及家庭设备控制产品的范围与交接状态 |
 | **L2** | [01 架构与组件](docs/design/01-architecture.html) · [02 部署与网络安全](docs/design/02-deployment-network.html) · [03 数据流与租户隔离](docs/design/03-dataflow-tenancy.html) · [04 选型决策矩阵](docs/design/04-tech-selection.html) · [05 Rollout 与 ROI](docs/design/05-rollout-roi.html) · [06 GoalAgent 垂直切片（盘点）](docs/design/06-goalagent-vertical.html) · [07 仓库与代码治理](docs/design/07-repo-strategy.html) · [08 GoalAgent 架构（L2 主依据）](docs/design/08-goalagent-architecture.html) | 每个领域的具体设计 |
-| **L3** | [docs/adr/](docs/adr/)（15 个决策记录） · [harness/tasks/](harness/tasks/)（REQ/TC/BUG） | 为什么这么选、当前在做什么 |
+| **L3** | [docs/adr/](docs/adr/)（16 个决策记录） · [harness/tasks/](harness/tasks/)（REQ/TC/BUG） | 为什么这么选、当前在做什么 |
 
 ## 一图速览
 
