@@ -1,0 +1,14 @@
+services:
+  home-intelligence-demo:
+    build: .
+    container_name: home-intelligence-demo
+    command: ["npm", "run", "start:lan-demo"]
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - home-graph-state:/app/.wrangler/state
+    environment:
+      TZ: Asia/Shanghai
+
+volumes:
+  home-graph-state:

@@ -80,6 +80,10 @@ pnpm-debug.log*
 # 构建产物 / 框架缓存
 .next/
 out/
+# Home Intelligence 的 Sites/Vite 构建插件是源码，不是构建产物。
+!apps/home-intelligence-web/build/
+!apps/home-intelligence-web/build/**
+
 .nuxt/
 .svelte-kit/
 .cache/
@@ -95,3 +99,8 @@ coverage/
 # ───────── 其它 ─────────
 tmp/
 temp/
+
+# Home Intelligence：真实家庭 inventory 仅保留在本地，禁止进入公共仓库。
+apps/home-intelligence-web/fixtures/private/
+docs/product/home-intelligence/private/
+*.home-inventory.local.json

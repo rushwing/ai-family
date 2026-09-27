@@ -25,6 +25,8 @@ jobs:
         run: python tools/check_agents.py
       - name: secret 扫描 gate（BUG-003 ①：厂商 key 不入代码/配置）
         run: python tools/check_secrets.py
+      - name: Home Intelligence 公共数据脱敏 gate
+        run: python tools/check_home_intelligence_public_data.py
       - name: 迁移 RLS 扫描 gate（TC-002-05 / BUG-002：新表须 RLS、禁 SECURITY DEFINER）
         run: python tools/check_rls.py
 
@@ -34,6 +36,8 @@ jobs:
     outputs:
       goal: ${{ steps.filter.outputs.goal }}
       libs: ${{ steps.filter.outputs.libs }}
+      home_intelligence: ${{ steps.filter.outputs.home_intelligence }}
+      home_requirements: ${{ steps.filter.outputs.home_requirements }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -44,6 +48,12 @@ jobs:
               - 'agents/goal/**'
             libs:
               - 'libs/**'
+            home_intelligence:
+              - 'apps/home-intelligence-web/**'
+            home_requirements:
+              - 'docs/product/home-intelligence/requirements.xlsx'
+              - 'docs/product/home-intelligence/roadmap.yaml'
+              - 'tools/check_home_intelligence_requirements.py'
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
   goal-agent:
@@ -64,6 +74,37 @@ jobs:
           ruff check agents/goal
       - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
         run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
+
+  # —— Home Intelligence 前端原型（阻塞 lint/build）——
+  home-intelligence-web:
+    needs: changes
+    if: ${{ needs.changes.outputs.home_intelligence == 'true' }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/home-intelligence-web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: apps/home-intelligence-web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+
+  # —— 需求基线结构、层级、枚举、依赖与导入视图（阻塞）——
+  home-intelligence-requirements:
+    needs: changes
+    if: ${{ needs.changes.outputs.home_requirements == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python tools/check_home_intelligence_requirements.py
 
   # —— REQ-002 集成（真实 PG16 + Redis service）：RLS 真表隔离/审计 append-only + Redis ——
   req002-integration:
