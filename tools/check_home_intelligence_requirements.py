@@ -36,6 +36,14 @@ RISKS = {"Low", "Medium", "High"}
 PRIORITIES = {"P0", "P1", "P2", "P3"}
 STATUSES = {"Draft", "Design & Test", "In Progress", "Review", "Ready to Merge", "Blocked", "Done", "Ready"}
 RELEASE_ORDER = {"P0": 0, "P1": 1, "P2": 2, "P3": 3, "P4": 4}
+KPI_ACCEPTANCE = {
+    "ZW-ST-0301": ("95%", "心跳窗口"),
+    "ZW-ST-0304": ("99%", "设备真实状态"),
+    "ZW-ST-0501": ("80%", "两次交互"),
+    "ZW-ST-1101": ("95%", "场景"),
+    "ZW-ST-1503": ("100%", "高风险"),
+    "ZW-ST-1703": ("100%", "发布变更"),
+}
 
 
 def column_index(cell_ref: str) -> int:
@@ -111,6 +119,17 @@ def dependencies(value: object | None) -> list[str]:
     return [item.strip() for item in text(value).split(",") if item.strip()]
 
 
+def body_for(row: list[object | None]) -> str:
+    return "\n\n".join([
+        f"Logical ID: {text(row[0])}",
+        text(row[11]),
+        f"Acceptance Criteria\n- {text(row[12])}",
+        f"Non-goal\n- {text(row[13])}",
+        f"Dependencies\n- {text(row[18]) or 'None'}",
+        f"Verification\n- {text(row[22])}",
+    ])
+
+
 def main() -> int:
     errors: list[str] = []
     sheets = read_workbook(WORKBOOK)
@@ -162,6 +181,10 @@ def main() -> int:
                 errors.append(f"{logical_id}: Story Points must be a positive number, got {row[17]!r}")
             if not text(row[22]):
                 errors.append(f"{logical_id}: missing Verification")
+            elif text(row[3]) not in text(row[22]):
+                errors.append(f"{logical_id}: Verification must identify the Story title")
+            if not text(row[28]).startswith("ZW-PRD-001 §"):
+                errors.append(f"{logical_id}: Source must include a PRD section anchor")
         for column, label in ((20, "Architecture Ref"), (21, "UX Ref")):
             ref = text(row[column])
             if ref and (re.match(r"^[A-Za-z]:[/\\]", ref) or ref.startswith("/")):
@@ -192,6 +215,37 @@ def main() -> int:
             if current_release in RELEASE_ORDER and dependency_release in RELEASE_ORDER and RELEASE_ORDER[dependency_release] > RELEASE_ORDER[current_release]:
                 errors.append(f"{logical_id}: release {current_release} depends on later {dependency} ({dependency_release})")
 
+    story_graph = {
+        logical_id: [dependency for dependency in dependencies(row[18]) if dependency in records and text(records[dependency][2]) == "Story"]
+        for logical_id, row in records.items() if text(row[2]) == "Story"
+    }
+    visit_state: dict[str, int] = {}
+    visit_stack: list[str] = []
+
+    def visit(story_id: str) -> None:
+        state = visit_state.get(story_id, 0)
+        if state == 2:
+            return
+        if state == 1:
+            cycle_start = visit_stack.index(story_id)
+            errors.append(f"dependency cycle: {' -> '.join(visit_stack[cycle_start:] + [story_id])}")
+            return
+        visit_state[story_id] = 1
+        visit_stack.append(story_id)
+        for dependency in story_graph.get(story_id, []):
+            visit(dependency)
+        visit_stack.pop()
+        visit_state[story_id] = 2
+
+    for story_id in story_graph:
+        visit(story_id)
+
+    for story_id, required_terms in KPI_ACCEPTANCE.items():
+        acceptance = text(records.get(story_id, [None] * len(MASTER_HEADERS))[12])
+        for term in required_terms:
+            if term not in acceptance:
+                errors.append(f"{story_id}: KPI acceptance is missing {term!r}")
+
     roadmap_story_ids = set(re.findall(r"ZW-ST-\d{4}", ROADMAP.read_text(encoding="utf-8")))
     workbook_story_ids = {logical_id for logical_id, row in records.items() if row[2] == "Story"}
     if roadmap_story_ids != workbook_story_ids:
@@ -214,18 +268,34 @@ def main() -> int:
             logical_id = text(view[id_column])
             source = records[logical_id]
             if sheet_name == "GitHub":
-                if text(view[3]) != text(source[1]) or text(view[6]) != text(source[14]) or text(view[7]) != text(source[8]):
-                    errors.append(f"GitHub row {row_number}: hierarchy/priority/release mismatch for {logical_id}")
-                if text(view[10]) != text(source[18]) or text(view[11]) != text(source[23]):
-                    errors.append(f"GitHub row {row_number}: Blocked By/Evidence Link mismatch for {logical_id}")
+                expected = [
+                    f"[{logical_id}] {text(source[3])}", body_for(source), text(source[26]), text(source[1]), logical_id,
+                    text(source[15]), text(source[14]), text(source[8]), text(source[27]), source[17], text(source[18]), text(source[23]),
+                ]
+                actual = [text(view[index]) if index not in {9} else view[index] for index in range(len(expected))]
+                comparable = [text(value) if index not in {9} else value for index, value in enumerate(expected)]
+                if actual != comparable:
+                    errors.append(f"GitHub row {row_number}: full field mapping mismatch for {logical_id}")
             else:
                 expected_parent_number = global_number.get(text(source[1]))
                 if sheet_name == "Jira-Standard" and source[2] == "Epic":
                     expected_parent_number = None
-                if view[4] != expected_parent_number or text(view[5]) != text(source[14]) or text(view[7]) != text(source[8]):
-                    errors.append(f"{sheet_name} row {row_number}: Parent/Priority/Release mismatch for {logical_id}")
-                if view[0] != global_number[logical_id] or text(view[10]) != text(source[1]):
-                    errors.append(f"{sheet_name} row {row_number}: Work item/Logical parent mismatch for {logical_id}")
+                labels = text(source[27])
+                if sheet_name == "Jira-Standard":
+                    labels = f"{labels},{text(source[4]).lower()}"
+                expected = [
+                    global_number[logical_id], text(source[24] if sheet_name == "Jira-Standard" else source[25]),
+                    text(source[3]), body_for(source), expected_parent_number, text(source[14]), labels, text(source[8]),
+                    source[17], logical_id, text(source[1]),
+                ]
+                if sheet_name == "Jira-Standard":
+                    expected.extend([text(source[5]), text(source[15])])
+                else:
+                    expected.append(text(source[15]))
+                actual = [view[index] if index in {0, 4, 8} else text(view[index]) for index in range(len(expected))]
+                comparable = [value if index in {0, 4, 8} else text(value) for index, value in enumerate(expected)]
+                if actual != comparable:
+                    errors.append(f"{sheet_name} row {row_number}: full field mapping mismatch for {logical_id}")
 
     return report(errors)
 
@@ -236,7 +306,7 @@ def report(errors: list[str]) -> int:
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-    print("Home Intelligence requirements validation passed: 6 Roadmaps, 18 Epics, 68 Stories, 12 Tasks; hierarchy, enums, releases, dependencies and import views are consistent.")
+    print("Home Intelligence requirements validation passed: hierarchy, enums, release order, dependency DAG, KPI traceability and all import-view fields are consistent.")
     return 0
 
 

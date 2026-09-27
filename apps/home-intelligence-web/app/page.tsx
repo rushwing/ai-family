@@ -96,7 +96,9 @@ type WidgetSize = "compact" | "standard" | "wide" | "large";
 type DeviceControl = "power" | "router" | "robot" | "aquarium" | "split-curtain" | "roller-curtain" | "climate" | "dimmable-light" | "energy" | "voice" | "presence" | "hub-usage" | "server-health" | "status";
 type TaskQueue = "normal" | "priority";
 type TaskStatus = "running" | "queued" | "done" | "failed" | "cancelled";
-type TaskOptions = { queue?: TaskQueue; realtime?: boolean; duration?: number; outcome?: "done" | "failed"; onSuccess?: () => void };
+type TaskTerminalStatus = Extract<TaskStatus, "done" | "failed" | "cancelled">;
+type TaskOptions = { queue?: TaskQueue; realtime?: boolean; duration?: number; outcome?: "done" | "failed" };
+type DispatchDeviceAction = (device: Device, action: string, options?: TaskOptions) => Promise<TaskTerminalStatus>;
 
 type Device = {
   id: string;
@@ -125,6 +127,20 @@ type Task = {
   time: string;
 };
 
+type TaskRuntime = {
+  startTimer: number;
+  ticker?: number;
+  settled: boolean;
+  resolve: (status: TaskTerminalStatus) => void;
+};
+
+type ConfirmationRequest = {
+  id: string;
+  device: Device;
+  action: string;
+  resolve: (confirmed: boolean) => void;
+};
+
 type DeviceProfile = {
   id: string;
   name: string;
@@ -135,7 +151,7 @@ type DeviceProfile = {
 };
 
 type StepBinding = { id: string; deviceId: string; deviceName: string; action: string };
-type PlanStepStatus = "draft" | "queued" | "running" | "success" | "failed";
+type PlanStepStatus = "draft" | "queued" | "running" | "success" | "failed" | "cancelled";
 type PlanStep = { id: string; title: string; bindings: StepBinding[]; status: PlanStepStatus; result?: string };
 type AutomationItem = { title: string; icon: LucideIcon; state: string; meta: string; steps: string[] };
 
@@ -356,17 +372,17 @@ function DeviceWidget({
   onResize: (id: string) => void;
   onSelect: (device: Device) => void;
   onToggle: (device: Device, next: boolean) => void;
-  onAction: (device: Device, action: string, options?: TaskOptions) => void;
+  onAction: DispatchDeviceAction;
   onRestart: (device: Device) => void;
 }) {
   const [curtainMode, setCurtainMode] = useState<"close" | "pause" | "open">("pause");
   const [curtainPosition, setCurtainPosition] = useState({ left: 35, right: 35 });
   const [curtainMoving, setCurtainMoving] = useState(false);
-  const curtainTimer = useRef<number | null>(null);
+  const curtainOperation = useRef(0);
   const [rollerMode, setRollerMode] = useState<"close" | "pause" | "open">("pause");
   const [rollerPosition, setRollerPosition] = useState(58);
   const [rollerMoving, setRollerMoving] = useState(false);
-  const rollerTimer = useRef<number | null>(null);
+  const rollerOperation = useRef(0);
   const [targetTemperature, setTargetTemperature] = useState(23);
   const [lightOn, setLightOn] = useState(true);
   const [brightness, setBrightness] = useState([62]);
@@ -378,52 +394,49 @@ function DeviceWidget({
   const voiceHolding = useRef(false);
   const isOffline = device.status === "offline";
 
-  useEffect(() => () => {
-    if (curtainTimer.current) window.clearTimeout(curtainTimer.current);
-    if (rollerTimer.current) window.clearTimeout(rollerTimer.current);
-  }, []);
-
-  function setCurtain(next: "close" | "pause" | "open") {
+  async function setCurtain(next: "close" | "pause" | "open") {
     if (isOffline) return;
+    const operation = ++curtainOperation.current;
     setCurtainMode(next);
-    if (curtainTimer.current) window.clearTimeout(curtainTimer.current);
     if (next === "pause") {
       setCurtainMoving(false);
-      onAction(device, "暂停窗帘", { queue: "priority", realtime: true, duration: 700 });
+      await onAction(device, "暂停窗帘", { queue: "priority", realtime: true, duration: 700 });
       return;
     }
     setCurtainMoving(true);
-    onAction(device, next === "open" ? "打开窗帘" : "关闭窗帘", { queue: "priority", realtime: true, duration: 2800 });
-    curtainTimer.current = window.setTimeout(() => {
+    const result = await onAction(device, next === "open" ? "打开窗帘" : "关闭窗帘", { queue: "priority", realtime: true, duration: 2800 });
+    if (curtainOperation.current !== operation) return;
+    if (result === "done") {
       setCurtainPosition(next === "open" ? { left: 0, right: 0 } : { left: 100, right: 100 });
-      setCurtainMoving(false);
-      setCurtainMode("pause");
-    }, 2800);
+    }
+    setCurtainMoving(false);
+    setCurtainMode("pause");
   }
 
-  function setRoller(next: "close" | "pause" | "open") {
+  async function setRoller(next: "close" | "pause" | "open") {
     if (isOffline) return;
+    const operation = ++rollerOperation.current;
     setRollerMode(next);
-    if (rollerTimer.current) window.clearTimeout(rollerTimer.current);
     if (next === "pause") {
       setRollerMoving(false);
-      onAction(device, "暂停卷帘", { queue: "priority", realtime: true, duration: 700 });
+      await onAction(device, "暂停卷帘", { queue: "priority", realtime: true, duration: 700 });
       return;
     }
     setRollerMoving(true);
-    onAction(device, next === "open" ? "打开卷帘" : "关闭卷帘", { queue: "priority", realtime: true, duration: 2600 });
-    rollerTimer.current = window.setTimeout(() => {
+    const result = await onAction(device, next === "open" ? "打开卷帘" : "关闭卷帘", { queue: "priority", realtime: true, duration: 2600 });
+    if (rollerOperation.current !== operation) return;
+    if (result === "done") {
       setRollerPosition(next === "open" ? 0 : 100);
-      setRollerMoving(false);
-      setRollerMode("pause");
-    }, 2600);
+    }
+    setRollerMoving(false);
+    setRollerMode("pause");
   }
 
-  function feedFish() {
+  async function feedFish() {
     if (feeding || isOffline) return;
     setFeeding(true);
-    onAction(device, "投食一次");
-    window.setTimeout(() => setFeeding(false), 1800);
+    await onAction(device, "投食一次", { duration: 1800 });
+    setFeeding(false);
   }
 
   function startVoice() {
@@ -656,7 +669,7 @@ function AutomationGrid({
   })}</div>;
 }
 
-function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch: (device: Device, action: string, options?: TaskOptions) => void }) {
+function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch: DispatchDeviceAction }) {
   const virtualDevices: Device[] = [
     { id: "planned-light-living", name: "客厅灯", model: "能力样例", brand: "待接入", room: "客厅", status: "online", icon: "light", control: "dimmable-light", metrics: ["亮度 62%"], actions: ["打开", "关闭", "调暗"] },
     { id: "planned-light-dining", name: "餐厅灯", model: "能力样例", brand: "待接入", room: "餐厅", status: "online", icon: "light", control: "dimmable-light", metrics: ["亮度 80%"], actions: ["打开", "关闭", "调暗"] },
@@ -749,31 +762,39 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
     setPlanSteps((current) => [...current, { id: `step-${Date.now()}`, title: `步骤 ${current.length + 1}`, status: "draft", bindings: [{ id: `binding-${Date.now()}`, deviceId: device.id, deviceName: device.name, action: actionOptions[device.control][0] }] }]);
   }
 
-  function startRun(title: string, sourceSteps: PlanStep[]) {
+  async function startRun(title: string, sourceSteps: PlanStep[]) {
     const queuedSteps = sourceSteps.map((step) => ({ ...step, status: "queued" as const, result: undefined }));
     setActiveRun({ title, steps: queuedSteps });
     setComposerOpen(false);
-    queuedSteps.forEach((step, index) => {
-      const startAt = index * 1500 + 250;
-      window.setTimeout(() => {
-        setActiveRun((current) => current ? { ...current, steps: current.steps.map((item) => item.id === step.id ? { ...item, status: "running" } : item) } : current);
-        step.bindings.forEach((binding) => {
-          const device = devices.find((item) => item.id === binding.deviceId) ?? devices.find((item) => item.id === "rpi-hub") ?? devices[0];
-          const realtime = ["split-curtain", "roller-curtain", "dimmable-light"].includes((planningDevices.find((item) => item.id === binding.deviceId) ?? device).control);
-          onDispatch(device, `${binding.deviceName} · ${binding.action}`, { queue: realtime ? "priority" : "normal", realtime, duration: 1100 });
-        });
-      }, startAt);
-      window.setTimeout(() => {
-        setActiveRun((current) => current ? { ...current, steps: current.steps.map((item) => item.id === step.id ? { ...item, status: "success", result: `${step.bindings.length} 个设备动作已完成` } : item) } : current);
-      }, startAt + 1050);
-    });
+    for (const step of queuedSteps) {
+      setActiveRun((current) => current ? { ...current, steps: current.steps.map((item) => item.id === step.id ? { ...item, status: "running", result: undefined } : item) } : current);
+      const results = await Promise.all(step.bindings.map((binding) => {
+        const device = planningDevices.find((item) => item.id === binding.deviceId) ?? devices.find((item) => item.id === "rpi-hub") ?? devices[0];
+        const realtime = ["split-curtain", "roller-curtain", "dimmable-light"].includes(device.control);
+        return onDispatch(device, binding.action, { queue: realtime ? "priority" : "normal", realtime, duration: 1100 });
+      }));
+      const failed = results.includes("failed");
+      const cancelled = results.includes("cancelled");
+      const stepStatus: PlanStepStatus = failed ? "failed" : cancelled ? "cancelled" : "success";
+      const resultText = failed
+        ? `${results.filter((result) => result === "failed").length} 个设备动作失败，流程已停止`
+        : cancelled
+          ? "设备动作已取消或未获高风险确认，流程已停止"
+          : `${step.bindings.length} 个设备动作已确认完成`;
+      setActiveRun((current) => current ? { ...current, steps: current.steps.map((item) => {
+        if (item.id === step.id) return { ...item, status: stepStatus, result: resultText };
+        if ((failed || cancelled) && item.status === "queued") return { ...item, status: "cancelled", result: "因前序步骤未完成而跳过" };
+        return item;
+      }) } : current);
+      if (failed || cancelled) break;
+    }
   }
 
   return (
     <div className="capability-page">
       {activeRun && <section className="execution-plan">
         <header><div><span>EXECUTION PLAN</span><h2>{activeRun.title}</h2></div><div className="run-legend"><span><i className="running"/>执行中</span><span><i className="success"/>已完成</span></div></header>
-        <div className="execution-steps">{activeRun.steps.map((step, index) => <article className={`execution-step status-${step.status}`} key={step.id}><div className="execution-index">{step.status === "success" ? <Check/> : step.status === "running" ? <LoaderCircle/> : index + 1}</div><div><strong>{step.title}</strong><small>{step.bindings.map((binding) => `${binding.deviceName} · ${binding.action}`).join(" ｜ ")}</small>{step.result && <p>{step.result}</p>}</div><span>{step.status === "success" ? "成功" : step.status === "running" ? "执行中" : "等待"}</span></article>)}</div>
+        <div className="execution-steps">{activeRun.steps.map((step, index) => <article className={`execution-step status-${step.status}`} key={step.id}><div className="execution-index">{step.status === "success" ? <Check/> : step.status === "running" ? <LoaderCircle/> : index + 1}</div><div><strong>{step.title}</strong><small>{step.bindings.map((binding) => `${binding.deviceName} · ${binding.action}`).join(" ｜ ")}</small>{step.result && <p>{step.result}</p>}</div><span>{step.status === "success" ? "成功" : step.status === "running" ? "执行中" : step.status === "failed" ? "失败" : step.status === "cancelled" ? "已取消" : "等待"}</span></article>)}</div>
       </section>}
       <Tabs defaultValue="scenes" className="automation-tabs">
         <div className="automation-toolbar">
@@ -852,7 +873,7 @@ export default function HomePage() {
   const [devices, setDevices] = useState<Device[]>(initialDevices);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [restartTarget, setRestartTarget] = useState<Device | null>(null);
-  const [powerConfirmTarget, setPowerConfirmTarget] = useState<{ device: Device; next: boolean } | null>(null);
+  const [highRiskConfirmation, setHighRiskConfirmation] = useState<{ device: Device; action: string } | null>(null);
   const [addDeviceOpen, setAddDeviceOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<DeviceProfile | null>(null);
   const [newDeviceName, setNewDeviceName] = useState("");
@@ -869,6 +890,9 @@ export default function HomePage() {
   const [powered, setPowered] = useState<Record<string, boolean>>(() => Object.fromEntries(initialDevices.map((device) => [device.id, device.status !== "offline"])));
   const [sizes, setSizes] = useState<Record<string, WidgetSize>>(() => Object.fromEntries(initialDevices.map((device) => [device.id, preferredWidgetSize(device)])));
   const tasksRef = useRef(tasks);
+  const taskRuntimes = useRef(new Map<string, TaskRuntime>());
+  const confirmationQueue = useRef<ConfirmationRequest[]>([]);
+  const activeConfirmation = useRef<ConfirmationRequest | null>(null);
   const onlineCount = devices.filter((device) => device.status !== "offline").length;
 
   useEffect(() => {
@@ -896,31 +920,45 @@ export default function HomePage() {
     setEditingDevice(false);
   }
 
-  function runTask(taskId: string, queue: TaskQueue, duration: number, outcome: "done" | "failed", onSuccess?: () => void) {
-    window.setTimeout(() => {
-      setTasks((current) => current.map((task) => task.id === taskId && task.status === "queued" ? { ...task, status: "running", progress: queue === "priority" ? 9 : 4 } : task));
-      const startedAt = Date.now();
-      const ticker = window.setInterval(() => {
-        const currentTask = tasksRef.current.find((task) => task.id === taskId);
-        if (currentTask?.status === "cancelled") {
-          window.clearInterval(ticker);
-          return;
-        }
-        const progress = Math.min(100, Math.round(((Date.now() - startedAt) / duration) * 100));
-        const status = progress >= 100 ? outcome : "running";
-        setTasks((current) => current.map((task) => task.id === taskId ? { ...task, progress, status } : task));
-        if (progress >= 100) {
-          window.clearInterval(ticker);
-          if (outcome === "done") onSuccess?.();
-        }
-      }, queue === "priority" ? 180 : 420);
-    }, queue === "priority" ? 120 : 520);
+  function runTask(taskId: string, queue: TaskQueue, duration: number, outcome: "done" | "failed"): Promise<TaskTerminalStatus> {
+    return new Promise((resolve) => {
+      const runtime: TaskRuntime = {
+        startTimer: window.setTimeout(() => {
+          if (runtime.settled) return;
+          setTasks((current) => current.map((task) => task.id === taskId && task.status === "queued" ? { ...task, status: "running", progress: queue === "priority" ? 9 : 4 } : task));
+          const startedAt = Date.now();
+          runtime.ticker = window.setInterval(() => {
+            if (runtime.settled) return;
+            const progress = Math.min(100, Math.round(((Date.now() - startedAt) / duration) * 100));
+            const status = progress >= 100 ? outcome : "running";
+            setTasks((current) => current.map((task) => task.id === taskId ? { ...task, progress, status } : task));
+            if (progress >= 100) settleTask(taskId, outcome);
+          }, queue === "priority" ? 180 : 420);
+        }, queue === "priority" ? 120 : 520),
+        settled: false,
+        resolve,
+      };
+      taskRuntimes.current.set(taskId, runtime);
+    });
   }
 
-  function dispatchTask(device: Device, action = "设备自检", options: TaskOptions = {}) {
+  function settleTask(taskId: string, status: TaskTerminalStatus) {
+    const runtime = taskRuntimes.current.get(taskId);
+    if (!runtime || runtime.settled) return;
+    runtime.settled = true;
+    window.clearTimeout(runtime.startTimer);
+    if (runtime.ticker) window.clearInterval(runtime.ticker);
+    taskRuntimes.current.delete(taskId);
+    if (status === "cancelled") {
+      setTasks((current) => current.map((task) => task.id === taskId ? { ...task, status, progress: task.progress } : task));
+    }
+    runtime.resolve(status);
+  }
+
+  async function dispatchTask(device: Device, action = "设备自检", options: TaskOptions = {}): Promise<TaskTerminalStatus> {
     if (device.status === "offline") {
       toast.error("设备离线，未创建任务", { description: `${device.name} 仅保留状态查看` });
-      return null;
+      return "failed";
     }
     const queue = options.queue ?? "normal";
     const realtime = queue === "priority" ? true : Boolean(options.realtime);
@@ -939,35 +977,64 @@ export default function HomePage() {
     };
     setTasks((current) => [newTask, ...current]);
     toast.success(queue === "priority" ? "已进入优先队列" : "已进入普通队列", { description: `${device.name} · ${action}${realtime ? " · 状态实时上报" : ""}` });
-    runTask(taskId, queue, duration, options.outcome ?? "done", options.onSuccess);
-    return taskId;
+    return runTask(taskId, queue, duration, options.outcome ?? "done");
   }
 
-  function toggleDevice(device: Device, next: boolean) {
-    if (device.risk === "high" && !next) {
-      setPowerConfirmTarget({ device, next });
-      return;
-    }
-    executeToggle(device, next);
+  function showNextConfirmation() {
+    if (activeConfirmation.current || confirmationQueue.current.length === 0) return;
+    const next = confirmationQueue.current.shift() ?? null;
+    activeConfirmation.current = next;
+    setHighRiskConfirmation(next ? { device: next.device, action: next.action } : null);
   }
 
-  function executeToggle(device: Device, next: boolean) {
-    dispatchTask(device, next ? "开启设备" : "关闭设备", {
-      onSuccess: () => {
-        setPowered((current) => ({ ...current, [device.id]: next }));
-        toast.success("设备已确认状态", { description: `${device.name} · ${next ? "已开启" : "已关闭"}` });
-      },
+  function requestConfirmation(device: Device, action: string): Promise<boolean> {
+    return new Promise((resolve) => {
+      confirmationQueue.current.push({ id: `confirm-${Date.now()}-${Math.random()}`, device, action, resolve });
+      showNextConfirmation();
     });
   }
 
+  function resolveConfirmation(confirmed: boolean) {
+    const request = activeConfirmation.current;
+    if (!request) return;
+    activeConfirmation.current = null;
+    setHighRiskConfirmation(null);
+    request.resolve(confirmed);
+    window.setTimeout(showNextConfirmation, 0);
+  }
+
+  function requiresConfirmation(device: Device, action: string) {
+    return device.risk === "high" && /关闭|断电|重启|重新上电/.test(action);
+  }
+
+  async function requestDeviceAction(device: Device, action = "设备自检", options: TaskOptions = {}): Promise<TaskTerminalStatus> {
+    if (requiresConfirmation(device, action)) {
+      const confirmed = await requestConfirmation(device, action);
+      if (!confirmed) {
+        toast("高风险动作已取消", { description: `${device.name} · ${action}` });
+        return "cancelled";
+      }
+    }
+    return dispatchTask(device, action, options);
+  }
+
+  async function toggleDevice(device: Device, next: boolean) {
+    const status = await requestDeviceAction(device, next ? "开启设备" : "关闭设备");
+    if (status === "done") {
+      setPowered((current) => ({ ...current, [device.id]: next }));
+      toast.success("设备已确认状态", { description: `${device.name} · ${next ? "已开启" : "已关闭"}` });
+    }
+  }
+
   function cancelTask(task: Task) {
+    settleTask(task.id, "cancelled");
     setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: "cancelled" } : item));
     toast("任务已取消", { description: `${task.device} · ${task.title}` });
   }
 
   function retryTask(task: Task) {
     setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: "queued", progress: 0, time: "刚刚" } : item));
-    runTask(task.id, task.queue, task.queue === "priority" ? 2800 : 3800, "done");
+    void runTask(task.id, task.queue, task.queue === "priority" ? 2800 : 3800, "done");
     toast.success("任务已重新排队", { description: `${task.device} · ${task.title}` });
   }
 
@@ -1119,7 +1186,7 @@ export default function HomePage() {
                       </header>
                       <div className="room-device-grid">
                         {roomDevices.map((device) => (
-                          <DeviceWidget key={device.id} device={device} powered={powered[device.id]} editing={editing} size={sizes[device.id] ?? preferredWidgetSize(device)} onResize={cycleSize} onSelect={selectDevice} onToggle={toggleDevice} onAction={dispatchTask} onRestart={setRestartTarget} />
+                          <DeviceWidget key={device.id} device={device} powered={powered[device.id]} editing={editing} size={sizes[device.id] ?? preferredWidgetSize(device)} onResize={cycleSize} onSelect={selectDevice} onToggle={toggleDevice} onAction={requestDeviceAction} onRestart={setRestartTarget} />
                         ))}
                       </div>
                     </section>
@@ -1131,8 +1198,8 @@ export default function HomePage() {
 
           {activeView === "overview" && overviewMode === "floor" && <FloorPlan devices={devices} onSelect={selectDevice} />}
           {activeView === "network" && <NetworkView devices={devices} onSelect={selectDevice} />}
-          {activeView === "capability" && <CapabilityView devices={devices} onDispatch={dispatchTask} />}
-          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => dispatchTask(devices[0], "全屋设备巡检")} onRetry={retryTask} onCancel={cancelTask} />}
+          {activeView === "capability" && <CapabilityView devices={devices} onDispatch={requestDeviceAction} />}
+          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => requestDeviceAction(devices[0], "全屋设备巡检")} onRetry={retryTask} onCancel={cancelTask} />}
 
         </div>
         </div>
@@ -1159,8 +1226,8 @@ export default function HomePage() {
                 </div> : <>
                   <div className="sheet-section"><span className="sheet-label">当前状态</span><div className="metric-grid">{selectedDevice.metrics.map((metric) => <div key={metric}>{metric}</div>)}</div></div>
                   {(selectedDevice.control === "power" || selectedDevice.control === "energy") && <div className="sheet-section"><span className="sheet-label">快速控制</span><div className="sheet-control"><span><strong>设备电源</strong><small>{powered[selectedDevice.id] ? "已开启" : "已关闭"}</small></span><Switch disabled={selectedDevice.status === "offline"} checked={powered[selectedDevice.id]} onCheckedChange={(next) => toggleDevice(selectedDevice, next)}/></div></div>}
-                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" disabled={selectedDevice.status === "offline"} key={action} onClick={() => dispatchTask(selectedDevice, action)}>{action}<ChevronRight/></button>)}</div></div>
-                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button disabled={selectedDevice.status === "offline"} className="sheet-primary" onClick={() => dispatchTask(selectedDevice)}>运行设备自检<Play/></Button></div>
+                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" disabled={selectedDevice.status === "offline"} key={action} onClick={() => requestDeviceAction(selectedDevice, action)}>{action}<ChevronRight/></button>)}</div></div>
+                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button disabled={selectedDevice.status === "offline"} className="sheet-primary" onClick={() => requestDeviceAction(selectedDevice)}>运行设备自检<Play/></Button></div>
                 </>}
               </div>
             </>
@@ -1193,21 +1260,21 @@ export default function HomePage() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction className="restart-confirm" onClick={() => { if (restartTarget) dispatchTask(restartTarget, "安全重启"); setRestartTarget(null); }}>确认重启</AlertDialogAction>
+            <AlertDialogAction className="restart-confirm" onClick={() => { if (restartTarget) void requestDeviceAction(restartTarget, "安全重启"); setRestartTarget(null); }}>确认重启</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={Boolean(powerConfirmTarget)} onOpenChange={(open) => !open && setPowerConfirmTarget(null)}>
+      <AlertDialog open={Boolean(highRiskConfirmation)} onOpenChange={(open) => !open && resolveConfirmation(false)}>
         <AlertDialogContent className="restart-dialog" size="sm">
           <AlertDialogHeader>
             <AlertDialogMedia><ShieldCheck/></AlertDialogMedia>
-            <AlertDialogTitle>断开{powerConfirmTarget?.device.name}？</AlertDialogTitle>
-            <AlertDialogDescription>这是高风险动作。断电可能使网络、自动化和状态上报暂时不可用；设备确认完成前，界面不会提前改变开关状态。</AlertDialogDescription>
+            <AlertDialogTitle>确认{highRiskConfirmation?.action}？</AlertDialogTitle>
+            <AlertDialogDescription>{highRiskConfirmation?.device.name} 的这个动作风险较高，可能使网络、自动化和状态上报暂时不可用。确认后才会创建异步任务，设备回执前不会提前改变状态。</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction className="restart-confirm" onClick={() => { if (powerConfirmTarget) executeToggle(powerConfirmTarget.device, powerConfirmTarget.next); setPowerConfirmTarget(null); }}>确认断电</AlertDialogAction>
+            <AlertDialogAction className="restart-confirm" onClick={() => resolveConfirmation(true)}>确认执行</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
