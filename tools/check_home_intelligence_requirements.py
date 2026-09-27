@@ -13,6 +13,7 @@ from xml.etree import ElementTree as ET
 ROOT = Path(__file__).resolve().parents[1]
 WORKBOOK = ROOT / "docs/product/home-intelligence/requirements.xlsx"
 ROADMAP = ROOT / "docs/product/home-intelligence/roadmap.yaml"
+PRD = ROOT / "docs/product/home-intelligence/PRD.md"
 NS = {"m": "http://schemas.openxmlformats.org/spreadsheetml/2006/main"}
 REL_NS = {"r": "http://schemas.openxmlformats.org/package/2006/relationships"}
 RID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
@@ -119,6 +120,15 @@ def dependencies(value: object | None) -> list[str]:
     return [item.strip() for item in text(value).split(",") if item.strip()]
 
 
+def prd_sections(path: Path) -> dict[str, str]:
+    sections: dict[str, str] = {}
+    for line in path.read_text(encoding="utf-8").splitlines():
+        match = re.match(r"^#{2,6}\s+(\d+(?:\.\d+)*)(?:\.)?\s+(.+?)\s*$", line)
+        if match:
+            sections[match.group(1)] = match.group(2)
+    return sections
+
+
 def body_for(row: list[object | None]) -> str:
     return "\n\n".join([
         f"Logical ID: {text(row[0])}",
@@ -132,6 +142,7 @@ def body_for(row: list[object | None]) -> str:
 
 def main() -> int:
     errors: list[str] = []
+    known_prd_sections = prd_sections(PRD)
     sheets = read_workbook(WORKBOOK)
     required_sheets = {"Roadmap", "需求总表", "Jira-Standard", "Jira-Advanced", "GitHub", "字段字典"}
     if set(sheets) != required_sheets:
@@ -183,8 +194,17 @@ def main() -> int:
                 errors.append(f"{logical_id}: missing Verification")
             elif text(row[3]) not in text(row[22]):
                 errors.append(f"{logical_id}: Verification must identify the Story title")
-            if not text(row[28]).startswith("ZW-PRD-001 §"):
-                errors.append(f"{logical_id}: Source must include a PRD section anchor")
+        source = text(row[28])
+        source_match = re.fullmatch(r"ZW-PRD-001 §(\d+(?:\.\d+)*)\s+(.+)", source)
+        if not source_match:
+            errors.append(f"{logical_id}: Source must include a complete PRD section anchor")
+        else:
+            section_number, section_title = source_match.groups()
+            expected_title = known_prd_sections.get(section_number)
+            if expected_title is None:
+                errors.append(f"{logical_id}: Source points to missing PRD section §{section_number}")
+            elif section_title != expected_title:
+                errors.append(f"{logical_id}: Source title {section_title!r} does not match PRD §{section_number} {expected_title!r}")
         for column, label in ((20, "Architecture Ref"), (21, "UX Ref")):
             ref = text(row[column])
             if ref and (re.match(r"^[A-Za-z]:[/\\]", ref) or ref.startswith("/")):
@@ -306,7 +326,7 @@ def report(errors: list[str]) -> int:
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
-    print("Home Intelligence requirements validation passed: hierarchy, enums, release order, dependency DAG, KPI traceability and all import-view fields are consistent.")
+    print("Home Intelligence requirements validation passed: hierarchy, enums, PRD section anchors, release order, dependency DAG, KPI traceability and all import-view fields are consistent.")
     return 0
 
 

@@ -97,8 +97,23 @@ type DeviceControl = "power" | "router" | "robot" | "aquarium" | "split-curtain"
 type TaskQueue = "normal" | "priority";
 type TaskStatus = "running" | "queued" | "done" | "failed" | "cancelled";
 type TaskTerminalStatus = Extract<TaskStatus, "done" | "failed" | "cancelled">;
-type TaskOptions = { queue?: TaskQueue; realtime?: boolean; duration?: number; outcome?: "done" | "failed" };
-type DispatchDeviceAction = (device: Device, action: string, options?: TaskOptions) => Promise<TaskTerminalStatus>;
+type CapabilityRisk = "normal" | "high";
+type CapabilityParameters = Record<string, string | number | boolean>;
+type DeviceCapability = { capabilityId: string; write: boolean; risk: CapabilityRisk };
+type CapabilityCommand = DeviceCapability & {
+  label: string;
+  parameters: CapabilityParameters;
+  queue?: TaskQueue;
+  realtime?: boolean;
+  duration?: number;
+  outcome?: "done" | "failed";
+};
+type CapabilityCommandInput = Omit<CapabilityCommand, "write" | "risk" | "parameters"> & {
+  write?: boolean;
+  risk?: CapabilityRisk;
+  parameters?: CapabilityParameters;
+};
+type DispatchDeviceAction = (device: Device, command: CapabilityCommand) => Promise<TaskTerminalStatus>;
 
 type Device = {
   id: string;
@@ -112,7 +127,8 @@ type Device = {
   metrics: string[];
   actions: string[];
   ip?: string;
-  risk?: "normal" | "high";
+  risk?: CapabilityRisk;
+  capabilities?: Record<string, DeviceCapability>;
 };
 
 type Task = {
@@ -125,6 +141,9 @@ type Task = {
   realtime: boolean;
   progress: number;
   time: string;
+  capabilityId?: string;
+  parameters?: CapabilityParameters;
+  risk?: CapabilityRisk;
 };
 
 type TaskRuntime = {
@@ -137,7 +156,7 @@ type TaskRuntime = {
 type ConfirmationRequest = {
   id: string;
   device: Device;
-  action: string;
+  command: CapabilityCommand;
   resolve: (confirmed: boolean) => void;
 };
 
@@ -151,7 +170,7 @@ type DeviceProfile = {
 };
 
 type StepBinding = { id: string; deviceId: string; deviceName: string; action: string };
-type PlanStepStatus = "draft" | "queued" | "running" | "success" | "failed" | "cancelled";
+type PlanStepStatus = "draft" | "queued" | "running" | "success" | "failed" | "cancelled" | "skipped";
 type PlanStep = { id: string; title: string; bindings: StepBinding[]; status: PlanStepStatus; result?: string };
 type AutomationItem = { title: string; icon: LucideIcon; state: string; meta: string; steps: string[] };
 
@@ -167,7 +186,7 @@ const initialDevices: Device[] = [
   { id: "cleaner-demo", name: "扫地机器人", model: "Demo Cleaner C1", brand: "示例品牌", room: "客厅", status: "busy", icon: "robot", control: "robot", metrics: ["清扫中 68%", "电量 74%", "剩余 23 分钟"], actions: ["全屋清洁", "预约任务", "指定范围", "查看地图"] },
   { id: "aquarium-demo", name: "餐厅鱼缸", model: "Demo Aquarium A1", brand: "示例品牌", room: "餐厅", status: "warning", icon: "fish", control: "aquarium", metrics: ["水温 26.4°C", "滤芯 12%", "灯光 自动"], actions: ["喂食", "灯光", "水温", "滤芯状态"] },
   { id: "curtain-demo", name: "主卧窗帘", model: "Demo Curtain C2", brand: "示例品牌", room: "主卧", status: "online", icon: "curtain", control: "split-curtain", metrics: ["左帘 35%", "右帘 35%", "电机 正常"], actions: ["开合位置", "读取位置", "日程"] },
-  { id: "plug-network-demo", name: "网络设备插座", model: "Demo Plug P1", brand: "示例品牌", room: "主卧", status: "online", icon: "plug", control: "energy", risk: "high", metrics: ["今日 0.19 kWh", "本周 1.32 kWh", "本月 5.48 kWh"], actions: ["开关", "查看用电", "重新上电"] },
+  { id: "plug-network-demo", name: "网络设备插座", model: "Demo Plug P1", brand: "示例品牌", room: "主卧", status: "online", icon: "plug", control: "energy", risk: "high", metrics: ["今日 0.19 kWh", "本周 1.32 kWh", "本月 5.48 kWh"], actions: ["开关", "查看用电", "重新上电"], capabilities: { "开关": { capabilityId: "power.set", write: true, risk: "high" }, "查看用电": { capabilityId: "energy.read", write: false, risk: "normal" }, "重新上电": { capabilityId: "power.cycle", write: true, risk: "high" } } },
   { id: "plug-server-demo", name: "服务器计量插座", model: "Demo Plug P2", brand: "示例品牌", room: "书房", status: "online", icon: "plug", control: "energy", metrics: ["今日 1.04 kWh", "本周 7.12 kWh", "本月 31.6 kWh"], actions: ["开关", "查看用电", "过载保护"] },
   { id: "speaker-demo", name: "客厅音箱", model: "Demo Speaker S1", brand: "示例品牌", room: "客厅", status: "idle", icon: "speaker", control: "voice", metrics: ["待机", "音量 28%", "在线"], actions: ["播放", "音量", "播报"] },
   { id: "hanger-demo", name: "阳台升降衣架", model: "Demo Hanger H1", brand: "示例品牌", room: "阳台", status: "online", icon: "hanger", control: "voice", metrics: ["高度 100%", "照明 关闭", "烘干 关闭"], actions: ["高度", "照明", "烘干"] },
@@ -218,6 +237,31 @@ const actionOptions: Record<DeviceControl, string[]> = {
   "server-health": ["查询新下载电影", "检索电影", "执行备份"],
   status: ["读取状态"],
 };
+
+function capabilityCommand(device: Device, input: CapabilityCommandInput): CapabilityCommand {
+  const write = input.write ?? true;
+  return {
+    ...input,
+    write,
+    risk: input.risk ?? (write && device.risk === "high" ? "high" : "normal"),
+    parameters: input.parameters ?? {},
+  };
+}
+
+function commandForAction(device: Device, action: string, options: Partial<CapabilityCommandInput> = {}): CapabilityCommand {
+  const registered = device.capabilities?.[action];
+  return capabilityCommand(device, {
+    capabilityId: options.capabilityId ?? registered?.capabilityId ?? "device.action.invoke",
+    label: options.label ?? action,
+    parameters: options.parameters ?? { action },
+    write: options.write ?? registered?.write,
+    risk: options.risk ?? registered?.risk,
+    queue: options.queue,
+    realtime: options.realtime,
+    duration: options.duration,
+    outcome: options.outcome,
+  });
+}
 
 const demoAgentActions = {
   "cleaner.start_all": { deviceId: "cleaner-demo", action: "全屋清洁", queue: "normal" as TaskQueue },
@@ -363,7 +407,6 @@ function DeviceWidget({
   onSelect,
   onToggle,
   onAction,
-  onRestart,
 }: {
   device: Device;
   powered: boolean;
@@ -373,7 +416,6 @@ function DeviceWidget({
   onSelect: (device: Device) => void;
   onToggle: (device: Device, next: boolean) => void;
   onAction: DispatchDeviceAction;
-  onRestart: (device: Device) => void;
 }) {
   const [curtainMode, setCurtainMode] = useState<"close" | "pause" | "open">("pause");
   const [curtainPosition, setCurtainPosition] = useState({ left: 35, right: 35 });
@@ -386,9 +428,11 @@ function DeviceWidget({
   const [targetTemperature, setTargetTemperature] = useState(23);
   const [lightOn, setLightOn] = useState(true);
   const [brightness, setBrightness] = useState([62]);
+  const [desiredBrightness, setDesiredBrightness] = useState([62]);
   const [fishLight, setFishLight] = useState("自然日光");
   const [fishLightOn, setFishLightOn] = useState(true);
   const [feeding, setFeeding] = useState(false);
+  const [pendingControl, setPendingControl] = useState<string | null>(null);
   const [voiceActive, setVoiceActive] = useState(false);
   const voiceStartedAt = useRef(0);
   const voiceHolding = useRef(false);
@@ -400,11 +444,11 @@ function DeviceWidget({
     setCurtainMode(next);
     if (next === "pause") {
       setCurtainMoving(false);
-      await onAction(device, "暂停窗帘", { queue: "priority", realtime: true, duration: 700 });
+      await onAction(device, capabilityCommand(device, { capabilityId: "cover.stop", label: "暂停窗帘", parameters: { cover: "split" }, queue: "priority", realtime: true, duration: 700 }));
       return;
     }
     setCurtainMoving(true);
-    const result = await onAction(device, next === "open" ? "打开窗帘" : "关闭窗帘", { queue: "priority", realtime: true, duration: 2800 });
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "cover.set_position", label: next === "open" ? "打开窗帘" : "关闭窗帘", parameters: { cover: "split", position: next === "open" ? 0 : 100 }, queue: "priority", realtime: true, duration: 2800 }));
     if (curtainOperation.current !== operation) return;
     if (result === "done") {
       setCurtainPosition(next === "open" ? { left: 0, right: 0 } : { left: 100, right: 100 });
@@ -419,11 +463,11 @@ function DeviceWidget({
     setRollerMode(next);
     if (next === "pause") {
       setRollerMoving(false);
-      await onAction(device, "暂停卷帘", { queue: "priority", realtime: true, duration: 700 });
+      await onAction(device, capabilityCommand(device, { capabilityId: "cover.stop", label: "暂停卷帘", parameters: { cover: "roller" }, queue: "priority", realtime: true, duration: 700 }));
       return;
     }
     setRollerMoving(true);
-    const result = await onAction(device, next === "open" ? "打开卷帘" : "关闭卷帘", { queue: "priority", realtime: true, duration: 2600 });
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "cover.set_position", label: next === "open" ? "打开卷帘" : "关闭卷帘", parameters: { cover: "roller", position: next === "open" ? 0 : 100 }, queue: "priority", realtime: true, duration: 2600 }));
     if (rollerOperation.current !== operation) return;
     if (result === "done") {
       setRollerPosition(next === "open" ? 0 : 100);
@@ -435,8 +479,51 @@ function DeviceWidget({
   async function feedFish() {
     if (feeding || isOffline) return;
     setFeeding(true);
-    await onAction(device, "投食一次", { duration: 1800 });
+    await onAction(device, capabilityCommand(device, { capabilityId: "aquarium.feed", label: "投食一次", parameters: { portions: 1 }, duration: 1800 }));
     setFeeding(false);
+  }
+
+  async function setTemperature(next: number) {
+    if (pendingControl || isOffline) return;
+    const bounded = Math.max(16, Math.min(30, next));
+    setPendingControl("temperature");
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "climate.set_temperature", label: `设置温度 ${bounded}°C`, parameters: { temperatureCelsius: bounded } }));
+    if (result === "done") setTargetTemperature(bounded);
+    setPendingControl(null);
+  }
+
+  async function setLightPower(next: boolean) {
+    if (pendingControl || isOffline) return;
+    setPendingControl("light-power");
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "light.set_power", label: next ? "打开灯光" : "关闭灯光", parameters: { on: next } }));
+    if (result === "done") setLightOn(next);
+    setPendingControl(null);
+  }
+
+  async function commitBrightness(next: number[]) {
+    if (pendingControl || isOffline) return;
+    const value = next[0];
+    setPendingControl("brightness");
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "light.set_brightness", label: `设置亮度 ${value}%`, parameters: { brightnessPercent: value }, queue: "priority", realtime: true }));
+    if (result === "done") setBrightness(next);
+    else setDesiredBrightness(brightness);
+    setPendingControl(null);
+  }
+
+  async function setAquariumLightMode(next: string) {
+    if (pendingControl || isOffline) return;
+    setPendingControl("aquarium-mode");
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "aquarium.light.set_mode", label: `切换鱼缸灯光为${next}`, parameters: { mode: next } }));
+    if (result === "done") setFishLight(next);
+    setPendingControl(null);
+  }
+
+  async function setAquariumLightPower(next: boolean) {
+    if (pendingControl || isOffline) return;
+    setPendingControl("aquarium-power");
+    const result = await onAction(device, capabilityCommand(device, { capabilityId: "aquarium.light.set_power", label: next ? "打开鱼缸灯光" : "关闭鱼缸灯光", parameters: { on: next } }));
+    if (result === "done") setFishLightOn(next);
+    setPendingControl(null);
   }
 
   function startVoice() {
@@ -451,7 +538,7 @@ function DeviceWidget({
     const duration = Date.now() - voiceStartedAt.current;
     voiceHolding.current = false;
     setVoiceActive(false);
-    if (duration >= 650) onAction(device, "语音指令");
+    if (duration >= 650) void onAction(device, capabilityCommand(device, { capabilityId: "voice.command", label: "语音指令", parameters: { input: "browser-microphone" } }));
     else toast("请按住说话", { description: "持续按住 0.6 秒后开始录入指令" });
   }
 
@@ -460,7 +547,7 @@ function DeviceWidget({
     : device.control === "presence"
       ? <span className={`presence-state ${device.status === "offline" ? "is-offline" : ""}`}><i/>{statusLabel[device.status]}</span>
       : device.control === "dimmable-light"
-        ? <Switch checked={lightOn} onCheckedChange={setLightOn} disabled={isOffline} aria-label={`${device.name}灯光`} />
+        ? <Switch checked={lightOn} onCheckedChange={(next) => void setLightPower(next)} disabled={isOffline || Boolean(pendingControl)} aria-label={`${device.name}灯光`} />
       : null;
 
   let control: ReactNode;
@@ -492,18 +579,18 @@ function DeviceWidget({
       </div>
     );
   } else if (device.control === "climate") {
-    control = <div className="temperature-stepper"><button type="button" disabled={isOffline} onClick={() => setTargetTemperature((value) => Math.max(16, value - 1))} aria-label="温度减一度"><Minus/></button><span><b>{targetTemperature}</b><small>°C</small></span><button type="button" disabled={isOffline} onClick={() => setTargetTemperature((value) => Math.min(30, value + 1))} aria-label="温度加一度"><Plus/></button></div>;
+    control = <div className="temperature-stepper"><button type="button" disabled={isOffline || Boolean(pendingControl)} onClick={() => void setTemperature(targetTemperature - 1)} aria-label="温度减一度"><Minus/></button><span><b>{targetTemperature}</b><small>°C</small></span><button type="button" disabled={isOffline || Boolean(pendingControl)} onClick={() => void setTemperature(targetTemperature + 1)} aria-label="温度加一度"><Plus/></button></div>;
   } else if (device.control === "dimmable-light") {
-    control = <div className={`device-light-control ${lightOn ? "is-on" : ""}`}><div className="light-summary"><Sun/><span>{lightOn ? "亮度" : "灯光已关闭"}</span><b>{lightOn ? `${brightness[0]}%` : "—"}</b></div>{lightOn && <Slider disabled={isOffline} value={brightness} onValueChange={setBrightness} aria-label="灯光亮度"/>}</div>;
+    control = <div className={`device-light-control ${lightOn ? "is-on" : ""}`}><div className="light-summary"><Sun/><span>{lightOn ? "亮度" : "灯光已关闭"}</span><b>{lightOn ? `${desiredBrightness[0]}%` : "—"}</b></div>{lightOn && <Slider disabled={isOffline || Boolean(pendingControl)} value={desiredBrightness} onValueChange={setDesiredBrightness} onValueCommit={(next) => void commitBrightness(next)} aria-label="灯光亮度"/>}</div>;
   } else if (device.control === "aquarium") {
     control = (
       <div className="control-surface aquarium-control">
-        <NativeSelect disabled={isOffline} value={fishLight} onChange={(event) => setFishLight(event.target.value)} aria-label="鱼缸灯光类型">
+        <NativeSelect disabled={isOffline || Boolean(pendingControl)} value={fishLight} onChange={(event) => void setAquariumLightMode(event.target.value)} aria-label="鱼缸灯光类型">
           <NativeSelectOption value="自然日光">自然日光</NativeSelectOption>
           <NativeSelectOption value="水草生长">水草生长</NativeSelectOption>
           <NativeSelectOption value="月光观赏">月光观赏</NativeSelectOption>
         </NativeSelect>
-        <button type="button" disabled={isOffline} className={`mini-action ${fishLightOn ? "active" : ""}`} onClick={() => setFishLightOn((value) => !value)} aria-label="开关鱼缸灯"><Lightbulb/>{fishLightOn ? "灯已开" : "开灯"}</button>
+        <button type="button" disabled={isOffline || Boolean(pendingControl)} className={`mini-action ${fishLightOn ? "active" : ""}`} onClick={() => void setAquariumLightPower(!fishLightOn)} aria-label="开关鱼缸灯"><Lightbulb/>{fishLightOn ? "灯已开" : "开灯"}</button>
         <button type="button" disabled={isOffline} className={`mini-action feed-action ${feeding ? "is-feeding" : ""}`} onClick={feedFish} aria-label="鱼缸投食">{feeding ? <LoaderCircle/> : <Fish/>}{feeding ? "投食中" : "投食"}</button>
       </div>
     );
@@ -517,14 +604,14 @@ function DeviceWidget({
     control = (
       <div className="control-surface router-control">
         <span><b>{device.metrics[0]}</b><small>{device.metrics[1]}</small></span>
-        <button type="button" disabled={isOffline} onClick={() => onRestart(device)}><RotateCw/>重启路由</button>
+        <button type="button" disabled={isOffline} onClick={() => void onAction(device, capabilityCommand(device, { capabilityId: "network.restart", label: "安全重启", parameters: {}, risk: "high" }))}><RotateCw/>重启路由</button>
       </div>
     );
   } else if (device.control === "robot") {
     control = (
       <div className="control-surface robot-control">
         <span><b>{device.metrics[0]}</b><small>{device.metrics[1]}</small></span>
-        <button type="button" disabled={isOffline} onClick={() => onAction(device, "全屋清洁")}><Home/>全屋清洁</button>
+        <button type="button" disabled={isOffline} onClick={() => void onAction(device, capabilityCommand(device, { capabilityId: "vacuum.clean_all", label: "全屋清洁", parameters: {} }))}><Home/>全屋清洁</button>
       </div>
     );
   } else if (device.control === "voice") {
@@ -749,7 +836,7 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
 
   function addBinding(stepId: string) {
     const device = planningDevices[0];
-    const binding: StepBinding = { id: `binding-${Date.now()}-${Math.random()}`, deviceId: device.id, deviceName: device.name, action: actionOptions[device.control][0] };
+    const binding: StepBinding = { id: `binding-${crypto.randomUUID()}`, deviceId: device.id, deviceName: device.name, action: actionOptions[device.control][0] };
     setPlanSteps((current) => current.map((step) => step.id === stepId ? { ...step, bindings: [...step.bindings, binding] } : step));
   }
 
@@ -759,7 +846,7 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
 
   function addStep() {
     const device = planningDevices[0];
-    setPlanSteps((current) => [...current, { id: `step-${Date.now()}`, title: `步骤 ${current.length + 1}`, status: "draft", bindings: [{ id: `binding-${Date.now()}`, deviceId: device.id, deviceName: device.name, action: actionOptions[device.control][0] }] }]);
+    setPlanSteps((current) => [...current, { id: `step-${crypto.randomUUID()}`, title: `步骤 ${current.length + 1}`, status: "draft", bindings: [{ id: `binding-${crypto.randomUUID()}`, deviceId: device.id, deviceName: device.name, action: actionOptions[device.control][0] }] }]);
   }
 
   async function startRun(title: string, sourceSteps: PlanStep[]) {
@@ -771,7 +858,7 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
       const results = await Promise.all(step.bindings.map((binding) => {
         const device = planningDevices.find((item) => item.id === binding.deviceId) ?? devices.find((item) => item.id === "rpi-hub") ?? devices[0];
         const realtime = ["split-curtain", "roller-curtain", "dimmable-light"].includes(device.control);
-        return onDispatch(device, binding.action, { queue: realtime ? "priority" : "normal", realtime, duration: 1100 });
+        return onDispatch(device, commandForAction(device, binding.action, { queue: realtime ? "priority" : "normal", realtime, duration: 1100 }));
       }));
       const failed = results.includes("failed");
       const cancelled = results.includes("cancelled");
@@ -783,7 +870,7 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
           : `${step.bindings.length} 个设备动作已确认完成`;
       setActiveRun((current) => current ? { ...current, steps: current.steps.map((item) => {
         if (item.id === step.id) return { ...item, status: stepStatus, result: resultText };
-        if ((failed || cancelled) && item.status === "queued") return { ...item, status: "cancelled", result: "因前序步骤未完成而跳过" };
+        if ((failed || cancelled) && item.status === "queued") return { ...item, status: "skipped", result: "因前序步骤未完成而跳过" };
         return item;
       }) } : current);
       if (failed || cancelled) break;
@@ -794,7 +881,7 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
     <div className="capability-page">
       {activeRun && <section className="execution-plan">
         <header><div><span>EXECUTION PLAN</span><h2>{activeRun.title}</h2></div><div className="run-legend"><span><i className="running"/>执行中</span><span><i className="success"/>已完成</span></div></header>
-        <div className="execution-steps">{activeRun.steps.map((step, index) => <article className={`execution-step status-${step.status}`} key={step.id}><div className="execution-index">{step.status === "success" ? <Check/> : step.status === "running" ? <LoaderCircle/> : index + 1}</div><div><strong>{step.title}</strong><small>{step.bindings.map((binding) => `${binding.deviceName} · ${binding.action}`).join(" ｜ ")}</small>{step.result && <p>{step.result}</p>}</div><span>{step.status === "success" ? "成功" : step.status === "running" ? "执行中" : step.status === "failed" ? "失败" : step.status === "cancelled" ? "已取消" : "等待"}</span></article>)}</div>
+        <div className="execution-steps">{activeRun.steps.map((step, index) => <article className={`execution-step status-${step.status}`} key={step.id}><div className="execution-index">{step.status === "success" ? <Check/> : step.status === "running" ? <LoaderCircle/> : index + 1}</div><div><strong>{step.title}</strong><small>{step.bindings.map((binding) => `${binding.deviceName} · ${binding.action}`).join(" ｜ ")}</small>{step.result && <p>{step.result}</p>}</div><span>{step.status === "success" ? "成功" : step.status === "running" ? "执行中" : step.status === "failed" ? "失败" : step.status === "cancelled" ? "已取消" : step.status === "skipped" ? "已跳过" : "等待"}</span></article>)}</div>
       </section>}
       <Tabs defaultValue="scenes" className="automation-tabs">
         <div className="automation-toolbar">
@@ -872,7 +959,6 @@ export default function HomePage() {
   const [overviewMode, setOverviewMode] = useState<"widgets" | "floor">("widgets");
   const [devices, setDevices] = useState<Device[]>(initialDevices);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
-  const [restartTarget, setRestartTarget] = useState<Device | null>(null);
   const [highRiskConfirmation, setHighRiskConfirmation] = useState<{ device: Device; action: string } | null>(null);
   const [addDeviceOpen, setAddDeviceOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<DeviceProfile | null>(null);
@@ -893,6 +979,7 @@ export default function HomePage() {
   const taskRuntimes = useRef(new Map<string, TaskRuntime>());
   const confirmationQueue = useRef<ConfirmationRequest[]>([]);
   const activeConfirmation = useRef<ConfirmationRequest | null>(null);
+  const requestDeviceActionRef = useRef<DispatchDeviceAction | null>(null);
   const onlineCount = devices.filter((device) => device.status !== "offline").length;
 
   useEffect(() => {
@@ -955,18 +1042,18 @@ export default function HomePage() {
     runtime.resolve(status);
   }
 
-  async function dispatchTask(device: Device, action = "设备自检", options: TaskOptions = {}): Promise<TaskTerminalStatus> {
+  async function dispatchTask(device: Device, command: CapabilityCommand): Promise<TaskTerminalStatus> {
     if (device.status === "offline") {
       toast.error("设备离线，未创建任务", { description: `${device.name} 仅保留状态查看` });
       return "failed";
     }
-    const queue = options.queue ?? "normal";
-    const realtime = queue === "priority" ? true : Boolean(options.realtime);
-    const duration = options.duration ?? (queue === "priority" ? 2800 : 3800);
-    const taskId = `task-${Date.now().toString().slice(-6)}-${Math.floor(Math.random() * 90 + 10)}`;
+    const queue = command.queue ?? "normal";
+    const realtime = queue === "priority" ? true : Boolean(command.realtime);
+    const duration = command.duration ?? (queue === "priority" ? 2800 : 3800);
+    const taskId = `task-${crypto.randomUUID()}`;
     const newTask: Task = {
       id: taskId,
-      title: action,
+      title: command.label,
       device: device.name,
       status: "queued",
       queue,
@@ -974,22 +1061,25 @@ export default function HomePage() {
       realtime,
       progress: 0,
       time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }),
+      capabilityId: command.capabilityId,
+      parameters: command.parameters,
+      risk: command.risk,
     };
     setTasks((current) => [newTask, ...current]);
-    toast.success(queue === "priority" ? "已进入优先队列" : "已进入普通队列", { description: `${device.name} · ${action}${realtime ? " · 状态实时上报" : ""}` });
-    return runTask(taskId, queue, duration, options.outcome ?? "done");
+    toast.success(queue === "priority" ? "已进入优先队列" : "已进入普通队列", { description: `${device.name} · ${command.label}${realtime ? " · 状态实时上报" : ""}` });
+    return runTask(taskId, queue, duration, command.outcome ?? "done");
   }
 
   function showNextConfirmation() {
     if (activeConfirmation.current || confirmationQueue.current.length === 0) return;
     const next = confirmationQueue.current.shift() ?? null;
     activeConfirmation.current = next;
-    setHighRiskConfirmation(next ? { device: next.device, action: next.action } : null);
+    setHighRiskConfirmation(next ? { device: next.device, action: next.command.label } : null);
   }
 
-  function requestConfirmation(device: Device, action: string): Promise<boolean> {
+  function requestConfirmation(device: Device, command: CapabilityCommand): Promise<boolean> {
     return new Promise((resolve) => {
-      confirmationQueue.current.push({ id: `confirm-${Date.now()}-${Math.random()}`, device, action, resolve });
+      confirmationQueue.current.push({ id: `confirm-${crypto.randomUUID()}`, device, command, resolve });
       showNextConfirmation();
     });
   }
@@ -1003,23 +1093,23 @@ export default function HomePage() {
     window.setTimeout(showNextConfirmation, 0);
   }
 
-  function requiresConfirmation(device: Device, action: string) {
-    return device.risk === "high" && /关闭|断电|重启|重新上电/.test(action);
+  function requiresConfirmation(command: CapabilityCommand) {
+    return command.write && command.risk === "high";
   }
 
-  async function requestDeviceAction(device: Device, action = "设备自检", options: TaskOptions = {}): Promise<TaskTerminalStatus> {
-    if (requiresConfirmation(device, action)) {
-      const confirmed = await requestConfirmation(device, action);
+  async function requestDeviceAction(device: Device, command: CapabilityCommand): Promise<TaskTerminalStatus> {
+    if (requiresConfirmation(command)) {
+      const confirmed = await requestConfirmation(device, command);
       if (!confirmed) {
-        toast("高风险动作已取消", { description: `${device.name} · ${action}` });
+        toast("高风险动作已取消", { description: `${device.name} · ${command.label}` });
         return "cancelled";
       }
     }
-    return dispatchTask(device, action, options);
+    return dispatchTask(device, command);
   }
 
   async function toggleDevice(device: Device, next: boolean) {
-    const status = await requestDeviceAction(device, next ? "开启设备" : "关闭设备");
+    const status = await requestDeviceAction(device, capabilityCommand(device, { capabilityId: "power.set", label: next ? "开启设备" : "关闭设备", parameters: { on: next } }));
     if (status === "done") {
       setPowered((current) => ({ ...current, [device.id]: next }));
       toast.success("设备已确认状态", { description: `${device.name} · ${next ? "已开启" : "已关闭"}` });
@@ -1080,6 +1170,10 @@ export default function HomePage() {
   }
 
   useEffect(() => {
+    requestDeviceActionRef.current = requestDeviceAction;
+  });
+
+  useEffect(() => {
     const context = (document as Document & { modelContext?: { registerTool: (tool: unknown, options?: { signal?: AbortSignal }) => void | Promise<void> } }).modelContext;
     if (!context?.registerTool) return;
     const lifecycle = new AbortController();
@@ -1098,14 +1192,15 @@ export default function HomePage() {
         description: "仅在浏览器内为虚构设备创建演示队列项，不连接或控制真实设备。",
         inputSchema: { type: "object", properties: { capabilityId: { type: "string", enum: Object.keys(demoAgentActions) } }, required: ["capabilityId"], additionalProperties: false },
         annotations: { readOnlyHint: false, untrustedContentHint: false },
-        execute: (input: unknown) => {
+        execute: async (input: unknown) => {
           const payload = input as { capabilityId?: keyof typeof demoAgentActions };
           const allowed = payload.capabilityId ? demoAgentActions[payload.capabilityId] : undefined;
           const device = allowed ? devices.find((item) => item.id === allowed.deviceId) : undefined;
           if (!allowed || !device || device.status === "offline") throw new Error("演示能力不可用");
-          const task: Task = { id: `task-${Date.now().toString().slice(-5)}`, title: allowed.action, device: device.name, status: "queued", queue: allowed.queue, transport: "async", realtime: allowed.queue === "priority", progress: 0, time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) };
-          setTasks((current) => [task, ...current]);
-          return { mock: true, taskId: task.id, status: task.status, device: device.name };
+          const dispatcher = requestDeviceActionRef.current;
+          if (!dispatcher) throw new Error("演示调度器尚未就绪");
+          const status = await dispatcher(device, commandForAction(device, allowed.action, { capabilityId: String(payload.capabilityId), parameters: { source: "webmcp" }, queue: allowed.queue, realtime: allowed.queue === "priority" }));
+          return { mock: true, terminalStatus: status, device: device.name, capabilityId: payload.capabilityId };
         },
       }, { signal: lifecycle.signal });
     };
@@ -1186,7 +1281,7 @@ export default function HomePage() {
                       </header>
                       <div className="room-device-grid">
                         {roomDevices.map((device) => (
-                          <DeviceWidget key={device.id} device={device} powered={powered[device.id]} editing={editing} size={sizes[device.id] ?? preferredWidgetSize(device)} onResize={cycleSize} onSelect={selectDevice} onToggle={toggleDevice} onAction={requestDeviceAction} onRestart={setRestartTarget} />
+                          <DeviceWidget key={device.id} device={device} powered={powered[device.id]} editing={editing} size={sizes[device.id] ?? preferredWidgetSize(device)} onResize={cycleSize} onSelect={selectDevice} onToggle={toggleDevice} onAction={requestDeviceAction} />
                         ))}
                       </div>
                     </section>
@@ -1199,7 +1294,7 @@ export default function HomePage() {
           {activeView === "overview" && overviewMode === "floor" && <FloorPlan devices={devices} onSelect={selectDevice} />}
           {activeView === "network" && <NetworkView devices={devices} onSelect={selectDevice} />}
           {activeView === "capability" && <CapabilityView devices={devices} onDispatch={requestDeviceAction} />}
-          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => requestDeviceAction(devices[0], "全屋设备巡检")} onRetry={retryTask} onCancel={cancelTask} />}
+          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => void requestDeviceAction(devices[0], commandForAction(devices[0], "全屋设备巡检", { capabilityId: "home.inspect" }))} onRetry={retryTask} onCancel={cancelTask} />}
 
         </div>
         </div>
@@ -1226,8 +1321,8 @@ export default function HomePage() {
                 </div> : <>
                   <div className="sheet-section"><span className="sheet-label">当前状态</span><div className="metric-grid">{selectedDevice.metrics.map((metric) => <div key={metric}>{metric}</div>)}</div></div>
                   {(selectedDevice.control === "power" || selectedDevice.control === "energy") && <div className="sheet-section"><span className="sheet-label">快速控制</span><div className="sheet-control"><span><strong>设备电源</strong><small>{powered[selectedDevice.id] ? "已开启" : "已关闭"}</small></span><Switch disabled={selectedDevice.status === "offline"} checked={powered[selectedDevice.id]} onCheckedChange={(next) => toggleDevice(selectedDevice, next)}/></div></div>}
-                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" disabled={selectedDevice.status === "offline"} key={action} onClick={() => requestDeviceAction(selectedDevice, action)}>{action}<ChevronRight/></button>)}</div></div>
-                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button disabled={selectedDevice.status === "offline"} className="sheet-primary" onClick={() => requestDeviceAction(selectedDevice)}>运行设备自检<Play/></Button></div>
+                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" disabled={selectedDevice.status === "offline"} key={action} onClick={() => void requestDeviceAction(selectedDevice, commandForAction(selectedDevice, action))}>{action}<ChevronRight/></button>)}</div></div>
+                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button disabled={selectedDevice.status === "offline"} className="sheet-primary" onClick={() => void requestDeviceAction(selectedDevice, commandForAction(selectedDevice, "设备自检", { capabilityId: "device.self_test" }))}>运行设备自检<Play/></Button></div>
                 </>}
               </div>
             </>
@@ -1250,20 +1345,6 @@ export default function HomePage() {
           <DialogFooter>{selectedProfile && <Button variant="outline" onClick={() => setSelectedProfile(null)}>上一步</Button>}<Button disabled={!selectedProfile || !newDeviceName.trim()} onClick={addDevice}><Plus/>添加并进入配置</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AlertDialog open={Boolean(restartTarget)} onOpenChange={(open) => !open && setRestartTarget(null)}>
-        <AlertDialogContent className="restart-dialog" size="sm">
-          <AlertDialogHeader>
-            <AlertDialogMedia><RotateCw/></AlertDialogMedia>
-            <AlertDialogTitle>重启{restartTarget?.name}？</AlertDialogTitle>
-            <AlertDialogDescription>网络连接会短暂中断，预计 2–3 分钟后恢复。已排队的局域网任务可能延迟执行。</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction className="restart-confirm" onClick={() => { if (restartTarget) void requestDeviceAction(restartTarget, "安全重启"); setRestartTarget(null); }}>确认重启</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <AlertDialog open={Boolean(highRiskConfirmation)} onOpenChange={(open) => !open && resolveConfirmation(false)}>
         <AlertDialogContent className="restart-dialog" size="sm">
