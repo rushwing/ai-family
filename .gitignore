@@ -99,3 +99,8 @@ coverage/
 # ───────── 其它 ─────────
 tmp/
 temp/
+
+# Home Intelligence：真实家庭 inventory 仅保留在本地，禁止进入公共仓库。
+apps/home-intelligence-web/fixtures/private/
+docs/product/home-intelligence/private/
+*.home-inventory.local.json

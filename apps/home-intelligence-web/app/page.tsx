@@ -4,7 +4,6 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import {
   Activity,
   AirVent,
-  Apple,
   ArrowUpRight,
   Bot,
   Check,
@@ -96,8 +95,8 @@ type DeviceStatus = "online" | "busy" | "idle" | "offline" | "warning";
 type WidgetSize = "compact" | "standard" | "wide" | "large";
 type DeviceControl = "power" | "router" | "robot" | "aquarium" | "split-curtain" | "roller-curtain" | "climate" | "dimmable-light" | "energy" | "voice" | "presence" | "hub-usage" | "server-health" | "status";
 type TaskQueue = "normal" | "priority";
-type TaskStatus = "running" | "queued" | "done" | "failed";
-type TaskOptions = { queue?: TaskQueue; realtime?: boolean; duration?: number };
+type TaskStatus = "running" | "queued" | "done" | "failed" | "cancelled";
+type TaskOptions = { queue?: TaskQueue; realtime?: boolean; duration?: number; outcome?: "done" | "failed"; onSuccess?: () => void };
 
 type Device = {
   id: string;
@@ -111,6 +110,7 @@ type Device = {
   metrics: string[];
   actions: string[];
   ip?: string;
+  risk?: "normal" | "high";
 };
 
 type Task = {
@@ -139,34 +139,36 @@ type PlanStepStatus = "draft" | "queued" | "running" | "success" | "failed";
 type PlanStep = { id: string; title: string; bindings: StepBinding[]; status: PlanStepStatus; result?: string };
 type AutomationItem = { title: string; icon: LucideIcon; state: string; meta: string; steps: string[] };
 
+// Public demo fixture only. Names, models, addresses, rooms, states and positions are fictional.
 const initialDevices: Device[] = [
-  { id: "rpi-hub", name: "家庭智能中枢", model: "Raspberry Pi 5 · 8G / 512G", brand: "树莓派", room: "书房", status: "online", icon: "hub", control: "hub-usage", ip: "192.168.110.10", metrics: ["5 小时剩余 72%", "每周剩余 84%", "预充值 ¥128"], actions: ["运行状态", "服务管理", "规则执行", "设备发现"] },
-  { id: "nas", name: "家庭数据中心", model: "UGREEN DX4600", brand: "绿联", room: "书房", status: "busy", icon: "nas", control: "server-health", ip: "192.168.110.20", metrics: ["服务 18/18", "CPU 21% · 内存 48%", "存储 61%"], actions: ["浏览文件", "执行备份", "查看用电", "安全关机"] },
-  { id: "router-main", name: "家庭主路由", model: "锐捷天蝎 X60-PRO", brand: "锐捷", room: "客厅", status: "online", icon: "router", control: "router", ip: "192.168.110.1", metrics: ["下载 128 Mbps", "上传 36 Mbps", "设备 20"], actions: ["网络状态", "访客网络", "设备隔离", "优先级设置"] },
-  { id: "router-bedroom", name: "主卧从路由", model: "Huawei K662c", brand: "华为", room: "主卧", status: "online", icon: "router", control: "router", ip: "192.168.110.2", metrics: ["延迟 8 ms", "客户端 6", "信号 -41 dBm"], actions: ["网络状态", "Mesh 管理", "重新启动"] },
-  { id: "tv-living", name: "客厅电视", model: "TCL 75Q10G Pro", brand: "TCL", room: "客厅", status: "idle", icon: "tv", control: "power", metrics: ["待机", "HDMI 1", "局域网投屏"], actions: ["开关", "选择信号源", "播放", "音量"] },
-  { id: "apple-tv", name: "Apple TV", model: "Apple TV 4K · 2nd gen", brand: "Apple", room: "客厅", status: "idle", icon: "tv", control: "power", metrics: ["待机", "tvOS", "以太网"], actions: ["播放", "暂停", "打开应用", "开关"] },
-  { id: "fridge", name: "厨房冰箱", model: "Haier BCD-501", brand: "海尔", room: "厨房", status: "online", icon: "fridge", control: "status", metrics: ["冷藏 4°C", "冷冻 -18°C", "门 已关闭"], actions: ["温度", "门状态", "模式", "告警"] },
-  { id: "robot", name: "扫地机器人", model: "Ecovacs T30 PRO", brand: "科沃斯", room: "客厅", status: "busy", icon: "robot", control: "robot", metrics: ["清扫中 68%", "电量 74%", "剩余 23 分钟"], actions: ["全屋清洁", "预约任务", "指定范围", "查看地图"] },
-  { id: "aquarium", name: "小米鱼缸", model: "Mijia Smart Aquarium", brand: "小米", room: "餐厅", status: "warning", icon: "fish", control: "aquarium", metrics: ["水温 26.4°C", "滤芯 12%", "灯光 自动"], actions: ["喂食", "灯光", "水温", "滤芯状态"] },
-  { id: "curtain", name: "主卧窗帘", model: "Mijia Curtain", brand: "小米", room: "主卧", status: "online", icon: "curtain", control: "split-curtain", metrics: ["左帘 35%", "右帘 35%", "电机 正常"], actions: ["开合位置", "读取位置", "日程"] },
-  { id: "plug-bedroom", name: "主卧路由器插座", model: "Mijia Smart Plug", brand: "小米", room: "主卧", status: "online", icon: "plug", control: "energy", metrics: ["今日 0.19 kWh", "本周 1.32 kWh", "本月 5.48 kWh"], actions: ["开关", "查看用电", "重新上电"] },
-  { id: "plug-nas", name: "NAS 计量插座", model: "Mijia Smart Plug", brand: "小米", room: "书房", status: "online", icon: "plug", control: "energy", metrics: ["今日 1.04 kWh", "本周 7.12 kWh", "本月 31.6 kWh"], actions: ["开关", "查看用电", "过载保护"] },
-  { id: "sound", name: "小米 Sound", model: "Xiaomi Sound", brand: "小米", room: "客厅", status: "idle", icon: "speaker", control: "voice", metrics: ["待机", "音量 28%", "在线"], actions: ["播放", "音量", "播报"] },
-  { id: "hanger", name: "阳台升降衣架", model: "Mijia Smart Hanger", brand: "小米", room: "阳台", status: "online", icon: "hanger", control: "voice", metrics: ["高度 100%", "照明 关闭", "烘干 关闭"], actions: ["高度", "照明", "烘干"] },
-  { id: "macbook", name: "MacBook Pro", model: "M1", brand: "Apple", room: "书房", status: "online", icon: "apple", control: "presence", metrics: ["电量 82%", "Wi-Fi", "已解锁"], actions: ["在家状态", "电量", "通知"] },
-  { id: "iphone17", name: "iPhone 17 Pro Max", model: "iPhone 17PM", brand: "Apple", room: "主卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 69%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
-  { id: "ipad-m4", name: "iPad Pro M4", model: "iPad Pro M4", brand: "Apple", room: "客厅", status: "online", icon: "apple", control: "presence", metrics: ["电量 91%", "Wi-Fi", "闲置"], actions: ["在家状态", "电量", "投屏"] },
-  { id: "ipad-2018", name: "iPad Pro 2018", model: "iPad Pro 2018", brand: "Apple", room: "书房", status: "offline", icon: "apple", control: "presence", metrics: ["离线 2 小时", "书房", "—"], actions: ["在家状态", "电量", "投屏"] },
-  { id: "iphone12", name: "iPhone 12 Pro Max", model: "iPhone 12PM", brand: "Apple", room: "次卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 54%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
-  { id: "xiaomi-fold", name: "小米 18 Fold", model: "Xiaomi 18 Fold", brand: "小米", room: "主卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 76%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
+  { id: "hub-demo", name: "示例智能中枢", model: "Demo Hub H1", brand: "示例品牌", room: "书房", status: "online", icon: "hub", control: "hub-usage", ip: "hub.demo.local", metrics: ["5 小时剩余 72%", "每周剩余 84%", "预充值 ¥128"], actions: ["运行状态", "服务管理", "规则执行", "设备发现"] },
+  { id: "data-demo", name: "示例数据中心", model: "Demo Vault D4", brand: "示例品牌", room: "书房", status: "busy", icon: "nas", control: "server-health", ip: "vault.demo.local", metrics: ["服务 18/18", "CPU 21% · 内存 48%", "存储 61%"], actions: ["浏览文件", "执行备份", "查看用电", "安全关机"] },
+  { id: "router-core-demo", name: "示例主路由", model: "Demo Router R1", brand: "示例品牌", room: "客厅", status: "online", icon: "router", control: "router", ip: "router.demo.local", metrics: ["下载 128 Mbps", "上传 36 Mbps", "设备 20"], actions: ["网络状态", "访客网络", "设备隔离", "优先级设置"] },
+  { id: "router-mesh-demo", name: "示例 Mesh 节点", model: "Demo Mesh M1", brand: "示例品牌", room: "主卧", status: "online", icon: "router", control: "router", ip: "mesh.demo.local", metrics: ["延迟 8 ms", "客户端 6", "信号 -41 dBm"], actions: ["网络状态", "Mesh 管理", "重新启动"] },
+  { id: "display-demo", name: "客厅显示屏", model: "Demo Display 75", brand: "示例品牌", room: "客厅", status: "idle", icon: "tv", control: "power", metrics: ["待机", "HDMI 1", "局域网投屏"], actions: ["开关", "选择信号源", "播放", "音量"] },
+  { id: "media-demo", name: "流媒体盒子", model: "Demo Media Box", brand: "示例品牌", room: "客厅", status: "idle", icon: "tv", control: "power", metrics: ["待机", "演示系统", "以太网"], actions: ["播放", "暂停", "打开应用", "开关"] },
+  { id: "fridge-demo", name: "厨房冰箱", model: "Demo Fridge F1", brand: "示例品牌", room: "厨房", status: "online", icon: "fridge", control: "status", metrics: ["冷藏 4°C", "冷冻 -18°C", "门 已关闭"], actions: ["温度", "门状态", "模式", "告警"] },
+  { id: "cleaner-demo", name: "扫地机器人", model: "Demo Cleaner C1", brand: "示例品牌", room: "客厅", status: "busy", icon: "robot", control: "robot", metrics: ["清扫中 68%", "电量 74%", "剩余 23 分钟"], actions: ["全屋清洁", "预约任务", "指定范围", "查看地图"] },
+  { id: "aquarium-demo", name: "餐厅鱼缸", model: "Demo Aquarium A1", brand: "示例品牌", room: "餐厅", status: "warning", icon: "fish", control: "aquarium", metrics: ["水温 26.4°C", "滤芯 12%", "灯光 自动"], actions: ["喂食", "灯光", "水温", "滤芯状态"] },
+  { id: "curtain-demo", name: "主卧窗帘", model: "Demo Curtain C2", brand: "示例品牌", room: "主卧", status: "online", icon: "curtain", control: "split-curtain", metrics: ["左帘 35%", "右帘 35%", "电机 正常"], actions: ["开合位置", "读取位置", "日程"] },
+  { id: "plug-network-demo", name: "网络设备插座", model: "Demo Plug P1", brand: "示例品牌", room: "主卧", status: "online", icon: "plug", control: "energy", risk: "high", metrics: ["今日 0.19 kWh", "本周 1.32 kWh", "本月 5.48 kWh"], actions: ["开关", "查看用电", "重新上电"] },
+  { id: "plug-server-demo", name: "服务器计量插座", model: "Demo Plug P2", brand: "示例品牌", room: "书房", status: "online", icon: "plug", control: "energy", metrics: ["今日 1.04 kWh", "本周 7.12 kWh", "本月 31.6 kWh"], actions: ["开关", "查看用电", "过载保护"] },
+  { id: "speaker-demo", name: "客厅音箱", model: "Demo Speaker S1", brand: "示例品牌", room: "客厅", status: "idle", icon: "speaker", control: "voice", metrics: ["待机", "音量 28%", "在线"], actions: ["播放", "音量", "播报"] },
+  { id: "hanger-demo", name: "阳台升降衣架", model: "Demo Hanger H1", brand: "示例品牌", room: "阳台", status: "online", icon: "hanger", control: "voice", metrics: ["高度 100%", "照明 关闭", "烘干 关闭"], actions: ["高度", "照明", "烘干"] },
+  { id: "laptop-demo", name: "示例笔记本", model: "Demo Laptop L1", brand: "示例品牌", room: "书房", status: "online", icon: "apple", control: "presence", metrics: ["电量 82%", "Wi-Fi", "已解锁"], actions: ["在家状态", "电量", "通知"] },
+  { id: "phone-a-demo", name: "示例手机 A", model: "Demo Phone A", brand: "示例品牌", room: "主卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 69%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
+  { id: "tablet-a-demo", name: "示例平板 A", model: "Demo Tablet A", brand: "示例品牌", room: "客厅", status: "online", icon: "apple", control: "presence", metrics: ["电量 91%", "Wi-Fi", "闲置"], actions: ["在家状态", "电量", "投屏"] },
+  { id: "tablet-b-demo", name: "示例平板 B", model: "Demo Tablet B", brand: "示例品牌", room: "书房", status: "offline", icon: "apple", control: "presence", metrics: ["离线 2 小时", "书房", "—"], actions: ["在家状态", "电量", "投屏"] },
+  { id: "phone-b-demo", name: "示例手机 B", model: "Demo Phone B", brand: "示例品牌", room: "次卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 54%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
+  { id: "fold-demo", name: "示例折叠屏", model: "Demo Fold F1", brand: "示例品牌", room: "主卧", status: "online", icon: "phone", control: "presence", metrics: ["电量 76%", "Wi-Fi", "在家"], actions: ["在家状态", "电量", "通知"] },
 ];
 
 const initialTasks: Task[] = [
   { id: "task-101", title: "全屋地面清扫", device: "扫地机器人", status: "running", queue: "normal", transport: "async", realtime: false, progress: 68, time: "14:32" },
-  { id: "task-102", title: "家庭照片增量备份", device: "家庭数据中心", status: "running", queue: "normal", transport: "async", realtime: false, progress: 42, time: "14:18" },
+  { id: "task-102", title: "家庭照片增量备份", device: "示例数据中心", status: "running", queue: "normal", transport: "async", realtime: false, progress: 42, time: "14:18" },
   { id: "task-103", title: "关闭主卧窗帘", device: "主卧窗帘", status: "running", queue: "priority", transport: "async", realtime: true, progress: 46, time: "刚刚" },
-  { id: "task-104", title: "晚间网络巡检", device: "家庭智能中枢", status: "queued", queue: "normal", transport: "async", realtime: false, progress: 0, time: "22:00" },
+  { id: "task-104", title: "晚间网络巡检", device: "示例智能中枢", status: "queued", queue: "normal", transport: "async", realtime: false, progress: 0, time: "22:00" },
+  { id: "task-105", title: "演示失败任务", device: "示例数据中心", status: "failed", queue: "normal", transport: "async", realtime: false, progress: 36, time: "13:55" },
 ];
 
 const deviceProfiles: DeviceProfile[] = [
@@ -201,21 +203,28 @@ const actionOptions: Record<DeviceControl, string[]> = {
   status: ["读取状态"],
 };
 
+const demoAgentActions = {
+  "cleaner.start_all": { deviceId: "cleaner-demo", action: "全屋清洁", queue: "normal" as TaskQueue },
+  "curtain.open": { deviceId: "curtain-demo", action: "打开窗帘", queue: "priority" as TaskQueue },
+  "curtain.close": { deviceId: "curtain-demo", action: "关闭窗帘", queue: "priority" as TaskQueue },
+  "data.run_backup": { deviceId: "data-demo", action: "执行演示备份", queue: "normal" as TaskQueue },
+};
+
 const roomNodes: Record<string, { left: string; top: string }> = {
-  "tv-living": { left: "19%", top: "23%" },
-  "apple-tv": { left: "29%", top: "23%" },
-  robot: { left: "27%", top: "50%" },
-  sound: { left: "15%", top: "49%" },
-  fridge: { left: "74%", top: "24%" },
-  aquarium: { left: "57%", top: "34%" },
-  curtain: { left: "25%", top: "79%" },
-  "router-bedroom": { left: "38%", top: "83%" },
-  "plug-bedroom": { left: "15%", top: "84%" },
-  "rpi-hub": { left: "78%", top: "64%" },
-  nas: { left: "88%", top: "65%" },
-  "plug-nas": { left: "83%", top: "80%" },
-  hanger: { left: "56%", top: "83%" },
-  "router-main": { left: "45%", top: "51%" },
+  "display-demo": { left: "19%", top: "23%" },
+  "media-demo": { left: "29%", top: "23%" },
+  "cleaner-demo": { left: "27%", top: "50%" },
+  "speaker-demo": { left: "15%", top: "49%" },
+  "fridge-demo": { left: "74%", top: "24%" },
+  "aquarium-demo": { left: "57%", top: "34%" },
+  "curtain-demo": { left: "25%", top: "79%" },
+  "router-mesh-demo": { left: "38%", top: "83%" },
+  "plug-network-demo": { left: "15%", top: "84%" },
+  "hub-demo": { left: "78%", top: "64%" },
+  "data-demo": { left: "88%", top: "65%" },
+  "plug-server-demo": { left: "83%", top: "80%" },
+  "hanger-demo": { left: "56%", top: "83%" },
+  "router-core-demo": { left: "45%", top: "51%" },
 };
 
 const statusLabel: Record<DeviceStatus, string> = {
@@ -273,7 +282,7 @@ function DeviceIcon({ type, className = "size-5" }: { type: string; className?: 
   if (type === "speaker") return <Speaker {...props} />;
   if (type === "hanger") return <AirVent {...props} />;
   if (type === "phone") return <Smartphone {...props} />;
-  return <Apple {...props} />;
+  return <Smartphone {...props} />;
 }
 
 function CurtainOpenIcon() {
@@ -375,6 +384,7 @@ function DeviceWidget({
   }, []);
 
   function setCurtain(next: "close" | "pause" | "open") {
+    if (isOffline) return;
     setCurtainMode(next);
     if (curtainTimer.current) window.clearTimeout(curtainTimer.current);
     if (next === "pause") {
@@ -392,6 +402,7 @@ function DeviceWidget({
   }
 
   function setRoller(next: "close" | "pause" | "open") {
+    if (isOffline) return;
     setRollerMode(next);
     if (rollerTimer.current) window.clearTimeout(rollerTimer.current);
     if (next === "pause") {
@@ -409,13 +420,14 @@ function DeviceWidget({
   }
 
   function feedFish() {
-    if (feeding) return;
+    if (feeding || isOffline) return;
     setFeeding(true);
     onAction(device, "投食一次");
     window.setTimeout(() => setFeeding(false), 1800);
   }
 
   function startVoice() {
+    if (isOffline) return;
     voiceStartedAt.current = Date.now();
     voiceHolding.current = true;
     setVoiceActive(true);
@@ -443,9 +455,9 @@ function DeviceWidget({
     control = (
       <div className="control-surface curtain-control">
         <div className={`icon-choice ${curtainMoving ? "is-moving" : ""}`} aria-label="窗帘控制">
-          <button type="button" className={curtainMode === "open" ? "active" : ""} onClick={() => setCurtain("open")} aria-label="打开窗帘"><CurtainOpenIcon/></button>
-          <button type="button" className={curtainMode === "pause" ? "active" : ""} onClick={() => setCurtain("pause")} aria-label="暂停窗帘"><Pause/></button>
-          <button type="button" className={curtainMode === "close" ? "active" : ""} onClick={() => setCurtain("close")} aria-label="关闭窗帘"><CurtainCloseIcon/></button>
+          <button type="button" disabled={isOffline} className={curtainMode === "open" ? "active" : ""} onClick={() => setCurtain("open")} aria-label="打开窗帘"><CurtainOpenIcon/></button>
+          <button type="button" disabled={isOffline} className={curtainMode === "pause" ? "active" : ""} onClick={() => setCurtain("pause")} aria-label="暂停窗帘"><Pause/></button>
+          <button type="button" disabled={isOffline} className={curtainMode === "close" ? "active" : ""} onClick={() => setCurtain("close")} aria-label="关闭窗帘"><CurtainCloseIcon/></button>
         </div>
         <div className={`split-position ${curtainMoving ? "is-moving" : ""}`}>
           {curtainMoving ? <div className="motion-feedback"><LoaderCircle/><span>{curtainMode === "open" ? "正在打开" : "正在关闭"}</span><small>等待设备停止后读取真实位置</small></div> : <>
@@ -459,27 +471,27 @@ function DeviceWidget({
     control = (
       <div className="control-surface roller-control device-roller-control">
         <div className="vertical-choice">
-          <button type="button" className={rollerMode === "close" ? "active" : ""} onClick={() => setRoller("close")} aria-label="关闭卷帘"><ChevronsDown/></button>
-          <button type="button" className={rollerMode === "pause" ? "active" : ""} onClick={() => setRoller("pause")} aria-label="暂停卷帘"><Pause/></button>
-          <button type="button" className={rollerMode === "open" ? "active" : ""} onClick={() => setRoller("open")} aria-label="打开卷帘"><ChevronsUp/></button>
+          <button type="button" disabled={isOffline} className={rollerMode === "open" ? "active" : ""} onClick={() => setRoller("open")} aria-label="打开卷帘"><ChevronsUp/></button>
+          <button type="button" disabled={isOffline} className={rollerMode === "pause" ? "active" : ""} onClick={() => setRoller("pause")} aria-label="暂停卷帘"><Pause/></button>
+          <button type="button" disabled={isOffline} className={rollerMode === "close" ? "active" : ""} onClick={() => setRoller("close")} aria-label="关闭卷帘"><ChevronsDown/></button>
         </div>
         {rollerMoving ? <div className="motion-feedback vertical"><LoaderCircle/><span>{rollerMode === "open" ? "正在打开" : "正在关闭"}</span><small>停止后同步真实位置</small></div> : <div className="roller-meter"><i><em style={{ height: `${rollerPosition}%` }}/></i><span><b>{rollerPosition}</b>%<small>关闭比例</small></span></div>}
       </div>
     );
   } else if (device.control === "climate") {
-    control = <div className="temperature-stepper"><button type="button" onClick={() => setTargetTemperature((value) => Math.max(16, value - 1))} aria-label="温度减一度"><Minus/></button><span><b>{targetTemperature}</b><small>°C</small></span><button type="button" onClick={() => setTargetTemperature((value) => Math.min(30, value + 1))} aria-label="温度加一度"><Plus/></button></div>;
+    control = <div className="temperature-stepper"><button type="button" disabled={isOffline} onClick={() => setTargetTemperature((value) => Math.max(16, value - 1))} aria-label="温度减一度"><Minus/></button><span><b>{targetTemperature}</b><small>°C</small></span><button type="button" disabled={isOffline} onClick={() => setTargetTemperature((value) => Math.min(30, value + 1))} aria-label="温度加一度"><Plus/></button></div>;
   } else if (device.control === "dimmable-light") {
-    control = <div className={`device-light-control ${lightOn ? "is-on" : ""}`}><div className="light-summary"><Sun/><span>{lightOn ? "亮度" : "灯光已关闭"}</span><b>{lightOn ? `${brightness[0]}%` : "—"}</b></div>{lightOn && <Slider value={brightness} onValueChange={setBrightness} aria-label="灯光亮度"/>}</div>;
+    control = <div className={`device-light-control ${lightOn ? "is-on" : ""}`}><div className="light-summary"><Sun/><span>{lightOn ? "亮度" : "灯光已关闭"}</span><b>{lightOn ? `${brightness[0]}%` : "—"}</b></div>{lightOn && <Slider disabled={isOffline} value={brightness} onValueChange={setBrightness} aria-label="灯光亮度"/>}</div>;
   } else if (device.control === "aquarium") {
     control = (
       <div className="control-surface aquarium-control">
-        <NativeSelect value={fishLight} onChange={(event) => setFishLight(event.target.value)} aria-label="鱼缸灯光类型">
+        <NativeSelect disabled={isOffline} value={fishLight} onChange={(event) => setFishLight(event.target.value)} aria-label="鱼缸灯光类型">
           <NativeSelectOption value="自然日光">自然日光</NativeSelectOption>
           <NativeSelectOption value="水草生长">水草生长</NativeSelectOption>
           <NativeSelectOption value="月光观赏">月光观赏</NativeSelectOption>
         </NativeSelect>
-        <button type="button" className={`mini-action ${fishLightOn ? "active" : ""}`} onClick={() => setFishLightOn((value) => !value)} aria-label="开关鱼缸灯"><Lightbulb/>{fishLightOn ? "灯已开" : "开灯"}</button>
-        <button type="button" className={`mini-action feed-action ${feeding ? "is-feeding" : ""}`} onClick={feedFish} aria-label="鱼缸投食">{feeding ? <LoaderCircle/> : <Fish/>}{feeding ? "投食中" : "投食"}</button>
+        <button type="button" disabled={isOffline} className={`mini-action ${fishLightOn ? "active" : ""}`} onClick={() => setFishLightOn((value) => !value)} aria-label="开关鱼缸灯"><Lightbulb/>{fishLightOn ? "灯已开" : "开灯"}</button>
+        <button type="button" disabled={isOffline} className={`mini-action feed-action ${feeding ? "is-feeding" : ""}`} onClick={feedFish} aria-label="鱼缸投食">{feeding ? <LoaderCircle/> : <Fish/>}{feeding ? "投食中" : "投食"}</button>
       </div>
     );
   } else if (device.control === "energy") {
@@ -492,20 +504,21 @@ function DeviceWidget({
     control = (
       <div className="control-surface router-control">
         <span><b>{device.metrics[0]}</b><small>{device.metrics[1]}</small></span>
-        <button type="button" onClick={() => onRestart(device)}><RotateCw/>重启路由</button>
+        <button type="button" disabled={isOffline} onClick={() => onRestart(device)}><RotateCw/>重启路由</button>
       </div>
     );
   } else if (device.control === "robot") {
     control = (
       <div className="control-surface robot-control">
         <span><b>{device.metrics[0]}</b><small>{device.metrics[1]}</small></span>
-        <button type="button" onClick={() => onAction(device, "全屋清洁")}><Home/>全屋清洁</button>
+        <button type="button" disabled={isOffline} onClick={() => onAction(device, "全屋清洁")}><Home/>全屋清洁</button>
       </div>
     );
   } else if (device.control === "voice") {
     control = (
       <button
         type="button"
+        disabled={isOffline}
         className={`voice-hold ${voiceActive ? "is-listening" : ""}`}
         onPointerDown={startVoice}
         onPointerUp={finishVoice}
@@ -585,7 +598,7 @@ function FloorPlan({ devices, onSelect }: { devices: Device[]; onSelect: (device
         </div>
       </div>
       <aside className="room-summary">
-        <div className="room-summary-head"><span>空间</span><strong>154㎡</strong></div>
+        <div className="room-summary-head"><span>示例空间</span><strong>120㎡</strong></div>
         {[['客厅', 5], ['主卧', 4], ['书房', 5], ['厨房', 1], ['餐厅', 1], ['阳台', 1], ['次卧', 1]].map(([room, count]) => (
           <div className="room-summary-row" key={room}><span>{room}</span><span>{count} 台</span></div>
         ))}
@@ -655,13 +668,13 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
   const [planSteps, setPlanSteps] = useState<PlanStep[]>([]);
   const [activeRun, setActiveRun] = useState<{ title: string; steps: PlanStep[] } | null>(null);
   const scenes: AutomationItem[] = [
-    { title: "进入观影模式", icon: Tv, state: "可运行", meta: "上次运行 · 昨晚 21:08", steps: ["关闭窗帘", "调暗灯光", "打开电视", "启动 Apple TV", "查询新电影", "语音推荐"] },
-    { title: "离家模式", icon: Home, state: "可运行", meta: "上次运行 · 今天 08:42", steps: ["检查灯光", "关闭空调", "关闭新风", "关闭电视", "Apple TV 待机"] },
+    { title: "进入观影模式", icon: Tv, state: "可运行", meta: "上次运行 · 昨晚 21:08", steps: ["关闭窗帘", "调暗灯光", "打开显示屏", "启动流媒体盒子", "查询新电影", "语音推荐"] },
+    { title: "离家模式", icon: Home, state: "可运行", meta: "上次运行 · 今天 08:42", steps: ["检查灯光", "关闭空调", "关闭新风", "关闭显示屏", "媒体盒子待机"] },
     { title: "夜间静谧", icon: CloudSun, state: "已预约", meta: "每天 · 23:20", steps: ["客厅灯 15%", "关闭窗帘", "播放白噪音", "开启门窗守护"] },
   ];
   const workflows: AutomationItem[] = [
-    { title: "下载 4K 杜比视界电影", icon: Workflow, state: "需输入片名", meta: "NAS · NASTool · 微信通知", steps: ["解析片名", "检索资源", "筛选 4K DV", "提交下载", "等待完成", "发送通知"] },
-    { title: "周末全屋维护", icon: Wrench, state: "草案", meta: "最近编辑 · 2 天前", steps: ["设备健康检查", "NAS 增量备份", "扫地清洁", "滤芯检查", "生成维护摘要"] },
+    { title: "下载 4K 杜比视界电影", icon: Workflow, state: "需输入片名", meta: "媒体索引 · 下载器 · 消息通知", steps: ["解析片名", "检索资源", "筛选 4K DV", "提交下载", "等待完成", "发送通知"] },
+    { title: "周末全屋维护", icon: Wrench, state: "草案", meta: "最近编辑 · 2 天前", steps: ["设备健康检查", "媒体库增量备份", "扫地清洁", "滤芯检查", "生成维护摘要"] },
     { title: "家庭网络恢复", icon: Router, state: "需确认", meta: "高风险动作受保护", steps: ["诊断外网", "检查主路由", "检查从路由", "生成重启计划", "人工确认", "逐节点恢复"] },
   ];
 
@@ -674,10 +687,10 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
     return [
       { id: "movie-1", title: "关闭窗帘", status: "draft", bindings: [makeBinding("主卧窗帘", "关闭")] },
       { id: "movie-2", title: "调暗公共区域灯光", status: "draft", bindings: [makeBinding("客厅灯", "调暗"), makeBinding("餐厅灯", "关闭")] },
-      { id: "movie-3", title: "打开电视", status: "draft", bindings: [makeBinding("客厅电视", "打开")] },
-      { id: "movie-4", title: "启动播放器", status: "draft", bindings: [makeBinding("Apple TV", "打开 Infuse")] },
-      { id: "movie-5", title: "查询并推荐新电影", status: "draft", bindings: [makeBinding("家庭数据中心", "查询新下载电影并列出推荐")] },
-      { id: "movie-6", title: "播放推荐语音", status: "draft", bindings: [makeBinding("小米 Sound", "播放推荐语音")] },
+      { id: "movie-3", title: "打开显示屏", status: "draft", bindings: [makeBinding("客厅显示屏", "打开")] },
+      { id: "movie-4", title: "启动播放器", status: "draft", bindings: [makeBinding("流媒体盒子", "打开播放器")] },
+      { id: "movie-5", title: "查询并推荐新电影", status: "draft", bindings: [makeBinding("示例数据中心", "查询新下载电影并列出推荐")] },
+      { id: "movie-6", title: "播放推荐语音", status: "draft", bindings: [makeBinding("客厅音箱", "播放推荐语音")] },
     ];
   }
 
@@ -793,22 +806,27 @@ function CapabilityView({ devices, onDispatch }: { devices: Device[]; onDispatch
   );
 }
 
-function QueuePanel({ queue, items }: { queue: TaskQueue; items: Task[] }) {
+function QueuePanel({ queue, items, onRetry, onCancel }: { queue: TaskQueue; items: Task[]; onRetry: (task: Task) => void; onCancel: (task: Task) => void }) {
   const priority = queue === "priority";
   return <section className={`queue-panel ${priority ? "priority-queue" : "normal-queue"}`}>
-    <header className="queue-head"><span className="queue-icon">{priority ? <Activity/> : <ListTodo/>}</span><div><h2>{priority ? "优先队列" : "普通队列"}</h2><p>{priority ? "仅接收异步任务，并持续上报设备状态" : "后台异步执行，适合清扫、备份与巡检"}</p></div><b>{items.filter((task) => task.status !== "done").length}</b></header>
+    <header className="queue-head"><span className="queue-icon">{priority ? <Activity/> : <ListTodo/>}</span><div><h2>{priority ? "优先队列" : "普通队列"}</h2><p>{priority ? "仅接收异步任务，并持续上报设备状态" : "后台异步执行，适合清扫、备份与巡检"}</p></div><b>{items.filter((task) => !["done", "cancelled"].includes(task.status)).length}</b></header>
     <div className="queue-list">{items.length ? items.map((task) => (
       <div className="queue-task" key={task.id}>
         <span className={`task-state task-state-${task.status}`}>{task.status === "running" ? <LoaderCircle/> : task.status === "done" ? <Check/> : <Clock3/>}</span>
         <div className="task-copy"><strong>{task.title}</strong><small>{task.device} · {task.time}</small><div className="task-contract"><span>异步</span>{task.realtime && <span className="is-live"><i/>状态上报</span>}</div></div>
-        <span className="task-status">{task.status === "running" ? "执行中" : task.status === "done" ? "已完成" : task.status === "failed" ? "失败" : "等待中"}</span>
+        <span className="task-status">{task.status === "running" ? "执行中" : task.status === "done" ? "已完成" : task.status === "failed" ? "失败" : task.status === "cancelled" ? "已取消" : "等待中"}</span>
         <div className="task-progress"><Progress value={task.progress}/><span>{task.progress}%</span></div>
+        <div className="task-actions">
+          {task.status === "failed" && <button type="button" onClick={() => onRetry(task)}><RotateCw/>重试</button>}
+          {(task.status === "queued" || task.status === "running") && <button type="button" onClick={() => onCancel(task)}><Trash2/>取消</button>}
+          {task.status === "cancelled" && <span>已取消</span>}
+        </div>
       </div>
     )) : <div className="queue-empty"><Check/><span>当前队列为空</span></div>}</div>
   </section>;
 }
 
-function TaskView({ tasks, onCreate }: { tasks: Task[]; onCreate: () => void }) {
+function TaskView({ tasks, onCreate, onRetry, onCancel }: { tasks: Task[]; onCreate: () => void; onRetry: (task: Task) => void; onCancel: (task: Task) => void }) {
   const priorityTasks = tasks.filter((task) => task.queue === "priority");
   const normalTasks = tasks.filter((task) => task.queue === "normal");
   const active = tasks.filter((task) => task.status === "running").length;
@@ -823,7 +841,7 @@ function TaskView({ tasks, onCreate }: { tasks: Task[]; onCreate: () => void }) 
         <div><span>本次完成</span><strong>{done}</strong></div>
         <Button onClick={onCreate}><Plus/>新建任务</Button>
       </div>
-      <div className="queue-layout"><QueuePanel queue="priority" items={priorityTasks}/><QueuePanel queue="normal" items={normalTasks}/></div>
+      <div className="queue-layout"><QueuePanel queue="priority" items={priorityTasks} onRetry={onRetry} onCancel={onCancel}/><QueuePanel queue="normal" items={normalTasks} onRetry={onRetry} onCancel={onCancel}/></div>
     </div>
   );
 }
@@ -834,6 +852,7 @@ export default function HomePage() {
   const [devices, setDevices] = useState<Device[]>(initialDevices);
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null);
   const [restartTarget, setRestartTarget] = useState<Device | null>(null);
+  const [powerConfirmTarget, setPowerConfirmTarget] = useState<{ device: Device; next: boolean } | null>(null);
   const [addDeviceOpen, setAddDeviceOpen] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState<DeviceProfile | null>(null);
   const [newDeviceName, setNewDeviceName] = useState("");
@@ -877,7 +896,32 @@ export default function HomePage() {
     setEditingDevice(false);
   }
 
+  function runTask(taskId: string, queue: TaskQueue, duration: number, outcome: "done" | "failed", onSuccess?: () => void) {
+    window.setTimeout(() => {
+      setTasks((current) => current.map((task) => task.id === taskId && task.status === "queued" ? { ...task, status: "running", progress: queue === "priority" ? 9 : 4 } : task));
+      const startedAt = Date.now();
+      const ticker = window.setInterval(() => {
+        const currentTask = tasksRef.current.find((task) => task.id === taskId);
+        if (currentTask?.status === "cancelled") {
+          window.clearInterval(ticker);
+          return;
+        }
+        const progress = Math.min(100, Math.round(((Date.now() - startedAt) / duration) * 100));
+        const status = progress >= 100 ? outcome : "running";
+        setTasks((current) => current.map((task) => task.id === taskId ? { ...task, progress, status } : task));
+        if (progress >= 100) {
+          window.clearInterval(ticker);
+          if (outcome === "done") onSuccess?.();
+        }
+      }, queue === "priority" ? 180 : 420);
+    }, queue === "priority" ? 120 : 520);
+  }
+
   function dispatchTask(device: Device, action = "设备自检", options: TaskOptions = {}) {
+    if (device.status === "offline") {
+      toast.error("设备离线，未创建任务", { description: `${device.name} 仅保留状态查看` });
+      return null;
+    }
     const queue = options.queue ?? "normal";
     const realtime = queue === "priority" ? true : Boolean(options.realtime);
     const duration = options.duration ?? (queue === "priority" ? 2800 : 3800);
@@ -895,21 +939,36 @@ export default function HomePage() {
     };
     setTasks((current) => [newTask, ...current]);
     toast.success(queue === "priority" ? "已进入优先队列" : "已进入普通队列", { description: `${device.name} · ${action}${realtime ? " · 状态实时上报" : ""}` });
-    window.setTimeout(() => {
-      setTasks((current) => current.map((task) => task.id === taskId ? { ...task, status: "running", progress: queue === "priority" ? 9 : 4 } : task));
-      const startedAt = Date.now();
-      const ticker = window.setInterval(() => {
-        const progress = Math.min(100, Math.round(((Date.now() - startedAt) / duration) * 100));
-        setTasks((current) => current.map((task) => task.id === taskId ? { ...task, progress, status: progress >= 100 ? "done" : "running" } : task));
-        if (progress >= 100) window.clearInterval(ticker);
-      }, queue === "priority" ? 180 : 420);
-    }, queue === "priority" ? 120 : 520);
+    runTask(taskId, queue, duration, options.outcome ?? "done", options.onSuccess);
     return taskId;
   }
 
   function toggleDevice(device: Device, next: boolean) {
-    setPowered((current) => ({ ...current, [device.id]: next }));
-    dispatchTask(device, next ? "开启设备" : "关闭设备");
+    if (device.risk === "high" && !next) {
+      setPowerConfirmTarget({ device, next });
+      return;
+    }
+    executeToggle(device, next);
+  }
+
+  function executeToggle(device: Device, next: boolean) {
+    dispatchTask(device, next ? "开启设备" : "关闭设备", {
+      onSuccess: () => {
+        setPowered((current) => ({ ...current, [device.id]: next }));
+        toast.success("设备已确认状态", { description: `${device.name} · ${next ? "已开启" : "已关闭"}` });
+      },
+    });
+  }
+
+  function cancelTask(task: Task) {
+    setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: "cancelled" } : item));
+    toast("任务已取消", { description: `${task.device} · ${task.title}` });
+  }
+
+  function retryTask(task: Task) {
+    setTasks((current) => current.map((item) => item.id === task.id ? { ...item, status: "queued", progress: 0, time: "刚刚" } : item));
+    runTask(task.id, task.queue, task.queue === "priority" ? 2800 : 3800, "done");
+    toast.success("任务已重新排队", { description: `${task.device} · ${task.title}` });
   }
 
   function chooseProfile(profile: DeviceProfile) {
@@ -961,24 +1020,25 @@ export default function HomePage() {
       await context.registerTool({
         name: "read_home_status",
         title: "读取家庭状态",
-        description: "读取设备、环境和任务摘要。",
+        description: "读取公开原型中的虚构设备、环境和任务摘要。",
         inputSchema: { type: "object", properties: {}, additionalProperties: false },
         annotations: { readOnlyHint: true, untrustedContentHint: false },
         execute: () => ({ devices: devices.length, reachable: onlineCount, temperature, activeTasks: tasksRef.current.filter((task) => task.status === "running").length }),
       }, { signal: lifecycle.signal });
       await context.registerTool({
         name: "dispatch_device_task",
-        title: "下发设备任务",
-        description: "向一个设备下发异步任务，并更新任务队列。",
-        inputSchema: { type: "object", properties: { deviceId: { type: "string" }, action: { type: "string" } }, required: ["deviceId", "action"], additionalProperties: false },
+        title: "创建演示任务",
+        description: "仅在浏览器内为虚构设备创建演示队列项，不连接或控制真实设备。",
+        inputSchema: { type: "object", properties: { capabilityId: { type: "string", enum: Object.keys(demoAgentActions) } }, required: ["capabilityId"], additionalProperties: false },
         annotations: { readOnlyHint: false, untrustedContentHint: false },
         execute: (input: unknown) => {
-          const payload = input as { deviceId?: string; action?: string };
-          const device = devices.find((item) => item.id === payload.deviceId);
-          if (!device || !payload.action?.trim()) throw new Error("设备或任务动作无效");
-           const task: Task = { id: `task-${Date.now().toString().slice(-5)}`, title: payload.action.trim(), device: device.name, status: "queued", queue: "normal", transport: "async", realtime: false, progress: 0, time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) };
+          const payload = input as { capabilityId?: keyof typeof demoAgentActions };
+          const allowed = payload.capabilityId ? demoAgentActions[payload.capabilityId] : undefined;
+          const device = allowed ? devices.find((item) => item.id === allowed.deviceId) : undefined;
+          if (!allowed || !device || device.status === "offline") throw new Error("演示能力不可用");
+          const task: Task = { id: `task-${Date.now().toString().slice(-5)}`, title: allowed.action, device: device.name, status: "queued", queue: allowed.queue, transport: "async", realtime: allowed.queue === "priority", progress: 0, time: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) };
           setTasks((current) => [task, ...current]);
-          return { taskId: task.id, status: task.status, device: device.name };
+          return { mock: true, taskId: task.id, status: task.status, device: device.name };
         },
       }, { signal: lifecycle.signal });
     };
@@ -1072,7 +1132,7 @@ export default function HomePage() {
           {activeView === "overview" && overviewMode === "floor" && <FloorPlan devices={devices} onSelect={selectDevice} />}
           {activeView === "network" && <NetworkView devices={devices} onSelect={selectDevice} />}
           {activeView === "capability" && <CapabilityView devices={devices} onDispatch={dispatchTask} />}
-          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => dispatchTask(devices[0], "全屋设备巡检")} />}
+          {activeView === "tasks" && <TaskView tasks={tasks} onCreate={() => dispatchTask(devices[0], "全屋设备巡检")} onRetry={retryTask} onCancel={cancelTask} />}
 
         </div>
         </div>
@@ -1098,9 +1158,9 @@ export default function HomePage() {
                   <div className="edit-form-actions"><Button variant="outline" onClick={() => setEditingDevice(false)}>取消</Button><Button onClick={saveDevice}>保存参数</Button></div>
                 </div> : <>
                   <div className="sheet-section"><span className="sheet-label">当前状态</span><div className="metric-grid">{selectedDevice.metrics.map((metric) => <div key={metric}>{metric}</div>)}</div></div>
-                  {(selectedDevice.control === "power" || selectedDevice.control === "energy") && <div className="sheet-section"><span className="sheet-label">快速控制</span><div className="sheet-control"><span><strong>设备电源</strong><small>{powered[selectedDevice.id] ? "已开启" : "已关闭"}</small></span><Switch checked={powered[selectedDevice.id]} onCheckedChange={(next) => toggleDevice(selectedDevice, next)}/></div></div>}
-                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" key={action} onClick={() => dispatchTask(selectedDevice, action)}>{action}<ChevronRight/></button>)}</div></div>
-                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button className="sheet-primary" onClick={() => dispatchTask(selectedDevice)}>运行设备自检<Play/></Button></div>
+                  {(selectedDevice.control === "power" || selectedDevice.control === "energy") && <div className="sheet-section"><span className="sheet-label">快速控制</span><div className="sheet-control"><span><strong>设备电源</strong><small>{powered[selectedDevice.id] ? "已开启" : "已关闭"}</small></span><Switch disabled={selectedDevice.status === "offline"} checked={powered[selectedDevice.id]} onCheckedChange={(next) => toggleDevice(selectedDevice, next)}/></div></div>}
+                  <div className="sheet-section"><span className="sheet-label">可用操作</span><div className="action-grid">{selectedDevice.actions.map((action) => <button type="button" disabled={selectedDevice.status === "offline"} key={action} onClick={() => dispatchTask(selectedDevice, action)}>{action}<ChevronRight/></button>)}</div></div>
+                  <div className="sheet-footer-actions"><Button variant="outline" onClick={() => setEditingDevice(true)}><Settings2/>编辑设备</Button><Button disabled={selectedDevice.status === "offline"} className="sheet-primary" onClick={() => dispatchTask(selectedDevice)}>运行设备自检<Play/></Button></div>
                 </>}
               </div>
             </>
@@ -1134,6 +1194,20 @@ export default function HomePage() {
           <AlertDialogFooter>
             <AlertDialogCancel>取消</AlertDialogCancel>
             <AlertDialogAction className="restart-confirm" onClick={() => { if (restartTarget) dispatchTask(restartTarget, "安全重启"); setRestartTarget(null); }}>确认重启</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={Boolean(powerConfirmTarget)} onOpenChange={(open) => !open && setPowerConfirmTarget(null)}>
+        <AlertDialogContent className="restart-dialog" size="sm">
+          <AlertDialogHeader>
+            <AlertDialogMedia><ShieldCheck/></AlertDialogMedia>
+            <AlertDialogTitle>断开{powerConfirmTarget?.device.name}？</AlertDialogTitle>
+            <AlertDialogDescription>这是高风险动作。断电可能使网络、自动化和状态上报暂时不可用；设备确认完成前，界面不会提前改变开关状态。</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>取消</AlertDialogCancel>
+            <AlertDialogAction className="restart-confirm" onClick={() => { if (powerConfirmTarget) executeToggle(powerConfirmTarget.device, powerConfirmTarget.next); setPowerConfirmTarget(null); }}>确认断电</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

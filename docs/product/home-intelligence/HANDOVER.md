@@ -6,9 +6,9 @@
 
 当前状态：
 
-- 前端原型可本地运行、构建并部署到 NAS；
+- 前端原型可本地运行和构建；Compose 入口只用于本机评审，不是 NAS 生产部署；
 - 设备总览、网络拓扑、场景与流程、任务队列等主要页面已形成；
-- 设备交互使用演示状态和前端异步动画；
+- 设备、地址、户型位置和状态全部使用虚构 fixture；设备交互使用前端异步动画；
 - 尚未接入真实设备、家庭中枢 API、MCP Gateway 或事件流；
 - GitHub Project 尚未物化，配置契约已落在 `.github/project-management/home-intelligence.yaml`；
 - Harness 已新增 `REQ-011` 记录本次 Handover，等待人类评审。
@@ -49,28 +49,18 @@ npm run lint
 npm run build
 ```
 
-NAS 运行：
+本机容器演示：
 
 ```bash
 cd apps/home-intelligence-web
 docker compose up -d --build
 ```
 
-默认 NAS 入口为 `http://<NAS局域网IP>:3000`。
+默认入口为 `http://127.0.0.1:3000`。该入口使用无鉴权的 Wrangler 开发服务器，只能评审虚构数据，不得暴露到局域网或公网。生产 NAS 运行入口、鉴权、healthcheck、非 root 和最小化镜像由 `ZW-ST-1801` 后续实现。
 
-## 当前产品实例
+## 公共演示数据
 
-首个家庭实例为 154㎡ 套三平层，模型预留未来 275㎡、地上两层加地下两层住宅。
-
-设备范围包括：
-
-- Apple：MacBook Pro M1、iPhone 17 Pro Max、iPad Pro 2018、iPad Pro M4、iPhone 12 Pro Max、Apple TV 4K 二代；
-- TCL 75Q10G Pro；海尔 BCD-501；科沃斯 T30 PRO；
-- 小米折叠手机、升降衣架、鱼缸、Sound、窗帘和智能插座；
-- 锐捷天蝎 X60-PRO、华为 K662c；
-- 树莓派 5 8GB/512GB；绿联 DX4600 NAS。
-
-这些设备仅用于确定 Device Profile、控件和接入优先级，不代表所有真实适配器已实现。
+公共仓库只保留虚构的多房间住宅与通用设备类别，用于验证 Device Profile、控件和接入边界。真实家庭 inventory、局域网地址、成员终端、精确户型和设备坐标必须放在被忽略的私有配置中，不得提交到代码、文档、截图或需求表。
 
 ## 集成顺序
 
@@ -87,7 +77,7 @@ docker compose up -d --build
 - 窗帘运动百分比只能以停止后的真实上报为准；
 - 路由器重启和关键插座断电会导致中枢暂时失联，不能按普通开关处理；
 - Agent 计划必须经过工具侧鉴权，复杂写操作必须人工 Review；
-- Excel 是二进制文件，评审时同时检查 `roadmap.yaml` 和 PRD，避免不可见改动。
+- Excel 是二进制文件；CI 使用 OpenXML 校验字段、枚举、层级、依赖和导入视图，评审时同时检查 `roadmap.yaml` 和 PRD。
 
 ## 接手检查
 
