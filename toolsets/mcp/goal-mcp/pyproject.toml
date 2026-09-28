@@ -1,0 +1,26 @@
+# toolsets/mcp/goal-mcp —— GoalAgent MCP server（manifest 契约 + 注册门禁）
+# 模块化单体仓的独立可构建模块（ADR-013）；uv workspace 接入随 REQ-005。
+[project]
+name = "goal-mcp"
+version = "0.1.0"
+description = "GoalAgent MCP tool manifest 契约与注册门禁（REQ-003 WP-4）"
+requires-python = ">=3.12"
+dependencies = []
+
+[project.optional-dependencies]
+# 网关/真跑边界用例依赖（TC-003-02B / TC-003-04B 在 req_impl_review 闭环）
+test = ["pytest>=8", "httpx>=0.27"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["goal_mcp"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

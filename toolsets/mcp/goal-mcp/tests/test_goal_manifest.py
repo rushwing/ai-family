@@ -10,6 +10,9 @@ BUG-031 修复：不再只数总数；固化逐 tool 名称 + risk/roles/tenant_
 契约来源：goal-agent 现有 37 个 @mcp.tool，按 docs/design/08 defer（wizard research/
 feasibility 节点 M1 移除）去掉 get_wizard_sources → M1 = 36 个。
 """
+import importlib.util
+from pathlib import Path
+
 import pytest
 
 goal_mcp = pytest.importorskip("goal_mcp", reason="goal-mcp 包未落地（WP-4）")
@@ -84,7 +87,9 @@ def test_exact_36_tool_names_registered():
 
 
 def test_m1_deferred_tool_not_registered():
-    assert "get_wizard_sources" not in _by_name(), "M1 已移除 wizard research/feasibility（08 defer）"
+    assert "get_wizard_sources" not in _by_name(), (
+        "M1 已移除 wizard research/feasibility（08 defer）"
+    )
 
 
 @pytest.mark.parametrize("name", sorted(EXPECTED))
@@ -121,3 +126,27 @@ def test_tool_without_auth_or_test_ref_rejected():
         _registry().register(goal_mcp.fixture_tool(risk="write", auth=None))
     with pytest.raises(goal_mcp.RegistrationError):
         _registry().register(goal_mcp.fixture_tool(risk="write", test_ref=None))
+
+
+def test_unknown_role_rejected_at_registration():
+    with pytest.raises(goal_mcp.RegistrationError):
+        _registry().register(goal_mcp.fixture_tool(roles={"admin", "superuser"}))
+
+
+def test_agent_oidc_policy_is_a_validated_projection_of_manifest():
+    """Prevent the hand-maintained agent adapter from silently drifting.
+
+    The manifest remains authoritative until REQ-005 provides a shared package;
+    this compatibility test makes the temporary adapter duplication mechanical.
+    """
+    repo = Path(__file__).resolve().parents[4]
+    oidc_path = repo / "agents" / "goal" / "app" / "auth" / "oidc.py"
+    spec = importlib.util.spec_from_file_location("goal_agent_oidc_policy", oidc_path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    projected = {
+        name: (frozenset(roles), scope)
+        for name, (_, _, roles, scope) in goal_mcp.TOOL_SPEC.items()
+    }
+    assert module.TOOL_POLICY == projected
