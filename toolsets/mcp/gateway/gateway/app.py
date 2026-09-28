@@ -4,8 +4,8 @@
   ① 工具侧 OIDC JWT 验签（缺/非 JWT/篡改 → 401；旧 X-Telegram header 非 JWT → 401）
   ② manifest 角色门禁（kid 不得写 create/approve 等 → 403）
   ③ tenant scope：body 显式 family_member_id ≠ 调用者 → 跨成员越权 403 + 审计
-  ④ write 类两段式：prepare 签发用户来源 confirm token；execute 须带网关签发、成员+工具
-     +payload 绑定、一次性 token，缺/伪造/Agent 自生成/换成员/替换参数 → 拒
+  ④ write 类两段式：独立 ChatUI/BFF 交互证明才可签发 confirm token；execute 须带
+     网关签发、会话+成员+工具+payload 绑定、一次性 token，普通 Agent bearer 不能自确认
   ⑤ 旧 REST / OpenClaw 直连禁用（410）
   ⑥ deny/allow 均落审计，/audit/recent 可查
 
@@ -28,15 +28,25 @@ from starlette.concurrency import run_in_threadpool
 
 from gateway.auth import AuthenticationError, AuthorizationError, verify_bearer
 from gateway.confirm import ConfirmStore, confirmation_payload
+from gateway.interaction import InteractionProofError, InteractionVerifier
 
 ToolExecutor = Callable[[str, str, dict], dict]
 
 
-def create_app(executor: ToolExecutor | None = None) -> FastAPI:
+def create_app(
+    executor: ToolExecutor | None = None,
+    *,
+    confirmation_secret: str | None = None,
+) -> FastAPI:
     app = FastAPI(title="ai-family MCP Gateway", version="0.1.0")
     registry = tool_registry()
     tools = {t.name: t for t in registry.list_tools()}
     confirm = ConfirmStore()
+    interaction = InteractionVerifier(
+        confirmation_secret
+        if confirmation_secret is not None
+        else os.getenv("AIFAMILY_CONFIRMATION_SECRET", "")
+    )
     # Temporary WP-4 boundary buffer.  Durable audit.event integration remains
     # a req_impl_review task, but the interim process must still be bounded.
     audit: deque[dict[str, Any]] = deque(maxlen=1_000)
@@ -44,10 +54,12 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
     def _record(action: str, result: str, member: str | None, reason: str = "") -> None:
         audit.append(
             {
-                "action": action,
+                # Audit attacker-controlled path text, never credentials/body;
+                # cap fields to keep denial telemetry safe and bounded.
+                "action": action[:128],
                 "result": result,
                 "member": member,
-                "reason": reason,
+                "reason": reason[:128],
                 "ts": time.time(),
             }
         )
@@ -58,19 +70,26 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
             return h[7:].strip()
         return None  # 含旧 X-Telegram-Chat-Id 但无 Bearer → 视为缺 token
 
+    def _session(claims: dict) -> str | None:
+        value = claims.get("sid") or claims.get("session_state")
+        return value if isinstance(value, str) and value.strip() else None
+
     @app.post("/tools/{tool}")
     async def call_tool(tool: str, request: Request) -> JSONResponse:
         try:
             body = await request.json()
         except Exception:
+            _record(tool, "deny", None, "invalid_json")
             return JSONResponse({"error": "invalid_json"}, status_code=400)
         if not isinstance(body, dict):
+            _record(tool, "deny", None, "invalid_body")
             return JSONResponse({"error": "invalid_body"}, status_code=422)
 
         # ① 身份可信
         try:
             claims = verify_bearer(_bearer(request))
         except AuthenticationError:
+            _record(tool, "deny", None, "unauthenticated")
             return JSONResponse({"error": "unauthenticated"}, status_code=401)
         except AuthorizationError:
             _record(tool, "deny", None, "unrecognized_role")
@@ -80,6 +99,7 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
         # 未知 tool
         spec = tools.get(tool)
         if spec is None:
+            _record(tool, "deny", member, "unknown_tool")
             return JSONResponse({"error": "unknown_tool"}, status_code=404)
 
         # ③ tenant scope：显式跨成员参数 → 越权
@@ -102,12 +122,16 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
         # ④ write 类两段式
         if spec.risk == "write":
             if body.get("prepare") is True:
-                token = confirm.issue(member=member, tool=tool, params=body)
-                _record(tool, "allow", member, "prepare")
-                return JSONResponse({"confirm_token": token, "prepare": True}, status_code=200)
+                _record(tool, "deny", member, "ordinary_channel_cannot_confirm")
+                return JSONResponse({"error": "use_user_confirmation_channel"}, status_code=403)
+            session = _session(claims)
+            if session is None:
+                _record(tool, "deny", member, "missing_session")
+                return JSONResponse({"error": "session_required"}, status_code=401)
             ok = confirm.consume(
                 body.get("confirm_token"),
                 member=member,
+                session=session,
                 tool=tool,
                 params=body,
             )
@@ -128,6 +152,63 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
             return JSONResponse({"error": "executor_failed"}, status_code=502)
         _record(tool, "allow", member, "execute")
         return JSONResponse({"ok": True, "result": result}, status_code=200)
+
+    @app.post("/confirmations/{tool}")
+    async def create_confirmation(tool: str, request: Request) -> JSONResponse:
+        """Mint a token only from the independently authenticated ChatUI/BFF channel."""
+        try:
+            body = await request.json()
+        except Exception:
+            _record(tool, "deny", None, "invalid_confirmation_json")
+            return JSONResponse({"error": "invalid_json"}, status_code=400)
+        if not isinstance(body, dict):
+            _record(tool, "deny", None, "invalid_confirmation_body")
+            return JSONResponse({"error": "invalid_body"}, status_code=422)
+        try:
+            claims = verify_bearer(_bearer(request))
+        except (AuthenticationError, AuthorizationError):
+            _record(tool, "deny", None, "confirmation_unauthenticated")
+            return JSONResponse({"error": "unauthenticated"}, status_code=401)
+        member = claims["family_member_id"]
+        spec = tools.get(tool)
+        if spec is None:
+            _record(tool, "deny", member, "unknown_tool")
+            return JSONResponse({"error": "unknown_tool"}, status_code=404)
+        if spec.risk != "write" or claims["role"] not in spec.roles:
+            _record(tool, "deny", member, "confirmation_forbidden")
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        req_member = body.get("family_member_id")
+        if req_member is not None and str(req_member) != str(member):
+            _record(tool, "deny", member, "cross_member_param")
+            return JSONResponse({"error": "cross_member"}, status_code=403)
+        session = _session(claims)
+        if session is None:
+            _record(tool, "deny", member, "missing_session")
+            return JSONResponse({"error": "session_required"}, status_code=401)
+        if executor is None:
+            _record(tool, "deny", member, "executor_unavailable")
+            return JSONResponse({"error": "executor_unavailable"}, status_code=503)
+        try:
+            interaction.verify(
+                timestamp=request.headers.get("x-ai-family-interaction-timestamp"),
+                nonce=request.headers.get("x-ai-family-interaction-nonce"),
+                signature=request.headers.get("x-ai-family-interaction-signature"),
+                session=session,
+                member=member,
+                tool=tool,
+                params=body,
+            )
+        except InteractionProofError:
+            _record(tool, "deny", member, "invalid_user_interaction_proof")
+            return JSONResponse({"error": "user_confirmation_required"}, status_code=403)
+        token = confirm.issue(
+            member=member,
+            session=session,
+            tool=tool,
+            params=body,
+        )
+        _record(tool, "allow", member, "user_confirmed")
+        return JSONResponse({"confirm_token": token}, status_code=200)
 
     @app.get("/audit/recent")
     async def audit_recent(request: Request) -> JSONResponse:
@@ -162,12 +243,18 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
             "tools": len(tools),
             "issuer": bool(os.getenv("AIFAMILY_OIDC_ISSUER")),
             "executor_configured": executor is not None,
+            "confirmation_channel_configured": interaction.configured,
         }
 
     @app.get("/readyz")
     async def readyz() -> JSONResponse:
+        missing = []
         if executor is None:
-            return JSONResponse({"status": "not_ready", "reason": "executor_unavailable"}, 503)
+            missing.append("executor")
+        if not interaction.configured:
+            missing.append("confirmation_channel")
+        if missing:
+            return JSONResponse({"status": "not_ready", "missing": missing}, 503)
         return JSONResponse({"status": "ready"}, 200)
 
     return app

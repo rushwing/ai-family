@@ -9,9 +9,14 @@ helper 缺失应失败而非静默 skip。
 """
 import os
 import sys
+import time
+import uuid
 from pathlib import Path
 
+import jwt
 import pytest
+
+from gateway.interaction import sign_interaction
 
 httpx = pytest.importorskip("httpx")
 
@@ -35,14 +40,44 @@ def _hdr(token):
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_two_phase_prepare_then_user_confirm_executes():
-    token = _adult_token()
-    prep = httpx.post(
-        f"{GATEWAY}/tools/create_target", json={"prepare": True, "title": "t"},
-        headers=_hdr(token), timeout=10,
+def _user_confirm(token: str, tool: str, params: dict) -> str:
+    secret = os.getenv("AIFAMILY_CONFIRMATION_SECRET")
+    if not secret:
+        pytest.skip("设 AIFAMILY_CONFIRMATION_SECRET 运行用户确认通道用例")
+    claims = jwt.decode(token, options={"verify_signature": False})
+    session = claims.get("sid") or claims.get("session_state")
+    member = claims.get("family_member_id")
+    if not session or not member:
+        pytest.fail("联调 token 必须包含 session 与 family_member_id")
+    timestamp = int(time.time())
+    nonce = uuid.uuid4().hex
+    signature = sign_interaction(
+        secret,
+        timestamp=timestamp,
+        nonce=nonce,
+        session=session,
+        member=str(member),
+        tool=tool,
+        params=params,
     )
-    assert prep.status_code == 200
-    confirm_token = prep.json()["confirm_token"]  # 来自 ChatUI 用户点击
+    response = httpx.post(
+        f"{GATEWAY}/confirmations/{tool}",
+        json=params,
+        headers={
+            **_hdr(token),
+            "X-AI-Family-Interaction-Timestamp": str(timestamp),
+            "X-AI-Family-Interaction-Nonce": nonce,
+            "X-AI-Family-Interaction-Signature": signature,
+        },
+        timeout=10,
+    )
+    assert response.status_code == 200
+    return response.json()["confirm_token"]
+
+
+def test_two_phase_user_confirm_then_execute():
+    token = _adult_token()
+    confirm_token = _user_confirm(token, "create_target", {"title": "t"})
     exe = httpx.post(
         f"{GATEWAY}/tools/create_target",
         json={"confirm_token": confirm_token, "title": "t"},
@@ -53,11 +88,7 @@ def test_two_phase_prepare_then_user_confirm_executes():
 
 def test_confirm_token_cannot_authorize_mutated_payload():
     token = _adult_token()
-    prep = httpx.post(
-        f"{GATEWAY}/tools/create_target", json={"prepare": True, "title": "safe"},
-        headers=_hdr(token), timeout=10,
-    )
-    confirm_token = prep.json()["confirm_token"]
+    confirm_token = _user_confirm(token, "create_target", {"title": "safe"})
     changed = httpx.post(
         f"{GATEWAY}/tools/create_target",
         json={"confirm_token": confirm_token, "title": "EVIL"},
@@ -83,11 +114,7 @@ def test_confirm_token_bound_to_issuing_member():
     而非 admin 无写权（admin/adult 同为写角色，见 manifest 契约）。
     """
     token_a = _adult_token()
-    prep = httpx.post(
-        f"{GATEWAY}/tools/create_target", json={"prepare": True, "title": "t"},
-        headers=_hdr(token_a), timeout=10,
-    )
-    confirm_token = prep.json()["confirm_token"]
+    confirm_token = _user_confirm(token_a, "create_target", {"title": "t"})
     if not os.getenv("AIFAMILY_OIDC_ISSUER"):
         pytest.skip("设 AIFAMILY_OIDC_ISSUER 取第二成员 token")
     from helpers.oidc import login_role

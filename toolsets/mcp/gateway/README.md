@@ -10,8 +10,10 @@
 1. **工具侧 OIDC JWT 验签**（缺 / 非 JWT / 篡改 → 401；旧 `X-Telegram-Chat-Id` header 非 JWT → 401）
 2. **manifest 角色门禁**（取自 `goal_mcp` 契约；kid 不得写 create/approve 等 → 403）
 3. **tenant scope**：body 显式 `family_member_id` ≠ 调用者 → 跨成员越权 403 + 审计
-4. **write 类两段式**：`{"prepare": true}` 签发用户来源 confirm token；execute 须带网关签发、
-   **成员+工具+payload 绑定、一次性** token，缺 / 伪造 / Agent 自生成 / 换成员 / 替换参数一律拒
+4. **write 类两段式**：普通 `/tools/{tool}` bearer 通道不能签发确认；只有持有独立
+   `AIFAMILY_CONFIRMATION_SECRET` 的 ChatUI/BFF 用户交互通道，才能向 `/confirmations/{tool}`
+   提交 HMAC 证明并取得 confirm token。证明绑定时间戳、一次性 nonce、OIDC session、成员、
+   工具和 payload；execute 还须带网关签发、**会话+成员+工具+payload 绑定、一次性** token
 5. **旧直连禁用**：GoalAgent 自身的 `/api/v1/*` 与 `/mcp/*` 默认返回 410；仅配置的内部网关令牌可进入
 6. **审计**：deny/allow 均记录；admin 可查全量，adult/kid 只能查本人记录
 
@@ -30,6 +32,7 @@ pytest ../goal-mcp/tests tests -q
 export AIFAMILY_OIDC_ISSUER=http://localhost:8081/realms/ai-family
 export AIFAMILY_OIDC_AUD=ai-family-chatui
 export AIFAMILY_GATEWAY_URL=http://localhost:8080
+export AIFAMILY_CONFIRMATION_SECRET='32-byte-or-longer-shared-chatui-bff-secret'
 python -m pytest tests/ ../../../tests -q -k "goal_write_boundary or goal_jwt_boundary"
 ```
 

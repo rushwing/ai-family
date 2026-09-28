@@ -58,6 +58,11 @@ jobs:
             mcp:
               - 'toolsets/mcp/**'
               - 'agents/goal/app/auth/oidc.py'
+              - 'agents/goal/app/main.py'
+              - 'agents/goal/app/config.py'
+              - 'agents/goal/pyproject.toml'
+              - 'agents/goal/tests/conftest.py'
+              - 'agents/goal/tests/integration/test_legacy_direct_disabled.py'
               - '.github/workflows/ci.yml'
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
@@ -95,11 +100,14 @@ jobs:
           python -m pip install
           -e toolsets/mcp/goal-mcp
           -e 'toolsets/mcp/gateway[test]'
+          -e 'agents/goal[dev]'
           ruff
       - name: Lint MCP toolsets
         run: ruff check toolsets/mcp/goal-mcp toolsets/mcp/gateway
       - name: Test manifest and gateway boundary
         run: pytest toolsets/mcp/goal-mcp/tests toolsets/mcp/gateway/tests -q
+      - name: Test GoalAgent legacy routes remain disabled
+        run: pytest agents/goal/tests/integration/test_legacy_direct_disabled.py -q
 
   # —— Home Intelligence 前端原型（阻塞 lint/build）——
   home-intelligence-web:
