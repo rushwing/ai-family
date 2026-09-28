@@ -5,34 +5,31 @@
   ② manifest 角色门禁（kid 不得写 create/approve 等 → 403）
   ③ tenant scope：body 显式 family_member_id ≠ 调用者 → 跨成员越权 403 + 审计
   ④ write 类两段式：prepare 签发用户来源 confirm token；execute 须带网关签发、成员+工具
-     绑定、一次性 token，缺/伪造/Agent 自生成/换成员 → 拒
+     +payload 绑定、一次性 token，缺/伪造/Agent 自生成/换成员/替换参数 → 拒
   ⑤ 旧 REST / OpenClaw 直连禁用（410）
   ⑥ deny/allow 均落审计，/audit/recent 可查
 
 角色 / scope / risk 来自 goal_mcp 的 manifest 契约（单一真值），网关不另立策略。
-工具的**功能分发**经 executor 注入（默认 accepted stub）；真实分发到 goal-mcp FastMCP
-随服务联调在 req_impl_review 闭环——本层只负责信任边界语义。
+工具的**功能分发**经 executor 注入；未配置 executor 时 fail-closed（503），绝不伪造成功。
+真实分发到 goal-mcp FastMCP 随服务联调在 req_impl_review 闭环。
 """
 from __future__ import annotations
 
+import inspect
 import os
 import time
+from collections import deque
 from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-
 from goal_mcp import tool_registry
+from starlette.concurrency import run_in_threadpool
 
 from gateway.auth import AuthenticationError, AuthorizationError, verify_bearer
-from gateway.confirm import ConfirmStore
+from gateway.confirm import ConfirmStore, confirmation_payload
 
-# 默认 executor：鉴权 + 两段式通过后「已受理分发」。真实工具分发在联调期注入替换。
 ToolExecutor = Callable[[str, str, dict], dict]
-
-
-def _default_executor(tool: str, member: str, params: dict) -> dict:
-    return {"status": "ok", "tool": tool, "member": member}
 
 
 def create_app(executor: ToolExecutor | None = None) -> FastAPI:
@@ -40,8 +37,9 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
     registry = tool_registry()
     tools = {t.name: t for t in registry.list_tools()}
     confirm = ConfirmStore()
-    audit: list[dict[str, Any]] = []
-    execute = executor or _default_executor
+    # Temporary WP-4 boundary buffer.  Durable audit.event integration remains
+    # a req_impl_review task, but the interim process must still be bounded.
+    audit: deque[dict[str, Any]] = deque(maxlen=1_000)
 
     def _record(action: str, result: str, member: str | None, reason: str = "") -> None:
         audit.append(
@@ -65,9 +63,9 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
         try:
             body = await request.json()
         except Exception:
-            body = {}
+            return JSONResponse({"error": "invalid_json"}, status_code=400)
         if not isinstance(body, dict):
-            body = {}
+            return JSONResponse({"error": "invalid_body"}, status_code=422)
 
         # ① 身份可信
         try:
@@ -95,25 +93,46 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
             _record(tool, "deny", member, f"role_{claims['role']}_not_allowed")
             return JSONResponse({"error": "role_forbidden"}, status_code=403)
 
+        # No runtime dispatcher means this process is a boundary-only build.
+        # Reject both reads and write prepares before issuing confirmation state.
+        if executor is None:
+            _record(tool, "deny", member, "executor_unavailable")
+            return JSONResponse({"error": "executor_unavailable"}, status_code=503)
+
         # ④ write 类两段式
         if spec.risk == "write":
             if body.get("prepare") is True:
-                token = confirm.issue(member=member, tool=tool)
+                token = confirm.issue(member=member, tool=tool, params=body)
                 _record(tool, "allow", member, "prepare")
                 return JSONResponse({"confirm_token": token, "prepare": True}, status_code=200)
-            ok = confirm.consume(body.get("confirm_token"), member=member, tool=tool)
+            ok = confirm.consume(
+                body.get("confirm_token"),
+                member=member,
+                tool=tool,
+                params=body,
+            )
             if not ok:
                 _record(tool, "deny", member, "bad_confirm_token")
                 return JSONResponse({"error": "confirm_required"}, status_code=400)
 
-        result = execute(tool, member, body)
+        params = confirmation_payload(body)
+        try:
+            if inspect.iscoroutinefunction(executor):
+                result = await executor(tool, member, params)
+            else:
+                result = await run_in_threadpool(executor, tool, member, params)
+                if inspect.isawaitable(result):
+                    result = await result
+        except Exception:
+            _record(tool, "deny", member, "executor_failed")
+            return JSONResponse({"error": "executor_failed"}, status_code=502)
         _record(tool, "allow", member, "execute")
         return JSONResponse({"ok": True, "result": result}, status_code=200)
 
     @app.get("/audit/recent")
     async def audit_recent(request: Request) -> JSONResponse:
         try:
-            verify_bearer(_bearer(request))
+            claims = verify_bearer(_bearer(request))
         except (AuthenticationError, AuthorizationError):
             return JSONResponse({"error": "unauthenticated"}, status_code=401)
         action = request.query_params.get("action")
@@ -123,6 +142,7 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
             for r in audit
             if (action is None or r["action"] == action)
             and (result is None or r["result"] == result)
+            and (claims["role"] == "admin" or r["member"] == claims["family_member_id"])
         ]
         return JSONResponse(rows, status_code=200)
 
@@ -137,7 +157,18 @@ def create_app(executor: ToolExecutor | None = None) -> FastAPI:
 
     @app.get("/healthz")
     async def healthz() -> dict:
-        return {"status": "ok", "tools": len(tools), "issuer": bool(os.getenv("AIFAMILY_OIDC_ISSUER"))}
+        return {
+            "status": "ok",
+            "tools": len(tools),
+            "issuer": bool(os.getenv("AIFAMILY_OIDC_ISSUER")),
+            "executor_configured": executor is not None,
+        }
+
+    @app.get("/readyz")
+    async def readyz() -> JSONResponse:
+        if executor is None:
+            return JSONResponse({"status": "not_ready", "reason": "executor_unavailable"}, 503)
+        return JSONResponse({"status": "ready"}, 200)
 
     return app
 

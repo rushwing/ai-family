@@ -6,7 +6,8 @@ issuer），从 JWT 取 role / sub / family_member_id。角色 / tenant 策略�
 
 旧 X-Telegram-Chat-Id header 非 JWT → 一律 AuthenticationError（退役旧鉴权，BUG-017）。
 
-env：AIFAMILY_OIDC_ISSUER（如 http://idp/realms/ai-family）、AIFAMILY_OIDC_AUD（默认 ai-family-chatui）。
+env：AIFAMILY_OIDC_ISSUER（如 http://idp/realms/ai-family）、
+AIFAMILY_OIDC_AUD（默认 ai-family-chatui）。
 
 注：libs/auth 契约就绪后（后续 REQ）网关与 agent 侧应共用同一 verifier；M1 各自内建。
 """
@@ -52,12 +53,16 @@ def _map_role(claims: dict) -> str:
     raw = claims.get("role")
     if raw:
         roles.add(raw)
-    for r in roles:
-        if r in _PLATFORM_ROLES:
-            return r
-        if r in _ROLE_MAP:
-            return _ROLE_MAP[r]
-    raise AuthorizationError(f"无可识别角色：{sorted(roles)}")
+    mapped = {
+        role if role in _PLATFORM_ROLES else _ROLE_MAP[role]
+        for role in roles
+        if role in _PLATFORM_ROLES or role in _ROLE_MAP
+    }
+    if not mapped:
+        raise AuthorizationError(f"无可识别角色：{sorted(roles)}")
+    if len(mapped) != 1:
+        raise AuthorizationError(f"平台角色冲突（fail-closed）：{sorted(mapped)}")
+    return next(iter(mapped))
 
 
 def verify_bearer(token: str | None) -> dict:
@@ -84,9 +89,7 @@ def verify_bearer(token: str | None) -> dict:
         raise AuthenticationError(f"token 不可信：{type(e).__name__}: {e}") from e
 
     role = _map_role(claims)  # 角色不可识别 → AuthorizationError
-    member = (
-        claims.get("family_member_id")
-        or claims.get("preferred_username")
-        or claims.get("sub")
-    )
+    member = claims.get("family_member_id")
+    if not isinstance(member, str) or not member.strip():
+        raise AuthenticationError("token 缺少 canonical family_member_id claim")
     return {**claims, "role": role, "family_member_id": member}

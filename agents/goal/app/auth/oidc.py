@@ -58,7 +58,7 @@ TOOL_POLICY: dict[str, tuple[frozenset, str]] = {
     # tracks（目录，读，全角色，共享）
     "list_track_categories": (_R, _S), "list_track_subcategories": (_R, _S),
     # wizard（写 admin+adult）
-    "start_goal_group_wizard": (_W, _M), "get_wizard_status": (_R, _M),
+    "start_goal_group_wizard": (_W, _M), "get_wizard_status": (_W, _M),
     "set_wizard_scope": (_W, _M), "set_wizard_targets": (_W, _M),
     "set_wizard_constraints": (_W, _M), "adjust_wizard": (_W, _M),
     "confirm_goal_group": (_W, _M), "cancel_goal_group_wizard": (_W, _M),
@@ -81,12 +81,16 @@ def _map_role(claims: dict) -> str:
     raw = claims.get("role")
     if raw:
         roles.add(raw)
-    for r in roles:
-        if r in _PLATFORM_ROLES:
-            return r
-        if r in _ROLE_MAP:
-            return _ROLE_MAP[r]
-    raise AuthorizationError(f"无可识别角色：{sorted(roles)}")
+    mapped = {
+        role if role in _PLATFORM_ROLES else _ROLE_MAP[role]
+        for role in roles
+        if role in _PLATFORM_ROLES or role in _ROLE_MAP
+    }
+    if not mapped:
+        raise AuthorizationError(f"无可识别角色：{sorted(roles)}")
+    if len(mapped) != 1:
+        raise AuthorizationError(f"平台角色冲突（fail-closed）：{sorted(mapped)}")
+    return next(iter(mapped))
 
 
 def verify_access_token(token: str | None) -> dict:
@@ -112,8 +116,9 @@ def verify_access_token(token: str | None) -> dict:
         raise AuthenticationError(f"token 不可信：{type(e).__name__}: {e}") from e
 
     role = _map_role(claims)  # 可能抛 AuthorizationError（角色不可识别）
-    # 平台无 family_member_id 自定义 claim 时，从 preferred_username / sub 派生（稳定且每成员互异）
-    member = claims.get("family_member_id") or claims.get("preferred_username") or claims.get("sub")
+    member = claims.get("family_member_id")
+    if not isinstance(member, str) or not member.strip():
+        raise AuthenticationError("token 缺少 canonical family_member_id claim")
     return {**claims, "role": role, "family_member_id": member}
 
 

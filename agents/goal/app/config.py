@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     # Leave empty in dev/test environments to skip verification.
     HMAC_SECRET: str = ""
 
+    # M1: legacy REST/FastMCP endpoints are internal-only.  When empty, direct
+    # access is entirely disabled; the future gateway executor must provide the
+    # configured token through X-AI-Family-Gateway-Token.
+    GATEWAY_INTERNAL_TOKEN: str = ""
+
     # Web search (Tavily primary, Brave fallback on quota)
     TAVILY_API_KEY: str = ""
     BRAVE_API_KEY: str = ""

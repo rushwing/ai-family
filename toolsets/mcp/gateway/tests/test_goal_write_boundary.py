@@ -51,6 +51,21 @@ def test_two_phase_prepare_then_user_confirm_executes():
     assert exe.status_code == 200
 
 
+def test_confirm_token_cannot_authorize_mutated_payload():
+    token = _adult_token()
+    prep = httpx.post(
+        f"{GATEWAY}/tools/create_target", json={"prepare": True, "title": "safe"},
+        headers=_hdr(token), timeout=10,
+    )
+    confirm_token = prep.json()["confirm_token"]
+    changed = httpx.post(
+        f"{GATEWAY}/tools/create_target",
+        json={"confirm_token": confirm_token, "title": "EVIL"},
+        headers=_hdr(token), timeout=10,
+    )
+    assert changed.status_code in (400, 403)
+
+
 @pytest.mark.parametrize("confirm", [None, "forged-token", "agent-self-generated"])
 def test_missing_or_forged_confirm_rejected(confirm):
     token = _adult_token()
@@ -89,7 +104,7 @@ def test_confirm_token_bound_to_issuing_member():
 @pytest.mark.parametrize("path", ["/api/v1/targets", "/openclaw/create_target"])
 def test_legacy_direct_paths_disabled(path):
     r = httpx.post(f"{GATEWAY}{path}", json={}, timeout=10)
-    assert r.status_code in (404, 410), f"M1 旧 REST/OpenClaw 直连应禁用：{path}"
+    assert r.status_code == 410, f"M1 旧 REST/OpenClaw 直连应明确禁用：{path}"
 
 
 def test_cross_member_write_rejected_and_audited():

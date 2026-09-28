@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import secrets
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI
@@ -48,6 +49,27 @@ class HmacMiddleware(BaseHTTPMiddleware):
         if not ok:
             return JSONResponse({"detail": "Invalid request signature"}, status_code=401)
         return await call_next(request)
+
+
+class GatewayOnlyMiddleware(BaseHTTPMiddleware):
+    """Retire public legacy REST and direct FastMCP access for REQ-003 M1."""
+
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+        legacy_path = (
+            path == "/api/v1"
+            or path.startswith("/api/v1/")
+            or path == "/mcp"
+            or path.startswith("/mcp/")
+        )
+        if not legacy_path:
+            return await call_next(request)
+
+        configured = settings.GATEWAY_INTERNAL_TOKEN
+        supplied = request.headers.get("x-ai-family-gateway-token", "")
+        if configured and secrets.compare_digest(configured, supplied):
+            return await call_next(request)
+        return JSONResponse({"detail": "legacy_direct_access_disabled"}, status_code=410)
 
 
 @asynccontextmanager
@@ -106,6 +128,7 @@ app.add_middleware(
 
 # HMAC signature verification (Issue #3) — must be added after CORS
 app.add_middleware(HmacMiddleware)
+app.add_middleware(GatewayOnlyMiddleware)
 
 # REST API router
 from app.api.v1.router import router as api_router  # noqa: E402

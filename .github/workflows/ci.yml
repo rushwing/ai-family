@@ -38,6 +38,7 @@ jobs:
       libs: ${{ steps.filter.outputs.libs }}
       home_intelligence: ${{ steps.filter.outputs.home_intelligence }}
       home_requirements: ${{ steps.filter.outputs.home_requirements }}
+      mcp: ${{ steps.filter.outputs.mcp }}
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -54,6 +55,10 @@ jobs:
               - 'docs/product/home-intelligence/requirements.xlsx'
               - 'docs/product/home-intelligence/roadmap.yaml'
               - 'tools/check_home_intelligence_requirements.py'
+            mcp:
+              - 'toolsets/mcp/**'
+              - 'agents/goal/app/auth/oidc.py'
+              - '.github/workflows/ci.yml'
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
   goal-agent:
@@ -74,6 +79,27 @@ jobs:
           ruff check agents/goal
       - name: 占位 —— 单元测试随 REQ-003 切片改造接入（MariaDB→PG 后）
         run: echo "goal-agent 测试在 REQ-003 迁移完成后纳入阻塞门（见 08 §7 / REQ-005）"
+
+  # —— MCP manifest + gateway trust boundary（REQ-003 WP-4，阻塞）——
+  mcp-toolsets:
+    needs: changes
+    if: ${{ needs.changes.outputs.mcp == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Goal MCP and gateway test dependencies
+        run: >-
+          python -m pip install
+          -e toolsets/mcp/goal-mcp
+          -e 'toolsets/mcp/gateway[test]'
+          ruff
+      - name: Lint MCP toolsets
+        run: ruff check toolsets/mcp/goal-mcp toolsets/mcp/gateway
+      - name: Test manifest and gateway boundary
+        run: pytest toolsets/mcp/goal-mcp/tests toolsets/mcp/gateway/tests -q
 
   # —— Home Intelligence 前端原型（阻塞 lint/build）——
   home-intelligence-web:

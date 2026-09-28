@@ -137,8 +137,12 @@ class ToolRegistry:
         mutates = bool(m.get("mutates", tool.risk == WRITE))
         if mutates and tool.risk != WRITE:
             raise RegistrationError(f"{tool.name} 会写库但 risk 标为 read（误标）")
-        if not m.get("roles"):
+        roles = frozenset(m.get("roles", ()))
+        if not roles:
             raise RegistrationError(f"{tool.name} 缺角色契约")
+        unknown_roles = roles - ALL3
+        if unknown_roles:
+            raise RegistrationError(f"{tool.name} 含未知角色：{sorted(unknown_roles)}")
         if m.get("tenant_scope") not in (MEMBER, SHARED):
             raise RegistrationError(f"{tool.name} tenant_scope 非法：{m.get('tenant_scope')!r}")
         # write 类：工具侧 auth + 测试引用 + 两段式 + 用户来源 confirm（BUG-017）

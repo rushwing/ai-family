@@ -6,9 +6,9 @@
 
 ## M1（REQ-003 WP-4）已落地
 
-`goal_mcp` 包 = 36 个 tool 的**逐 tool manifest 单一真值**（risk / 角色 / tenant scope /
-两段式 / confirm 来源 / 工具侧 auth / 测试引用），与网关、agent 侧 `app/auth/oidc.py` 的
-TOOL_POLICY 同源对齐。
+`goal_mcp` 包 = 36 个 tool 的**逐 tool manifest 权威真值**（risk / 角色 / tenant scope /
+两段式 / confirm 来源 / 工具侧 auth / 测试引用）。网关直接消费该 manifest；迁移期 agent 侧
+`app/auth/oidc.py` 保留兼容投影，并由 CI 逐项交叉校验，避免双字典静默漂移。
 
 - `goal_mcp.tool_registry()` —— 构建含 36 tool 的注册表（注册即校验契约）
 - `goal_mcp.RegistrationError` —— 违反契约（写误标 read / 缺 auth / 缺 test_ref / 非两段式 /

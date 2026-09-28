@@ -11,7 +11,7 @@ dependencies = [
     "fastapi>=0.115",
     "fastmcp>=2.0",
     "uvicorn[standard]>=0.30",
-    "uvloop>=0.21",
+    "uvloop>=0.21; sys_platform != 'win32'",
     "sqlalchemy[asyncio]>=2.0",
     "aiomysql>=0.2",
     "alembic>=1.15",
