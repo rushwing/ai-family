@@ -20,4 +20,7 @@ echo "► secret 扫描 gate（BUG-003 ①）"
 "$PY" tools/check_secrets.py
 echo "► 迁移 RLS 扫描 gate（TC-002-05 / BUG-002）"
 "$PY" tools/check_rls.py
+echo "► Home Intelligence planning integrity gate (REQ-012)"
+"$PY" tools/check_home_intelligence_planning.py
+"$PY" -m unittest discover -s tests -p test_home_intelligence_planning.py
 echo "✓ 治理门全过"

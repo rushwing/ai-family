@@ -10,6 +10,11 @@ canonical_sources:
   backlog: docs/product/home-intelligence/requirements.xlsx
   hierarchy: docs/product/home-intelligence/roadmap.yaml
   engineering: harness/tasks
+  # R1 backend planning; legacy backlog above remains the historical UI baseline.
+  vision: docs/product/home-intelligence/VISION.md
+  capability_roadmap: docs/product/home-intelligence/ROADMAP.md
+  backend_planning: docs/product/home-intelligence/requirements/index.json
+  legacy_crosswalk: docs/product/home-intelligence/CROSSWALK.md
 
 fields:
   - name: Status

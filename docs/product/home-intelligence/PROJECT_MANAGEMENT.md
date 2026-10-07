@@ -1,5 +1,9 @@
 # GitHub Project 与 Harness
 
+## Current Planning Authority
+
+For the current R1 backend, Feature/Story Markdown defines new slice scope and requirements/index.json is its navigation projection. The workbook/roadmap.yaml remains the historical UI/product baseline. [CROSSWALK.md](CROSSWALK.md) maps related ZW records without renumbering them. Both sets enter the same Harness admission process; an overlapping legacy backend story must not become a second executable copy. Harness still owns engineering status and GitHub synchronization remains one-way. No external Project or Issue is created by this planning delivery.
+
 ## 分工
 
 GitHub Project 管理目标、日期、Release 和组合进度。Harness 管理正式工程需求、测试、缺陷、owner 和生命周期门禁。

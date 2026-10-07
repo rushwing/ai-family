@@ -1,4 +1,8 @@
 ---
+
+## Current R-stage Planning Scope
+
+The 2026-10-07 requirements planning layer is defined in [VISION.md](VISION.md), [ROADMAP.md](ROADMAP.md) and [requirements/README.md](requirements/README.md). It adds canonical household backend integration and active R1 slices. The sections below retain the established UI/prototype scope and historical P-release baseline. Read [CROSSWALK.md](CROSSWALK.md) before promoting overlapping legacy stories; this document does not authorize future backend execution.
 doc_id: ZW-PRD-001
 product: 知微 Home Intelligence
 version: 0.1
