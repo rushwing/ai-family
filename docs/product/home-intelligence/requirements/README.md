@@ -28,7 +28,7 @@ Feature completion requires child acceptance and its demo exit criteria; Stage c
 
 ## Metadata and Synchronization
 
-Feature and Story frontmatter uses JSON-compatible YAML scalars/lists. Required fields and examples are in the templates. IDs never change when sorting changes. index.json copies identity, title, relationships, dependencies, paths and planning state; synchronize it in the same PR as Markdown edits. Stage objects in the index match ROADMAP.md. Legacy workbook edits must continue to update the existing roadmap.yaml and pass its checker; this delivery leaves both unchanged.
+Feature and Story frontmatter uses JSON-compatible YAML scalars/lists. Required fields and examples are in the templates. IDs never change when sorting changes. index.json copies identity, title, relationships, dependencies, paths and planning state; synchronize it in the same PR as Markdown edits. Stage objects in the index match ROADMAP.md. The versioned `refinement_boundary` policy is fixed to the REQ-012 delivery: R1 active, R2–R12 planned, exactly ten R1 and ten R2 Features, and exactly thirty Stories all belonging to R1. The validator checks both the declared policy and its actual objects against this contract. Marking another stage completed does not authorize its Stories. Expanding refinement requires an explicit scope amendment and synchronized policy/validator change in a reviewed PR. Legacy workbook edits must continue to update the existing roadmap.yaml and pass its checker; this delivery leaves both unchanged.
 
 ## Traceability
 

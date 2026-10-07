@@ -18,6 +18,17 @@ ROOT = Path(__file__).resolve().parents[1]
 PRODUCT = Path("docs/product/home-intelligence")
 FEATURE_STATES = {"planned", "active", "completed", "paused", "cancelled"}
 STORY_STATES = {"draft", "ready", "active", "blocked", "done", "cancelled"}
+# The REQ-012 delivery contract is fixed. Advancing refinement requires an
+# explicit scope/policy change, not just changing a roadmap stage status.
+REFINEMENT_BOUNDARY = {
+    "id": "REQ-012-R1",
+    "active_stage": "R1",
+    "permitted_story_stages": ["R1"],
+    "expected_feature_count": 20,
+    "expected_story_count": 30,
+    "feature_counts_by_stage": {"R1": 10, "R2": 10},
+    "stage_statuses": {f"R{i}": "active" if i == 1 else "planned" for i in range(1, 13)},
+}
 FEATURE_SECTIONS = {
     "Outcome",
     "User / System Value",
@@ -68,6 +79,16 @@ def validate(root: Path = ROOT) -> list[str]:
         return [f"Cannot read planning index: {exc}"]
     if index.get("schema_version") != 1:
         errors.append("Unsupported index schema version")
+    if index.get("refinement_boundary") != REFINEMENT_BOUNDARY:
+        errors.append("Refinement boundary policy must match the approved REQ-012-R1 contract")
+    for plural, count_key in (
+        ("features", "expected_feature_count"),
+        ("stories", "expected_story_count"),
+    ):
+        entries = index.get(plural)
+        expected = REFINEMENT_BOUNDARY[count_key]
+        if not isinstance(entries, list) or len(entries) != expected:
+            errors.append(f"Expected exactly {expected} {plural} in the REQ-012 boundary")
     objects: dict[str, dict] = {}
     groups: dict[str, dict[str, dict]] = {}
     for plural, kind, states in (
@@ -100,6 +121,17 @@ def validate(root: Path = ROOT) -> list[str]:
     stages, features, stories = (groups[key] for key in ("stages", "features", "stories"))
     if set(stages) != {f"R{i}" for i in range(1, 13)}:
         errors.append("Roadmap must retain R1 through R12")
+    if index.get("active_stage") != REFINEMENT_BOUNDARY["active_stage"]:
+        errors.append("REQ-012 permits only R1 as the active refinement stage")
+    for ident, expected_status in REFINEMENT_BOUNDARY["stage_statuses"].items():
+        if stages.get(ident, {}).get("status") != expected_status:
+            errors.append(f"Refinement boundary requires {ident} status {expected_status}")
+    feature_counts = {}
+    for entry in features.values():
+        stage = entry.get("stage")
+        feature_counts[stage] = feature_counts.get(stage, 0) + 1
+    if feature_counts != REFINEMENT_BOUNDARY["feature_counts_by_stage"]:
+        errors.append("Refinement boundary requires exactly ten R1 and ten R2 Features")
     active = index.get("active_stage")
     if [ident for ident, entry in stages.items() if entry.get("status") == "active"] != [active]:
         errors.append("Exactly the declared active stage must be active")
@@ -173,7 +205,7 @@ def validate(root: Path = ROOT) -> list[str]:
                 for key in ("parent", "harness_ref"):
                     if key not in front or front[key] != entry.get(key):
                         errors.append(f"Index/frontmatter {key} mismatch: {ident}")
-                if stages.get(entry.get("stage"), {}).get("status") not in {"active", "completed"}:
+                if entry.get("stage") not in REFINEMENT_BOUNDARY["permitted_story_stages"]:
                     errors.append(f"Future-stage Story is outside refinement boundary: {ident}")
                 harness = entry.get("harness_ref")
                 if harness is not None:

@@ -1063,5 +1063,32 @@
       ],
       "source_ref": "S030"
     }
-  ]
+  ],
+  "refinement_boundary": {
+    "id": "REQ-012-R1",
+    "active_stage": "R1",
+    "permitted_story_stages": [
+      "R1"
+    ],
+    "expected_feature_count": 20,
+    "expected_story_count": 30,
+    "feature_counts_by_stage": {
+      "R1": 10,
+      "R2": 10
+    },
+    "stage_statuses": {
+      "R1": "active",
+      "R2": "planned",
+      "R3": "planned",
+      "R4": "planned",
+      "R5": "planned",
+      "R6": "planned",
+      "R7": "planned",
+      "R8": "planned",
+      "R9": "planned",
+      "R10": "planned",
+      "R11": "planned",
+      "R12": "planned"
+    }
+  }
 }
