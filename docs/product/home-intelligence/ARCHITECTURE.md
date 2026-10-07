@@ -1,5 +1,9 @@
 # 知微架构边界
 
+## Current Architecture Alignment
+
+The English [ARCHITECTURE_ALIGNMENT.md](ARCHITECTURE_ALIGNMENT.md) applies the existing ADR-016 and ADR-010 boundaries to the new R1 Feature/Story specifications. It preserves canonical capability mapping, asynchronous writes, tool-side authorization and human confirmation. API names below remain drafts to reconcile before implementation, not deployed endpoints. See [CURRENT_STATE.md](CURRENT_STATE.md) for runtime gaps.
+
 ## 定位
 
 知微是 `ai-family` 面向家庭设备的 Web 控制面，不建立第二套 Agent 平台。它复用现有身份链、IntentRouter、Planner、MCP Gateway、RabbitMQ、PostgreSQL、Neo4j、LangGraph checkpointer 和 Langfuse。

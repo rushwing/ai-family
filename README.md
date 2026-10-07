@@ -55,3 +55,7 @@ CI：`adr_gate`（ADR 评审闭环 gate，BUG-006）+ `check_layout`（布局/�
 2. 只有 GoalAgent 做到详设深度，其余 Agent 保持 L1 框图深度，做到哪层细化到哪层
 3. 本项目的开发计划本身录入 GoalAgent 管理（dogfooding）
 4. 设计变更必须先改 ADR / 设计稿，再改代码
+
+## Home Intelligence Requirements Planning
+
+The English [Vision](docs/product/home-intelligence/VISION.md), [R1–R12 Roadmap](docs/product/home-intelligence/ROADMAP.md) and [requirements operating rules](docs/product/home-intelligence/requirements/README.md) define the next household integration stage. Read the [current-state summary](docs/product/home-intelligence/CURRENT_STATE.md) and [legacy crosswalk](docs/product/home-intelligence/CROSSWALK.md) before selecting a Story. The existing Harness remains authoritative for engineering admission, ownership, review and completion.

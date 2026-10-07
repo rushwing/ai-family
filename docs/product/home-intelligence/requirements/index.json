@@ -1,0 +1,1067 @@
+{
+  "schema_version": 1,
+  "active_stage": "R1",
+  "documentation_req": "REQ-012",
+  "stages": [
+    {
+      "id": "R1",
+      "title": "Home Integration Foundation",
+      "status": "active",
+      "horizon": "NOW",
+      "goal": "Connect HA, normalize current state and safely execute vendor-neutral device actions.",
+      "capabilities": "HA REST/WebSocket; canonical models/capabilities; mapper; state; guard/audit; mocks; API.",
+      "exit_criteria": "Demonstrate an authorized confirmed action on one existing physical device through the canonical API with reported completion, audit and failure recovery. Mock CI passes without HA.",
+      "dependencies": "Existing identity/audit/task boundaries; HI-F001\u2013HI-F010.",
+      "depends_on": []
+    },
+    {
+      "id": "R2",
+      "title": "Household Workflow MVP",
+      "status": "planned",
+      "horizon": "NEXT",
+      "goal": "Deliver reviewed household workflows rather than isolated device commands.",
+      "capabilities": "Runtime/persistence; trigger/condition/wait/timeout/retry; confirmation; sleep, aquarium, laundry and mock cleaning; notifications.",
+      "exit_criteria": "Restart a run without duplicated physical effects; demonstrate all four scenarios with defined failure paths and duplicate-feeding prevention.",
+      "dependencies": "R1; HI-F101\u2013HI-F110.",
+      "depends_on": [
+        "R1"
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "Family Context Engine",
+      "status": "planned",
+      "horizon": "NEXT",
+      "goal": "Interpret who is present, where, when and what is happening.",
+      "capabilities": "Person/presence; occupancy; home/away/sleeping modes; activity; temporal context.",
+      "exit_criteria": "Explain provenance and freshness of scoped context; unknown presence does not become a safety-sensitive assumption.",
+      "dependencies": "R1 state; R2 runtime; privacy and member authorization.",
+      "depends_on": [
+        "R1",
+        "R2"
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "Event Intelligence",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Derive meaningful household events from correlated device observations.",
+      "capabilities": "Temporal windows; correlation; derived events; deduplication; event history.",
+      "exit_criteria": "A repeatable fixture combines observations into an explainable household event without duplicate triggers.",
+      "dependencies": "R2 triggers; R3 context.",
+      "depends_on": [
+        "R2",
+        "R3"
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "Household Memory",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Answer authorized questions about household facts, preferences, routines and history.",
+      "capabilities": "Separate facts/preferences/routines/events/device and workflow history; structured storage before vectors.",
+      "exit_criteria": "Answer feeding-history and infrastructure-history questions with source evidence; enforce access, retention and deletion policy.",
+      "dependencies": "R3 context; R4 events; existing privacy/data architecture.",
+      "depends_on": [
+        "R3",
+        "R4"
+      ]
+    },
+    {
+      "id": "R6",
+      "title": "Policy & Autonomous Action",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Expand autonomous action only within explicit governed boundaries.",
+      "capabilities": "Risk tiers; permission; confirmation; audit; compensation/rollback where physically possible.",
+      "exit_criteria": "Low-risk autonomy obeys policy; high-risk actions require human confirmation; irreversible/uncertain outcomes are explicit.",
+      "dependencies": "R1 guard from day one; R2 workflow; R3 context; R5 memory.",
+      "depends_on": [
+        "R1",
+        "R2",
+        "R3",
+        "R5"
+      ]
+    },
+    {
+      "id": "R7",
+      "title": "AI Planner / Household Agent",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Turn ambiguous household intent into a reviewed structured executable plan.",
+      "capabilities": "Intent interpretation; multistep plans; context reasoning; recommendations; exception suggestions.",
+      "exit_criteria": "A structured plan passes policy validation before execution; no LLM call can dispatch to a device provider directly.",
+      "dependencies": "R2 workflow; R3 context; R5 memory; R6 policy; platform planner work.",
+      "depends_on": [
+        "R2",
+        "R3",
+        "R5",
+        "R6"
+      ]
+    },
+    {
+      "id": "R8",
+      "title": "Spatial Intelligence",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Model floors, rooms, areas, zones and static/movable locations without a vendor dependency.",
+      "capabilities": "Canonical maps; robot rooms; optional BLE/UWB/camera/Matter occupancy integrations.",
+      "exit_criteria": "Replace a robot/map adapter without changing canonical spatial IDs or workflow references.",
+      "dependencies": "R1 canonical identities; R3 context.",
+      "depends_on": [
+        "R1",
+        "R3"
+      ]
+    },
+    {
+      "id": "R9",
+      "title": "Multimodal Home Understanding",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Interpret visual household observations within a local-first privacy boundary.",
+      "capabilities": "Camera/RTSP/ONVIF; image events; VLM; door/package/pet/floor observations.",
+      "exit_criteria": "Consent, local processing, scoped access and retention are verified; uncertain recognition cannot directly trigger unsafe action.",
+      "dependencies": "R4 events; R6 policy; R8 spatial model.",
+      "depends_on": [
+        "R4",
+        "R6",
+        "R8"
+      ]
+    },
+    {
+      "id": "R10",
+      "title": "Natural Interaction",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Expose one governed backend through multiple household interaction channels.",
+      "capabilities": "Web/mobile; Telegram; voice; Siri/Shortcuts; notifications.",
+      "exit_criteria": "Equivalent authorized intent from two channels produces the same reviewed action semantics; channels cannot bypass policy.",
+      "dependencies": "R1 API; R2 notifications; R7 plans. Existing web prototype is a starting asset.",
+      "depends_on": [
+        "R1",
+        "R2",
+        "R7"
+      ]
+    },
+    {
+      "id": "R11",
+      "title": "Reliability & Home Operations",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Operate the household service with recoverable failures on NAS/Pi/home servers.",
+      "capabilities": "Health/watchdog; metrics/traces/alerts; dead letters; validation; backup; disaster recovery.",
+      "exit_criteria": "An outage and restore drill meets documented recovery targets and produces runtime evidence; local manual control remains available.",
+      "dependencies": "Each stage must already satisfy baseline reliability; platform REQ-010 and operational ADRs.",
+      "depends_on": [
+        "R1"
+      ]
+    },
+    {
+      "id": "R12",
+      "title": "Open Home Intelligence Platform",
+      "status": "planned",
+      "horizon": "LATER",
+      "goal": "Extend adapters, capabilities and workflows without changing the core.",
+      "capabilities": "Plugin/Adapter/Capability/Workflow SDKs; APIs/webhooks; MCP integration; developer documentation.",
+      "exit_criteria": "A reference third-party adapter passes contracts and policy registration without core modifications.",
+      "dependencies": "R1 contracts; R2 workflow; R6 policy; R11 operations.",
+      "depends_on": [
+        "R1",
+        "R2",
+        "R6",
+        "R11"
+      ]
+    }
+  ],
+  "features": [
+    {
+      "id": "HI-F001",
+      "title": "Home Assistant Connection",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F001.md",
+      "depends_on": [],
+      "stories": [
+        "HI-S001",
+        "HI-S002",
+        "HI-S003",
+        "HI-S004"
+      ],
+      "legacy_refs": [
+        "ZW-EP-13"
+      ],
+      "source_ref": "F001"
+    },
+    {
+      "id": "HI-F002",
+      "title": "Home Assistant Event Synchronization",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F002.md",
+      "depends_on": [
+        "HI-F001",
+        "HI-F003"
+      ],
+      "stories": [
+        "HI-S005",
+        "HI-S006",
+        "HI-S007"
+      ],
+      "legacy_refs": [
+        "ZW-EP-03"
+      ],
+      "source_ref": "F002"
+    },
+    {
+      "id": "HI-F003",
+      "title": "Canonical Home Domain Model",
+      "stage": "R1",
+      "status": "active",
+      "path": "features/HI-F003.md",
+      "depends_on": [],
+      "stories": [
+        "HI-S008",
+        "HI-S009",
+        "HI-S010"
+      ],
+      "legacy_refs": [
+        "ZW-EP-01",
+        "ZW-EP-02"
+      ],
+      "source_ref": "F003"
+    },
+    {
+      "id": "HI-F004",
+      "title": "Capability Model",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F004.md",
+      "depends_on": [
+        "HI-F003"
+      ],
+      "stories": [
+        "HI-S011",
+        "HI-S012"
+      ],
+      "legacy_refs": [
+        "ZW-EP-02"
+      ],
+      "source_ref": "F004"
+    },
+    {
+      "id": "HI-F005",
+      "title": "Entity / Device Mapper",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F005.md",
+      "depends_on": [
+        "HI-F001",
+        "HI-F003",
+        "HI-F004"
+      ],
+      "stories": [
+        "HI-S013",
+        "HI-S014",
+        "HI-S015"
+      ],
+      "legacy_refs": [
+        "ZW-EP-01",
+        "ZW-EP-13"
+      ],
+      "source_ref": "F005"
+    },
+    {
+      "id": "HI-F006",
+      "title": "Home State Store",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F006.md",
+      "depends_on": [
+        "HI-F003"
+      ],
+      "stories": [
+        "HI-S016",
+        "HI-S017",
+        "HI-S018"
+      ],
+      "legacy_refs": [
+        "ZW-EP-03"
+      ],
+      "source_ref": "F006"
+    },
+    {
+      "id": "HI-F007",
+      "title": "Capability Execution API",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F007.md",
+      "depends_on": [
+        "HI-F004",
+        "HI-F005",
+        "HI-F008"
+      ],
+      "stories": [
+        "HI-S019",
+        "HI-S020",
+        "HI-S021"
+      ],
+      "legacy_refs": [
+        "ZW-EP-12",
+        "ZW-EP-13"
+      ],
+      "source_ref": "F007"
+    },
+    {
+      "id": "HI-F008",
+      "title": "Action Guard & Audit",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F008.md",
+      "depends_on": [
+        "HI-F003",
+        "HI-F004"
+      ],
+      "stories": [
+        "HI-S022",
+        "HI-S023",
+        "HI-S024"
+      ],
+      "legacy_refs": [
+        "ZW-EP-15",
+        "ZW-EP-16"
+      ],
+      "source_ref": "F008"
+    },
+    {
+      "id": "HI-F009",
+      "title": "Mock Home / Simulation",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F009.md",
+      "depends_on": [
+        "HI-F003",
+        "HI-F004"
+      ],
+      "stories": [
+        "HI-S025",
+        "HI-S026",
+        "HI-S027"
+      ],
+      "legacy_refs": [
+        "ZW-EP-13"
+      ],
+      "source_ref": "F009"
+    },
+    {
+      "id": "HI-F010",
+      "title": "Home API",
+      "stage": "R1",
+      "status": "planned",
+      "path": "features/HI-F010.md",
+      "depends_on": [
+        "HI-F006",
+        "HI-F007",
+        "HI-F008",
+        "HI-F009"
+      ],
+      "stories": [
+        "HI-S028",
+        "HI-S029",
+        "HI-S030"
+      ],
+      "legacy_refs": [
+        "ZW-EP-03",
+        "ZW-EP-12"
+      ],
+      "source_ref": "F010"
+    },
+    {
+      "id": "HI-F101",
+      "title": "Workflow Runtime",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F101.md",
+      "depends_on": [
+        "HI-F007",
+        "HI-F008",
+        "HI-F010"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-08",
+        "ZW-EP-11"
+      ],
+      "source_ref": "F101"
+    },
+    {
+      "id": "HI-F102",
+      "title": "Workflow Persistence",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F102.md",
+      "depends_on": [
+        "HI-F101"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-11"
+      ],
+      "source_ref": "F102"
+    },
+    {
+      "id": "HI-F103",
+      "title": "Trigger & Condition Engine",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F103.md",
+      "depends_on": [
+        "HI-F002",
+        "HI-F006",
+        "HI-F101"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-08"
+      ],
+      "source_ref": "F103"
+    },
+    {
+      "id": "HI-F104",
+      "title": "Human Confirmation",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F104.md",
+      "depends_on": [
+        "HI-F008",
+        "HI-F102"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-08",
+        "ZW-EP-15"
+      ],
+      "source_ref": "F104"
+    },
+    {
+      "id": "HI-F105",
+      "title": "Sleep Workflow",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F105.md",
+      "depends_on": [
+        "HI-F101",
+        "HI-F102",
+        "HI-F103",
+        "HI-F104"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-09"
+      ],
+      "source_ref": "F105"
+    },
+    {
+      "id": "HI-F106",
+      "title": "Aquarium Workflow",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F106.md",
+      "depends_on": [
+        "HI-F101",
+        "HI-F102",
+        "HI-F103",
+        "HI-F104"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-09"
+      ],
+      "source_ref": "F106"
+    },
+    {
+      "id": "HI-F107",
+      "title": "Laundry Workflow",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F107.md",
+      "depends_on": [
+        "HI-F101",
+        "HI-F102",
+        "HI-F103",
+        "HI-F104",
+        "HI-F110"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-09"
+      ],
+      "source_ref": "F107"
+    },
+    {
+      "id": "HI-F108",
+      "title": "Cleaning Workflow",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F108.md",
+      "depends_on": [
+        "HI-F101",
+        "HI-F102",
+        "HI-F103",
+        "HI-F104"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-09",
+        "ZW-EP-13"
+      ],
+      "source_ref": "F108"
+    },
+    {
+      "id": "HI-F109",
+      "title": "Workflow Timeline / Audit",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F109.md",
+      "depends_on": [
+        "HI-F102",
+        "HI-F008"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-11",
+        "ZW-EP-16"
+      ],
+      "source_ref": "F109"
+    },
+    {
+      "id": "HI-F110",
+      "title": "Household Notification",
+      "stage": "R2",
+      "status": "planned",
+      "path": "features/HI-F110.md",
+      "depends_on": [
+        "HI-F101",
+        "HI-F008"
+      ],
+      "stories": [],
+      "legacy_refs": [
+        "ZW-EP-12"
+      ],
+      "source_ref": "F110"
+    }
+  ],
+  "stories": [
+    {
+      "id": "HI-S001",
+      "title": "Define Home Assistant configuration",
+      "parent": "HI-F001",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S001.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [],
+      "source_ref": "S001"
+    },
+    {
+      "id": "HI-S002",
+      "title": "Add authenticated Home Assistant REST client",
+      "parent": "HI-F001",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S002.md",
+      "depends_on": [
+        "HI-S001"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [],
+      "source_ref": "S002"
+    },
+    {
+      "id": "HI-S003",
+      "title": "Define Home Assistant WebSocket lifecycle",
+      "parent": "HI-F001",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S003.md",
+      "depends_on": [
+        "HI-S001"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [],
+      "source_ref": "S003"
+    },
+    {
+      "id": "HI-S004",
+      "title": "Expose Home Assistant integration health",
+      "parent": "HI-F001",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S004.md",
+      "depends_on": [
+        "HI-S002",
+        "HI-S003"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [],
+      "source_ref": "S004"
+    },
+    {
+      "id": "HI-S005",
+      "title": "Subscribe to HA state changes",
+      "parent": "HI-F002",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S005.md",
+      "depends_on": [
+        "HI-S003"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0302"
+      ],
+      "source_ref": "S005"
+    },
+    {
+      "id": "HI-S006",
+      "title": "Normalize HA state change events",
+      "parent": "HI-F002",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S006.md",
+      "depends_on": [
+        "HI-S005",
+        "HI-S009",
+        "HI-S010"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0302"
+      ],
+      "source_ref": "S006"
+    },
+    {
+      "id": "HI-S007",
+      "title": "Reconcile current state after reconnect",
+      "parent": "HI-F002",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S007.md",
+      "depends_on": [
+        "HI-S002",
+        "HI-S006",
+        "HI-S014",
+        "HI-S017"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0302",
+        "ZW-ST-0304"
+      ],
+      "source_ref": "S007"
+    },
+    {
+      "id": "HI-S008",
+      "title": "Define canonical Home, Area and Device contracts",
+      "parent": "HI-F003",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S008.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0101",
+        "ZW-ST-0201"
+      ],
+      "source_ref": "S008"
+    },
+    {
+      "id": "HI-S009",
+      "title": "Define ProviderBinding contract",
+      "parent": "HI-F003",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S009.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S009"
+    },
+    {
+      "id": "HI-S010",
+      "title": "Define canonical State contract",
+      "parent": "HI-F003",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S010.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0304"
+      ],
+      "source_ref": "S010"
+    },
+    {
+      "id": "HI-S011",
+      "title": "Define versioned Capability base contract",
+      "parent": "HI-F004",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S011.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0201",
+        "ZW-ST-0202"
+      ],
+      "source_ref": "S011"
+    },
+    {
+      "id": "HI-S012",
+      "title": "Define six initial capability schemas",
+      "parent": "HI-F004",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S012.md",
+      "depends_on": [
+        "HI-S011"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0202"
+      ],
+      "source_ref": "S012"
+    },
+    {
+      "id": "HI-S013",
+      "title": "Discover HA registries and state",
+      "parent": "HI-F005",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S013.md",
+      "depends_on": [
+        "HI-S002",
+        "HI-S003"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1303"
+      ],
+      "source_ref": "S013"
+    },
+    {
+      "id": "HI-S014",
+      "title": "Map registries into canonical home objects",
+      "parent": "HI-F005",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S014.md",
+      "depends_on": [
+        "HI-S008",
+        "HI-S009",
+        "HI-S013"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0102",
+        "ZW-ST-0103",
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S014"
+    },
+    {
+      "id": "HI-S015",
+      "title": "Infer supported capabilities deterministically",
+      "parent": "HI-F005",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S015.md",
+      "depends_on": [
+        "HI-S012",
+        "HI-S014"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0202",
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S015"
+    },
+    {
+      "id": "HI-S016",
+      "title": "Implement scoped current-state store",
+      "parent": "HI-F006",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S016.md",
+      "depends_on": [
+        "HI-S008",
+        "HI-S010"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0301"
+      ],
+      "source_ref": "S016"
+    },
+    {
+      "id": "HI-S017",
+      "title": "Apply normalized events monotonically",
+      "parent": "HI-F006",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S017.md",
+      "depends_on": [
+        "HI-S006",
+        "HI-S016"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0302",
+        "ZW-ST-0304"
+      ],
+      "source_ref": "S017"
+    },
+    {
+      "id": "HI-S018",
+      "title": "Expose scoped home-state query service",
+      "parent": "HI-F006",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S018.md",
+      "depends_on": [
+        "HI-S014",
+        "HI-S015",
+        "HI-S016"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0301"
+      ],
+      "source_ref": "S018"
+    },
+    {
+      "id": "HI-S019",
+      "title": "Define Action Request, Result and Task contracts",
+      "parent": "HI-F007",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S019.md",
+      "depends_on": [],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1201"
+      ],
+      "source_ref": "S019"
+    },
+    {
+      "id": "HI-S020",
+      "title": "Resolve actions into registered provider operations",
+      "parent": "HI-F007",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S020.md",
+      "depends_on": [
+        "HI-S009",
+        "HI-S015",
+        "HI-S019",
+        "HI-S024"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S020"
+    },
+    {
+      "id": "HI-S021",
+      "title": "Execute HA capability actions asynchronously",
+      "parent": "HI-F007",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S021.md",
+      "depends_on": [
+        "HI-S002",
+        "HI-S020",
+        "HI-S022",
+        "HI-S023"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1303",
+        "ZW-ST-1201"
+      ],
+      "source_ref": "S021"
+    },
+    {
+      "id": "HI-S022",
+      "title": "Provide shared action guard entry point",
+      "parent": "HI-F008",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S022.md",
+      "depends_on": [
+        "HI-S012",
+        "HI-S019",
+        "HI-S024"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1501",
+        "ZW-ST-1502",
+        "ZW-ST-1503"
+      ],
+      "source_ref": "S022"
+    },
+    {
+      "id": "HI-S023",
+      "title": "Persist append-only action audit evidence",
+      "parent": "HI-F008",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S023.md",
+      "depends_on": [
+        "HI-S019",
+        "HI-S022"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1504",
+        "ZW-ST-1601"
+      ],
+      "source_ref": "S023"
+    },
+    {
+      "id": "HI-S024",
+      "title": "Reject unsupported and invalid actions",
+      "parent": "HI-F008",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S024.md",
+      "depends_on": [
+        "HI-S012",
+        "HI-S019"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0202",
+        "ZW-ST-1503"
+      ],
+      "source_ref": "S024"
+    },
+    {
+      "id": "HI-S025",
+      "title": "Define provider interface and mock provider",
+      "parent": "HI-F009",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S025.md",
+      "depends_on": [
+        "HI-S008",
+        "HI-S009",
+        "HI-S010",
+        "HI-S011",
+        "HI-S019"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S025"
+    },
+    {
+      "id": "HI-S026",
+      "title": "Add mock switch, curtain and temperature sensor",
+      "parent": "HI-F009",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S026.md",
+      "depends_on": [
+        "HI-S012",
+        "HI-S025"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S026"
+    },
+    {
+      "id": "HI-S027",
+      "title": "Verify provider contracts with mock devices",
+      "parent": "HI-F009",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S027.md",
+      "depends_on": [
+        "HI-S026"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1302"
+      ],
+      "source_ref": "S027"
+    },
+    {
+      "id": "HI-S028",
+      "title": "Expose canonical home-state query API",
+      "parent": "HI-F010",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S028.md",
+      "depends_on": [
+        "HI-S018",
+        "HI-S004"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-0301",
+        "ZW-ST-1501"
+      ],
+      "source_ref": "S028"
+    },
+    {
+      "id": "HI-S029",
+      "title": "Expose governed action-task API",
+      "parent": "HI-F010",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S029.md",
+      "depends_on": [
+        "HI-S021",
+        "HI-S023",
+        "HI-S028"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1201",
+        "ZW-ST-1503"
+      ],
+      "source_ref": "S029"
+    },
+    {
+      "id": "HI-S030",
+      "title": "Verify canonical read and action smoke flows",
+      "parent": "HI-F010",
+      "stage": "R1",
+      "status": "draft",
+      "path": "stories/HI-S030.md",
+      "depends_on": [
+        "HI-S007",
+        "HI-S027",
+        "HI-S028",
+        "HI-S029"
+      ],
+      "harness_ref": null,
+      "legacy_refs": [
+        "ZW-ST-1303",
+        "ZW-ST-1601"
+      ],
+      "source_ref": "S030"
+    }
+  ]
+}

@@ -64,3 +64,7 @@ Codex/Gemini 的评审产出**不直接改设计稿**，而是：
 
 M1 起，本仓库的里程碑与 REQ 同步录入 GoalAgent 作为第一个正式 Goal（"ai-family 项目开发"），
 GoalAgent 的日报/周报覆盖项目进度。在此之前以 `tasks/features/` 目录为唯一进度视图。
+
+## Product Planning Bridge
+
+Home Intelligence now has an English [R-stage planning layer](../docs/product/home-intelligence/requirements/README.md). Its Features and candidate Stories complement this Harness rather than replace the REQ lifecycle. HI Stories must be admitted to a correctly owned REQ before coding; once admitted, displayed engineering state derives from Harness. The current role/owner authority is [agent-registry.yml](agent-registry.yml) and [requirement-standard.md](requirement-standard.md), including the Planner/Generator/Evaluator separation. [REQ-012](tasks/features/REQ-012.md) records the planning delivery.

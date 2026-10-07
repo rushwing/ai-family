@@ -1,5 +1,9 @@
 # 知微 Handover
 
+## Requirements Planning Follow-up
+
+The original handover below remains historical. The current English planning package is [README.md](README.md), [ROADMAP.md](ROADMAP.md), [CURRENT_STATE.md](CURRENT_STATE.md) and [CROSSWALK.md](CROSSWALK.md). R1 is the active household capability stage; R2 has Features only. Existing prototype statuses do not certify backend implementation. REQ-012 records this documentation delivery; REQ-011 remains the original handover record.
+
 ## 交付状态
 
 本次 Handover 把原先独立的 `Family-Intelligence/family-digital-twin` 前端原型纳入 `ai-family` modular monorepo，并补齐产品、需求和项目治理上下文。
