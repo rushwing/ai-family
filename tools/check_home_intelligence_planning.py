@@ -135,7 +135,12 @@ def validate(root: Path = ROOT) -> list[str]:
     active = index.get("active_stage")
     if [ident for ident, entry in stages.items() if entry.get("status") == "active"] != [active]:
         errors.append("Exactly the declared active stage must be active")
-    if not (root / f"harness/tasks/features/{index.get('documentation_req')}.md").is_file():
+    documentation_req = index.get("documentation_req")
+    documentation_paths = [
+        root / f"harness/tasks/features/{documentation_req}.md",
+        root / f"harness/tasks/archive/done/features/{documentation_req}.md",
+    ]
+    if not any(path.is_file() for path in documentation_paths):
         errors.append("Missing documentation Harness REQ")
     roadmap = (product / "ROADMAP.md").read_text(encoding="utf-8")
     for ident, entry in stages.items():

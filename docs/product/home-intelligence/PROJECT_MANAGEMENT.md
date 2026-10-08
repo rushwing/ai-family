@@ -69,7 +69,7 @@ Issue 标题保留稳定 ID：
 Issue 正文首段固定为：
 
 ```markdown
-> Canonical source: harness/tasks/features/REQ-011.md
+> Canonical source: harness/tasks/archive/done/features/REQ-011.md
 > 本 Issue 用于 Project 展示与讨论。状态和验收标准以 Harness 为准。
 ```
 
