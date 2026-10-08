@@ -19,7 +19,7 @@ Evidence is based on the local repository at base commit `c595649`, inspected on
 
 ## Not Implemented in the Inspected Runtime
 
-No HA REST/WebSocket home adapter, HA registry mapper, canonical home runtime, scoped Home State Store, Home capability executor, Mock Home or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
+No HA REST/WebSocket home adapter, HA registry mapper, ProviderBinding runtime, scoped Home State Store, Home capability executor, Mock Home or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
 
 ## Active Feature
 
@@ -27,7 +27,7 @@ HI-F003 — Canonical Home Domain Model. R1 is active; other R1 features are pla
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
+HI-S001, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
 
 ## Blocked and Pending Stories
 
@@ -39,7 +39,9 @@ No unresolved decision prevents the first domain/configuration contract stories.
 
 ## Domain Contract Delivery
 
-HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/archive/done/features/REQ-013.md) records the accepted typed shared contracts, offline inventory validation and pure target resolution delivered in PR #26. This delivery requires no HA credentials or hardware and unlocks mapper/state/mock work.
+HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/archive/done/features/REQ-013.md) records the accepted typed shared contracts, offline inventory validation and pure target resolution delivered in PR #26. This delivery requires no HA credentials or hardware and supplies canonical identity prerequisites for later mapper/state/mock work.
+
+HI-S009 — Define ProviderBinding contract is admitted to [REQ-014](../../../harness/tasks/features/REQ-014.md). The specification and acceptance criteria are prepared for independent requirement review; owner/status derive from Harness. Provider mappings remain separate from inventory, replacement preserves canonical identity, and live HA calls/action dispatch are excluded. No ProviderBinding runtime is delivered by admission.
 
 ## Delivery Order
 

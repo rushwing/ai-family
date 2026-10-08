@@ -30,6 +30,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/archive/done/features/REQ-012.md",
             "harness/tasks/archive/done/features/REQ-011.md",
             "harness/tasks/features/REQ-013.md",
+            "harness/tasks/features/REQ-014.md",
             "harness/agent-registry.yml",
         ):
             dest = self.root / rel

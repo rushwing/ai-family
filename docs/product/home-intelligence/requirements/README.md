@@ -38,7 +38,7 @@ Recommended commit title: `feat(HI-F004/HI-S012): add Positionable schema`. PR b
 
 ## Initial Selection
 
-Start with HI-F003 / HI-S008. HI-S001, HI-S008, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites. HI-S008 is admitted to REQ-013 (`req_review` / evaluator-001 at admission); the remaining candidates await admission. Its expanded scope includes Floor, typed areas, labels, configurable apartment inventory and pure room-group targeting. No runtime contract implementation has been delivered by admission. HI-S025 requires the domain, capability and action contracts and is not initially dependency-ready. HA tokens or physical hardware do not block these contract/configuration stories. See CURRENT_STATE.md for unresolved integration work.
+HI-F003 is the active contract feature. HI-S008 is delivered through archived REQ-013. HI-S009 is admitted to [REQ-014](../../../../harness/tasks/features/REQ-014.md) for ProviderBinding specification review; read current engineering owner/status from Harness. It keeps mappings separate from inventory and verifies offline HA-to-mock replacement without changing canonical Device identity. Its engineering dependency is completed REQ-013; admission delivers no binding runtime. HI-S001, HI-S010, HI-S011 and HI-S019 remain dependency-ready candidates awaiting admission. HI-S025 requires domain, capability and action contracts and is not initially dependency-ready. HA tokens or physical hardware do not block contract/configuration stories. See CURRENT_STATE.md for unresolved integration work.
 
 ## Templates
 
