@@ -1,6 +1,6 @@
 # Editable Home Inventory Example
 
-[REQ-013](../../../../harness/tasks/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional editable inventory. The offline loader/resolver is implemented; independent review is pending. The JSON is not HA configuration and does not control devices.
+[REQ-013](../../../../harness/tasks/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional editable inventory. The offline loader/resolver is implemented; the supplied independent review passed. The JSON is not HA configuration and does not control devices.
 
 ## Customize
 
@@ -63,4 +63,4 @@ result = resolve_targets(
 print(result)
 ```
 
-The resolver returns sorted, unique `area_ids` and `device_ids`. Invalid selectors fail explicitly; valid empty selections stay empty. Loading or resolving targets never executes device actions. Independent TC-code/feature review remains pending.
+The resolver returns sorted, unique `area_ids` and `device_ids`. Invalid selectors fail explicitly; valid empty selections stay empty. Loading or resolving targets never executes device actions. The completed independent TC-code/feature review is recorded in Harness.

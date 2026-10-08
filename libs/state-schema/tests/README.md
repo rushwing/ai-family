@@ -6,7 +6,7 @@ fake validator, loader or resolver. Frozen-record and strict JSON decoding
 regressions supplement the original TC code. The seven guard checks are
 infrastructure checks; all remaining cases execute the runtime.
 
-Independent combined TC-code/feature review is pending. Successful test execution
+The independent combined TC-code/feature review supplied by human-001 passed. Successful test execution
 is implementation evidence, not an independent approval.
 
 Run from the repository root with Python 3.12+ and pytest:

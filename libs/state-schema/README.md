@@ -64,7 +64,7 @@ Validation uses Python's standard library, frozen dataclasses and explicit
 shape/reference checks. The schema is small and fixed; this avoids scalar
 coercion and keeps the loader available without external runtime dependencies.
 Fields are inspected in declared order; global ID checks precede reference
-checks. This implementation choice remains part of the pending combined review.
+checks. The supplied independent combined review accepted this implementation choice.
 
 Run the required checks from the repository root:
 
@@ -77,8 +77,9 @@ bash scripts/check.sh
 
 Acceptance mode rejects absent runtime or any skipped test. CI runs these checks
 on Python 3.12 and uploads JUnit results. Package wheel installation and CLI/API
-smoke verification are also recorded in Harness evidence. Independent review is
-pending; test success does not mark REQ-013 done.
+smoke verification are also recorded in Harness evidence. The completed independent combined review and post-polish acceptance are recorded
+in [Harness evidence](../../harness/tasks/evidence/REQ-013-review-acceptance.md);
+completion follows the Harness merge gate.
 
 See [REQ-013](../../harness/tasks/features/REQ-013.md),
 [TC execution instructions](tests/README.md) and the
