@@ -53,6 +53,7 @@ jobs:
               - 'agents/goal/**'
             libs:
               - 'libs/**'
+              - '.github/workflows/ci.yml'
             home_intelligence:
               - 'apps/home-intelligence-web/**'
             home_requirements:
@@ -68,6 +69,34 @@ jobs:
               - 'agents/goal/tests/conftest.py'
               - 'agents/goal/tests/integration/test_legacy_direct_disabled.py'
               - '.github/workflows/ci.yml'
+
+  # REQ-013 test-first contract suite; skips remain visible until runtime exists.
+  state-schema-tc:
+    needs: changes
+    if: ${{ needs.changes.outputs.libs == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test tools and runtime package when present
+        run: |
+          python -m pip install pytest ruff
+          if [ -f libs/state-schema/pyproject.toml ]; then
+            python -m pip install -e libs/state-schema
+          fi
+      - name: Lint inventory tests
+        run: ruff check libs/state-schema/tests
+      - name: Run inventory TCs (test-first skips are not acceptance)
+        run: >-
+          python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests
+          -q --junitxml=/tmp/req013-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: req013-tc-results
+          path: /tmp/req013-results.xml
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
   goal-agent:
