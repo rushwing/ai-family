@@ -97,3 +97,7 @@ draft → req_review ⇄ tc_design → tc_review ⇄ tc_impl → tc_impl_review
 
 1. REQ 文件存在；2. 执行者 UID == `owner`；3. `status` 在执行者合法工作状态内。
 三者任一不满足，不得动手；冲突上报 human-001。
+
+## Home Intelligence Story Admission
+
+For an admitted HI Story, the Harness REQ is the sole editable engineering specification: scope, acceptance, dependencies, priority, ownership, lifecycle and evidence. Add `story_ref: "HI-SNNN"`; its product navigation record carries reciprocal `harness_ref: "REQ-NNN"`. Transfer the candidate specification into the REQ and remove duplicated engineering fields/checklists from the Story/index. Resolve current state from the active or archived REQ, not a second persisted status. The planning gate checks the reciprocal identity and rejects duplicated admitted specifications. See [operating rules](../docs/product/home-intelligence/requirements/README.md).

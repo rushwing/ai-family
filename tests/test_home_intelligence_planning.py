@@ -9,7 +9,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from tools.check_home_intelligence_planning import PRODUCT, REFINEMENT_BOUNDARY, ROOT, validate
+from tools.check_home_intelligence_planning import (
+    PRODUCT,
+    REFINEMENT_BOUNDARY,
+    ROOT,
+    engineering_state,
+    validate,
+)
 
 
 class PlanningIntegrityTests(unittest.TestCase):
@@ -22,6 +28,8 @@ class PlanningIntegrityTests(unittest.TestCase):
         for rel in (
             "harness/tasks/archive/done/features/REQ-012.md",
             "harness/tasks/archive/done/features/REQ-011.md",
+            "harness/tasks/features/REQ-013.md",
+            "harness/agent-registry.yml",
         ):
             dest = self.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
@@ -31,6 +39,113 @@ class PlanningIntegrityTests(unittest.TestCase):
 
     def test_published_planning_is_valid(self):
         self.assertEqual(validate(self.root), [])
+
+    def test_admitted_story_reads_engineering_state_from_harness(self):
+        story = next(s for s in self.baseline["stories"] if s["id"] == "HI-S008")
+        self.assertNotIn("status", story)
+        self.assertNotIn("depends_on", story)
+        self.assertEqual(engineering_state(self.root, story)["status"], "req_review")
+        req = self.root / "harness/tasks/features/REQ-013.md"
+        req.write_text(req.read_text().replace('status: "req_review"', 'status: "tc_design"'))
+        self.assertEqual(engineering_state(self.root, story)["status"], "tc_design")
+        self.assertEqual(validate(self.root), [])
+
+    def test_admitted_story_rejects_copied_engineering_metadata(self):
+        story = next(s for s in self.baseline["stories"] if s["id"] == "HI-S008")
+        story["status"] = "done"
+        self.index.write_text(json.dumps(self.baseline), encoding="utf-8")
+        self.assertIn(
+            "Duplicated engineering metadata in admitted Story: HI-S008", validate(self.root)
+        )
+
+    def test_admitted_story_rejects_copied_acceptance(self):
+        story = self.root / PRODUCT / "requirements/stories/HI-S008.md"
+        story.write_text(story.read_text() + "\n## Acceptance Criteria\n\n- [ ] Copied criterion\n")
+        self.assertIn(
+            "Duplicated engineering specification in admitted Story: HI-S008", validate(self.root)
+        )
+
+    def test_admitted_story_requires_reciprocal_req_identity(self):
+        req = self.root / "harness/tasks/features/REQ-013.md"
+        req.write_text(req.read_text().replace('story_ref: "HI-S008"', 'story_ref: "HI-S009"'))
+        self.assertIn("Harness/Story reciprocal identity mismatch: HI-S008", validate(self.root))
+
+    def test_admitted_story_rejects_a_second_authoritative_req(self):
+        req = self.root / "harness/tasks/features/REQ-013.md"
+        duplicate = self.root / "harness/tasks/features/REQ-014.md"
+        duplicate.write_text(req.read_text().replace("REQ-013", "REQ-014"))
+        self.assertIn("Multiple Harness specifications claim Story: HI-S008", validate(self.root))
+
+    def test_admitted_story_requires_existing_req(self):
+        (self.root / "harness/tasks/features/REQ-013.md").unlink()
+        self.assertIn("Missing linked Harness REQ: HI-S008", validate(self.root))
+
+    def test_admitted_story_supports_archive_and_rejects_duplicate_records(self):
+        active = self.root / "harness/tasks/features/REQ-013.md"
+        archived = self.root / "harness/tasks/archive/done/features/REQ-013.md"
+        shutil.copy2(active, archived)
+        self.assertIn("Duplicate active/archived Harness REQ: HI-S008", validate(self.root))
+        active.unlink()
+        for doc in (self.root / PRODUCT).rglob("*.md"):
+            doc.write_text(
+                doc.read_text().replace(
+                    "tasks/features/REQ-013.md", "tasks/archive/done/features/REQ-013.md"
+                )
+            )
+        archived.write_text(archived.read_text().replace('status: "req_review"', 'status: "done"'))
+        self.assertEqual(validate(self.root), [])
+        story = next(s for s in self.baseline["stories"] if s["id"] == "HI-S008")
+        self.assertEqual(engineering_state(self.root, story)["status"], "done")
+
+    def test_apartment_specification_fixture_has_consistent_targets(self):
+        fixture = self.root / PRODUCT / "examples/three-bedroom-apartment.example.json"
+        data = json.loads(fixture.read_text())
+        home_id = data["home"]["id"]
+        self.assertEqual(data["schema_version"], 1)
+        self.assertEqual(data["home"]["residence_type"], "apartment")
+        objects = [data["home"]] + [
+            item
+            for key in ("floors", "areas", "devices", "labels", "area_groups")
+            for item in data[key]
+        ]
+        ids = [item["id"] for item in objects]
+        self.assertEqual(len(ids), len(set(ids)))
+        self.assertEqual(data["floors"][0]["level"], 0)
+        floors = {f["id"] for f in data["floors"]}
+        labels = {label["id"] for label in data["labels"]}
+        areas = {area["id"]: area for area in data["areas"]}
+        for item in data["floors"] + data["areas"] + data["devices"]:
+            self.assertEqual(item["home_id"], home_id)
+        for area in areas.values():
+            self.assertIn(area["floor_id"], floors)
+            self.assertLessEqual(set(area["labels"]), labels)
+        for device in data["devices"]:
+            self.assertIn(device["area_id"], areas)
+            self.assertNotIn("entity_id", device)
+        bedrooms = [a for a in areas.values() if a["area_type"] == "bedroom"]
+        self.assertEqual(
+            {a["name"] for a in bedrooms}, {"Master Bedroom", "Daughter's Room", "Elderly Bedroom"}
+        )
+        self.assertEqual(
+            [a["id"] for a in bedrooms if "children" in a["labels"]], ["area-bedroom-02"]
+        )
+        self.assertNotIn("childen", labels)
+        groups = {group["id"]: group["area_types"] for group in data["area_groups"]}
+        self.assertEqual(
+            set(groups),
+            {
+                "daily_life",
+                "resting",
+                "kitchen_bath",
+                "studio",
+                "traffic",
+                "storage_utility",
+                "outdoor_spaces",
+            },
+        )
+        self.assertEqual(groups["resting"], ["bedroom"])
+        for group in ("studio", "storage_utility"):
+            self.assertFalse(any(a["area_type"] in groups[group] for a in areas.values()))
 
     def test_active_documentation_req_is_valid(self):
         archived = self.root / "harness/tasks/archive/done/features/REQ-012.md"

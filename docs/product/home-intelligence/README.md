@@ -17,7 +17,8 @@ Home Intelligence adds household state, vendor-neutral capabilities, workflows a
 | Information | Authority |
 |---|---|
 | Current product direction and capability stages | VISION.md / ROADMAP.md |
-| Detailed new R1 backend and R2 Feature scope | requirements Feature/Story Markdown |
+| Product Feature scope and unadmitted Story candidates | requirements Feature/Story Markdown |
+| Admitted implementation specification and acceptance | Linked Harness REQ; admitted Story retains navigation only |
 | New planning navigation projection | requirements/index.json; synchronize with Markdown |
 | Existing UI interaction rules | PRD.md |
 | Historical product/UI baseline | requirements.xlsx + same-version roadmap.yaml |
@@ -29,6 +30,6 @@ Home Intelligence adds household state, vendor-neutral capabilities, workflows a
 
 ## Change Rules
 
-New planning uses Vision → R Stage → Feature → Story. Persistent implementation Tasks and new R2+ Stories are excluded. Preserve historical IDs; use CROSSWALK when scope overlaps. Before coding, admit a Ready Story to the existing Harness and obey its owner/status gate. Architecture changes require an ADR review first. Do not create a second editable engineering state machine or reverse-sync GitHub into Harness.
+New planning uses Vision → R Stage → Feature → Story. Persistent implementation Tasks and new R2+ Stories are excluded. Preserve historical IDs; use CROSSWALK when scope overlaps. Before coding, admit a Ready Story to the existing Harness, move its detailed specification to the REQ, leave a Story navigation link and obey its owner/status gate. Architecture changes require an ADR review first. Do not create a second editable engineering state machine or reverse-sync GitHub into Harness.
 
 This documentation delivery is [REQ-012](../../../harness/tasks/archive/done/features/REQ-012.md); the prior handover remains [REQ-011](../../../harness/tasks/archive/done/features/REQ-011.md). Legacy workbook changes still require matching roadmap.yaml changes and its existing validator.

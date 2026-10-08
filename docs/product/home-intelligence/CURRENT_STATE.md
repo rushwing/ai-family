@@ -27,11 +27,11 @@ HI-F003 — Canonical Home Domain Model. R1 is active; other R1 features are pla
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S008, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites. They remain draft until scope approval and a correctly owned Harness REQ exist. There are no admitted ready Stories in this delivery.
+HI-S001, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; runtime delivery is pending.
 
 ## Blocked and Pending Stories
 
-No story is currently marked blocked. The remaining stories await explicit Story prerequisites listed in index.json. Future live HA/device validation requires private endpoint/credentials and a controlled existing device. Deployment of device actions also requires real governed dispatch, durable audit/confirmation and task processing; link the relevant REQ-003/004 gaps when admitting those stories rather than claiming blanket readiness.
+Read admitted engineering blockers from Harness; no unadmitted candidate is marked blocked. The remaining stories await explicit Story prerequisites listed in index.json. Future live HA/device validation requires private endpoint/credentials and a controlled existing device. Deployment of device actions also requires real governed dispatch, durable audit/confirmation and task processing; link the relevant REQ-003/004 gaps when admitting those stories rather than claiming blanket readiness.
 
 ## Decisions Required
 
@@ -39,7 +39,7 @@ No unresolved decision prevents the first domain/configuration contract stories.
 
 ## Recommended First Coding Story
 
-HI-S008 — Define canonical Home, Area and Device contracts. Admit it to Harness first, assign the registered owner, then implement typed shared contracts and targeted schema tests. It is independently mergeable, requires no HA credentials or hardware, and unlocks mapper/state/mock work.
+HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/features/REQ-013.md) is the admitted specification; complete its independent requirement review and required TC handoff before implementing typed shared contracts, offline inventory validation and pure target resolution. It is independently mergeable, requires no HA credentials or hardware, and unlocks mapper/state/mock work.
 
 ## Delivery Order
 

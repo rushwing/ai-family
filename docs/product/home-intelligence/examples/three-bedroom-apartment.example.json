@@ -1,0 +1,232 @@
+{
+  "schema_version": 1,
+  "home": {
+    "id": "home-example",
+    "name": "Example Three-bedroom Apartment",
+    "residence_type": "apartment"
+  },
+  "floors": [
+    {
+      "id": "floor-0",
+      "home_id": "home-example",
+      "name": "Ground Floor",
+      "level": 0,
+      "aliases": []
+    }
+  ],
+  "areas": [
+    {
+      "id": "area-bedroom-01",
+      "home_id": "home-example",
+      "area_type": "bedroom",
+      "name": "Master Bedroom",
+      "floor_id": "floor-0",
+      "labels": [
+        "primary"
+      ],
+      "aliases": []
+    },
+    {
+      "id": "area-bedroom-02",
+      "home_id": "home-example",
+      "area_type": "bedroom",
+      "name": "Daughter's Room",
+      "floor_id": "floor-0",
+      "labels": [
+        "children"
+      ],
+      "aliases": []
+    },
+    {
+      "id": "area-bedroom-03",
+      "home_id": "home-example",
+      "area_type": "bedroom",
+      "name": "Elderly Bedroom",
+      "floor_id": "floor-0",
+      "labels": [
+        "elderly"
+      ],
+      "aliases": []
+    },
+    {
+      "id": "area-living-room",
+      "home_id": "home-example",
+      "area_type": "living_room",
+      "name": "Living Room",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-dining-room",
+      "home_id": "home-example",
+      "area_type": "dining_room",
+      "name": "Dining Room",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-kitchen",
+      "home_id": "home-example",
+      "area_type": "kitchen",
+      "name": "Kitchen",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-bathroom",
+      "home_id": "home-example",
+      "area_type": "bathroom",
+      "name": "Bathroom",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-laundry-room",
+      "home_id": "home-example",
+      "area_type": "laundry_room",
+      "name": "Laundry Room",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-entrance",
+      "home_id": "home-example",
+      "area_type": "entrance",
+      "name": "Entrance",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-hallway",
+      "home_id": "home-example",
+      "area_type": "hallway",
+      "name": "Hallway",
+      "floor_id": "floor-0",
+      "labels": [],
+      "aliases": []
+    },
+    {
+      "id": "area-balcony",
+      "home_id": "home-example",
+      "area_type": "balcony",
+      "name": "Balcony",
+      "floor_id": "floor-0",
+      "labels": [
+        "outdoor"
+      ],
+      "aliases": []
+    }
+  ],
+  "devices": [
+    {
+      "id": "device-bedroom-light-01",
+      "home_id": "home-example",
+      "name": "Example Master Light",
+      "area_id": "area-bedroom-01",
+      "labels": []
+    },
+    {
+      "id": "device-bedroom-light-02",
+      "home_id": "home-example",
+      "name": "Example Daughter Light",
+      "area_id": "area-bedroom-02",
+      "labels": []
+    },
+    {
+      "id": "device-bedroom-light-03",
+      "home_id": "home-example",
+      "name": "Example Elderly Light",
+      "area_id": "area-bedroom-03",
+      "labels": []
+    }
+  ],
+  "labels": [
+    {
+      "id": "primary",
+      "name": "Primary"
+    },
+    {
+      "id": "guest",
+      "name": "Guest"
+    },
+    {
+      "id": "children",
+      "name": "Children"
+    },
+    {
+      "id": "outdoor",
+      "name": "Outdoor"
+    },
+    {
+      "id": "elderly",
+      "name": "Elderly"
+    }
+  ],
+  "area_groups": [
+    {
+      "id": "daily_life",
+      "name": "Daily Life",
+      "area_types": [
+        "living_room",
+        "dining_room"
+      ]
+    },
+    {
+      "id": "resting",
+      "name": "Resting",
+      "area_types": [
+        "bedroom"
+      ]
+    },
+    {
+      "id": "kitchen_bath",
+      "name": "Kitchen & Bath",
+      "area_types": [
+        "kitchen",
+        "bathroom",
+        "laundry_room"
+      ]
+    },
+    {
+      "id": "studio",
+      "name": "Studio",
+      "area_types": [
+        "study",
+        "home_office",
+        "playroom"
+      ]
+    },
+    {
+      "id": "traffic",
+      "name": "Traffic",
+      "area_types": [
+        "entrance",
+        "hallway",
+        "stairwell"
+      ]
+    },
+    {
+      "id": "storage_utility",
+      "name": "Storage & Utility Spaces",
+      "area_types": [
+        "storage_room",
+        "garage"
+      ]
+    },
+    {
+      "id": "outdoor_spaces",
+      "name": "Outdoor",
+      "area_types": [
+        "balcony",
+        "terrace",
+        "garden"
+      ]
+    }
+  ]
+}

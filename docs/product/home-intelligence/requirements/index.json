@@ -664,13 +664,11 @@
     },
     {
       "id": "HI-S008",
-      "title": "Define canonical Home, Area and Device contracts",
+      "title": "Define canonical Home, Floor, Area and Device contracts",
       "parent": "HI-F003",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S008.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-013",
       "legacy_refs": [
         "ZW-ST-0101",
         "ZW-ST-0201"
