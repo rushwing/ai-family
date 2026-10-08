@@ -199,3 +199,28 @@ def test_unknown_envelope_and_binding(binding_api, inventory):
         ("bindings", 0, "mapping", "entity_ids", 0),
         private=("private-marker",),
     )
+
+
+def test_null_mock_key_and_registry_only_ha(binding_api):
+    error_at(
+        binding_api,
+        lambda: binding_api.validate_binding(
+            mutated(binding("mock"), ("mapping", "device_key"), None)
+        ),
+        ("mapping", "device_key"),
+    )
+    data = binding()
+    data["mapping"] = {"device_registry_id": "fictional-registry"}
+    error_at(binding_api, lambda: binding_api.validate_binding(data), ("mapping", "entity_ids"))
+
+
+@pytest.mark.parametrize("provider", ["ha", "mock"])
+def test_nonstring_mapping_keys(binding_api, provider):
+    data = binding(provider)
+    data["mapping"][1] = "private-marker"
+    error_at(
+        binding_api,
+        lambda: binding_api.validate_binding(data),
+        ("mapping",),
+        private=("private-marker",),
+    )

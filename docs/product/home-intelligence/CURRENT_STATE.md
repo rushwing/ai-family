@@ -19,7 +19,7 @@ Evidence is based on the local repository at base commit `c595649`, inspected on
 
 ## Not Implemented in the Inspected Runtime
 
-No HA REST/WebSocket home adapter, HA registry mapper, ProviderBinding runtime, scoped Home State Store, Home capability executor, Mock Home or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
+No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, Home capability executor, Mock Home or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
 
 ## Active Feature
 
@@ -41,7 +41,7 @@ No unresolved decision prevents the first domain/configuration contract stories.
 
 HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/archive/done/features/REQ-013.md) records the accepted typed shared contracts, offline inventory validation and pure target resolution delivered in PR #26. This delivery requires no HA credentials or hardware and supplies canonical identity prerequisites for later mapper/state/mock work.
 
-HI-S009 — Define ProviderBinding contract is admitted to [REQ-014](../../../harness/tasks/features/REQ-014.md). The specification and acceptance criteria are prepared for independent requirement review; owner/status derive from Harness. Provider mappings remain separate from inventory, replacement preserves canonical identity, and live HA calls/action dispatch are excluded. No ProviderBinding runtime is delivered by admission.
+HI-S009 — Define ProviderBinding contract is admitted to [REQ-014](../../../harness/tasks/features/REQ-014.md). Admission PR #28 is merged; draft PR #29 implements the offline binding contracts and TC-014-01–06 for combined TC/code review. Owner/status derive from Harness. Provider mappings remain separate from inventory, replacement preserves canonical identity, and live HA calls/action dispatch are excluded. Binding runtime self-checks pass, but independent combined review and engineering acceptance remain pending. Admission alone did not deliver runtime.
 
 ## Delivery Order
 

@@ -78,3 +78,27 @@ skips must be resolved before claiming acceptance. On root-only environments the
 unreadable-file case skips because root bypasses mode bits; run that case as an
 unprivileged user before approval. Applicable lint/type checks and governance
 gates must also pass. TC code review and runtime acceptance are separate handoffs.
+
+## REQ-014 ProviderBinding acceptance tests
+
+TC-014-01–06 are implemented against `state_schema.provider_binding`, with
+fictional HA/mock resource strings and the separate before/after fixture.
+Independent TC text/code and feature review is deferred to PR #29 under the
+explicit instruction to prepare one combined review. TCs remain `implemented`
+until that review; test execution alone does not confer acceptance.
+
+Run both sets of required contracts:
+
+```bash
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime -q
+```
+
+The binding acceptance option fails if the module is absent or any test skips.
+Module absence is the only pre-implementation gate; missing exports or broken
+imports fail. New tests exercise real shape/collection factories, typed snapshot
+isolation, precise failure paths and privacy, reference/collision rules and full
+inventory/target equality across replacement. Parent socket/DNS/process guards
+apply to all cases; the pure-validation case also blocks filesystem writes.
+The guards cover standard Python entry points, not native code or an OS sandbox.
+No provider service is mocked into existence or dispatched by this suite.

@@ -64,3 +64,19 @@ print(result)
 ```
 
 The resolver returns sorted, unique `area_ids` and `device_ids`. Invalid selectors fail explicitly; valid empty selections stay empty. Loading or resolving targets never executes device actions. The completed independent TC-code/feature review is recorded in Harness.
+
+## Offline provider replacement fixture
+
+[provider-binding-replacement.example.json](provider-binding-replacement.example.json)
+contains separate fictional `before` and `after` binding collections for the
+existing apartment inventory. One bedroom light changes from HA mapping data to
+mock mapping data; the second binding remains equal. It contains no credentials,
+live endpoints or actual household identifiers. The `before`/`after` wrapper is
+a verification fixture, not the version-1 collection envelope.
+
+Validate each collection against an unchanged inventory snapshot using the
+[shared package API](../../../../libs/state-schema/README.md#providerbinding-req-014).
+Do not insert bindings into the canonical inventory JSON. This compares data;
+it neither switches a live provider nor implements a mock device or action.
+Keep private copies in Git-ignored `*.provider-bindings.local.json` files.
+REQ-014 implementation is awaiting independent combined review in PR #29.

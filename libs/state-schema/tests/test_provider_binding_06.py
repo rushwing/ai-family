@@ -1,6 +1,8 @@
 """TC-014-06: offline purity, public boundary and acceptance-mode guards."""
 
 import ast
+import builtins
+import io
 import os
 from pathlib import Path
 
@@ -18,7 +20,29 @@ def test_pure_validation(binding_api, inventory, monkeypatch):
         calls.append(True)
         raise AssertionError("binding validation attempted filesystem mutation")
 
+    real_open = builtins.open
+    real_io_open = io.open
+    real_os_open = os.open
+
+    def guarded_open(file, mode="r", *args, **kwargs):
+        if any(flag in mode for flag in "wax+"):
+            return deny()
+        return real_open(file, mode, *args, **kwargs)
+
+    def guarded_io_open(file, mode="r", *args, **kwargs):
+        if any(flag in mode for flag in "wax+"):
+            return deny()
+        return real_io_open(file, mode, *args, **kwargs)
+
+    def guarded_os_open(file, flags, *args, **kwargs):
+        if flags & (os.O_WRONLY | os.O_RDWR | os.O_CREAT | os.O_TRUNC):
+            return deny()
+        return real_os_open(file, flags, *args, **kwargs)
+
     with monkeypatch.context() as patch:
+        patch.setattr(builtins, "open", guarded_open)
+        patch.setattr(io, "open", guarded_io_open)
+        patch.setattr(os, "open", guarded_os_open)
         for name in (
             "remove",
             "rename",
