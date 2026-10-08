@@ -36,11 +36,13 @@ T = TypeVar('T')
 class InventoryError(ValueError):
     """Actionable validation/loader error with a deterministic structured path."""
 
-    def __init__(self, path: ErrorPath, message: str) -> None:
+    def __init__(self, path: ErrorPath, message: str, *, source: Path | None = None) -> None:
         self.path = path
+        self.message = message
         location = '$' + ''.join(f'[{part}]' if isinstance(part, int) else f'.{part}'
                                  for part in path)
-        super().__init__(f'{location}: {message}')
+        prefix = f'{source}: ' if source is not None else ''
+        super().__init__(f'{prefix}{location}: {message}')
 
 
 def _object(value: object, path: ErrorPath, required: tuple[str, ...],
@@ -326,9 +328,9 @@ def load_inventory(path: str | Path) -> dict[str, object]:
         data = json.loads(text, object_pairs_hook=_ObjectPairs, parse_constant=_reject_constant)
         return validate_inventory(_decoded_json(data))
     except (OSError, UnicodeError, json.JSONDecodeError) as error:
-        raise InventoryError((), f'{source}: {error}') from error
+        raise InventoryError((), str(error), source=source) from error
     except InventoryError as error:
-        raise InventoryError(error.path, f'{source}: {error}') from error
+        raise InventoryError(error.path, error.message, source=source) from error
 
 
 def resolve_targets(inventory: object, *, home_id: object,

@@ -64,6 +64,8 @@ def test_cli_actionable_repeatable_failures(inventory, tmp_path, cli, case, path
             assert result.returncode != 0
             assert not result.stdout.strip(), 'Failed loads must not emit a successful inventory'
             assert str(path) in result.stderr
+            assert result.stderr.startswith(f'{path}: $')
+            assert result.stderr.count('$') == 1
             assert result.stderr.strip()
             if path_token:
                 assert path_token in result.stderr
@@ -95,5 +97,29 @@ def test_cli_rejects_duplicate_fields_and_nonstandard_json(tmp_path, cli, conten
     assert result.returncode != 0
     assert not result.stdout.strip()
     assert str(path) in result.stderr
+    assert result.stderr.startswith(f'{path}: $')
+    assert result.stderr.count('$') == 1
     assert path_token in result.stderr
     assert path.read_bytes() == before
+
+
+@pytest.mark.parametrize('field_path,value,reason', [
+    (('schema_version',), 2, 'unsupported schema version: 2'),
+    (('devices', 0, 'area_id'), 'missing-area', 'unknown Area ID in this Home'),
+])
+def test_loader_preserves_structured_path_and_renders_once(
+        api, inventory, tmp_path, cli, field_path, value, reason):
+    path = tmp_path / 'invalid.json'
+    path.write_text(json.dumps(changed(inventory, field_path, value)), encoding='utf-8')
+    location = '$' + ''.join(f'[{part}]' if isinstance(part, int) else f'.{part}'
+                             for part in field_path)
+    expected = f'{path}: {location}: {reason}'
+    with pytest.raises(api.InventoryError) as caught:
+        api.load_inventory(path)
+    assert caught.value.path == field_path
+    assert str(caught.value) == expected
+    assert isinstance(caught.value.__cause__, api.InventoryError)
+    result = cli(path)
+    assert result.returncode == 2
+    assert result.stdout == ''
+    assert result.stderr == expected + '\n'
