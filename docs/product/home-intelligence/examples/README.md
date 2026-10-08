@@ -1,6 +1,6 @@
 # Editable Home Inventory Example
 
-[REQ-013](../../../../harness/tasks/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional specification fixture; the runtime loader/resolver will be delivered through that REQ's review and TC lifecycle. This file is not HA configuration and does not control devices.
+[REQ-013](../../../../harness/tasks/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional editable inventory. The offline loader/resolver is implemented; independent review is pending. The JSON is not HA configuration and does not control devices.
 
 ## Customize
 
@@ -12,26 +12,55 @@ Edit label registry entries and area/device label ID lists. `children` is the re
 
 ## Target Examples
 
-The following selectors describe the future pure resolver. They do not invoke HA or perform actions:
+Use the following selectors with the pure resolver and `home_id="home-example"`. They select canonical targets without invoking HA or performing actions:
 
 ```json
-{"home_id": "home-example", "area_ids": ["area-bedroom-02"]}
+{"area_ids": ["area-bedroom-02"]}
 ```
 
 Selects Daughter's Room and its fictional light.
 
 ```json
-{"home_id": "home-example", "area_group_ids": ["resting"]}
+{"area_group_ids": ["resting"]}
 ```
 
 Selects all three bedrooms and their fictional lights.
 
 ```json
-{"home_id": "home-example", "area_group_ids": ["resting"], "label_ids": ["children"]}
+{"area_group_ids": ["resting"], "label_ids": ["children"]}
 ```
 
 Selects only Daughter's Room. `studio` and `storage_utility` resolve empty in this apartment; rooms in those groups can be added privately. Group selection is a union, with optional all-label filtering. Later action requirements must validate capability, identity, scope and confirmation for every selected device.
 
-## Current Verification
+## Offline Validation
 
-`python3 -m json.tool docs/product/home-intelligence/examples/three-bedroom-apartment.example.json` checks JSON syntax only. The admission tests check the example's internal references and intended room/group membership. Runtime schema/loader/selector validation is pending REQ-013 and its required TC; no runtime validation command is claimed yet.
+Install from the repository root using Python 3.12+ and validate an explicit path:
+
+```bash
+python -m pip install -e libs/state-schema
+python -m state_schema.home_inventory docs/product/home-intelligence/examples/three-bedroom-apartment.example.json
+```
+
+After copying the file and editing the private inventory, validate that copy:
+
+```bash
+python -m state_schema.home_inventory tmp/my.home-inventory.local.json
+```
+
+The command reads UTF-8 JSON, prints a normalized inventory on success and leaves the file unchanged. Invalid JSON/UTF-8, unsupported versions, unknown fields, duplicate IDs/JSON fields, invalid types and dangling/cross-home references fail with the file and actionable error on stderr. It makes no network or provider calls. See [package instructions](../../../../libs/state-schema/README.md) for typed contracts and diagnostics.
+
+Resolve the copied inventory in Python:
+
+```python
+from state_schema.home_inventory import load_inventory, resolve_targets
+
+inventory = load_inventory("tmp/my.home-inventory.local.json")
+result = resolve_targets(
+    inventory,
+    home_id=inventory["home"]["id"],
+    selector={"area_group_ids": ["resting"], "label_ids": ["children"]},
+)
+print(result)
+```
+
+The resolver returns sorted, unique `area_ids` and `device_ids`. Invalid selectors fail explicitly; valid empty selections stay empty. Loading or resolving targets never executes device actions. Independent TC-code/feature review remains pending.

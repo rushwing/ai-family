@@ -77,3 +77,23 @@ def test_cli_actionable_repeatable_failures(inventory, tmp_path, cli, case, path
         if case == 'unreadable':
             path.chmod(0o600)
     assert (path.read_bytes() if path.exists() else None) == before
+
+
+@pytest.mark.parametrize('content,path_token', [
+    ('{"schema_version":1,"schema_version":2}', 'schema_version'),
+    ('{"home":{"id":"first","id":"second"}}', 'home.id'),
+    ('{"areas":[{"name":"first","name":"second"}]}', 'areas[0].name'),
+    ('{"schema_version":NaN}', 'NaN'),
+    ('{"schema_version":Infinity}', 'Infinity'),
+    ('{"schema_version":-Infinity}', '-Infinity'),
+])
+def test_cli_rejects_duplicate_fields_and_nonstandard_json(tmp_path, cli, content, path_token):
+    path = tmp_path / 'ambiguous.json'
+    path.write_text(content, encoding='utf-8')
+    before = path.read_bytes()
+    result = cli(path)
+    assert result.returncode != 0
+    assert not result.stdout.strip()
+    assert str(path) in result.stderr
+    assert path_token in result.stderr
+    assert path.read_bytes() == before

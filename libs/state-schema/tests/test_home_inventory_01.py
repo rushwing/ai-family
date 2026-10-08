@@ -2,6 +2,7 @@
 
 import json
 from copy import deepcopy
+from dataclasses import FrozenInstanceError
 
 import pytest
 from inventory_support import (
@@ -87,3 +88,16 @@ def test_provider_replacement_preserves_canonical_device(api, inventory):
                              {'provider': 'replacement', 'id': 'provider-b'}):
         assert external_binding['id'] != canonical['id']
         assert api.validate_inventory(inventory)['devices'][0] == canonical
+
+
+
+def test_domain_records_are_immutable_and_snapshots_are_detached(api, inventory):
+    domain = api.Inventory.from_dict(inventory)
+    with pytest.raises(FrozenInstanceError):
+        domain.home.id = 'replacement-home'
+    with pytest.raises(FrozenInstanceError):
+        domain.devices[0].id = 'replacement-device'
+    snapshot = domain.to_dict()
+    snapshot['areas'][0]['labels'].append('guest')
+    snapshot['home']['id'] = 'replacement-home'
+    assert domain.to_dict() == inventory

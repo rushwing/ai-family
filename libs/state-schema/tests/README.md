@@ -1,28 +1,30 @@
 # REQ-013 acceptance tests
 
-TC-013-01–07 implement the reviewed acceptance text. The shared inventory package
-is still unimplemented. Tests call the eventual public API directly and never
-substitute a fake validator, loader or resolver. Missing runtime modules produce
-explicit skips; broken imports or missing exports in an existing module fail.
-The seven guard checks are test-infrastructure checks, not AC1–AC7 acceptance.
+TC-013-01–07 implement the reviewed acceptance text against the delivered
+inventory package. Tests call the public API directly and never substitute a
+fake validator, loader or resolver. Frozen-record and strict JSON decoding
+regressions supplement the original TC code. The seven guard checks are
+infrastructure checks; all remaining cases execute the runtime.
+
+Independent combined TC-code/feature review is pending. Successful test execution
+is implementation evidence, not an independent approval.
 
 Run from the repository root with Python 3.12+ and pytest:
 
 ```bash
-python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests -q
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests --require-inventory-runtime -q
 ```
 
 The isolated pytest configuration adds `libs/state-schema/src` to the import
-path and does not collect unrelated service integration tests. Runtime
-implementation should supply its own package metadata and validation dependency;
-this test-only delivery selects neither a validation library nor runtime models.
+path and does not collect unrelated service integration tests. The package
+supplies metadata and frozen dataclass models. Validation uses the standard
+library with no runtime dependencies; see the [package instructions](../README.md).
 
 ## Public test seam
 
-The eventual `state_schema.home_inventory` module must expose these JSON-facing
-functions. Internal typed models and validation libraries remain implementation
-choices. If an implementation review selects another equivalent public API,
-adapt the test seam without weakening the assertions and record that review.
+The `state_schema.home_inventory` module exposes these JSON-facing functions.
+`Inventory.from_dict` provides the validated frozen domain model. Public API
+changes require review and must preserve the acceptance assertions.
 
 | Entry point | Tested interface |
 |---|---|
@@ -44,11 +46,10 @@ The CLI seam is:
 python -m state_schema.home_inventory PATH
 ```
 
-This is a required future command, not an existing loader. Success emits the
-normalized JSON to stdout and exits zero. Failure exits nonzero, leaves stdout
-empty and explains the file/cause on stderr, with a field path where applicable.
-The future example instructions must document this delivered command before
-runtime acceptance.
+Success emits normalized JSON to stdout and exits zero. Failure exits nonzero,
+leaves stdout empty and explains the file/cause on stderr, with a field path
+where applicable. The [example instructions](../../../docs/product/home-intelligence/examples/README.md)
+document installation, private edits and runtime validation.
 
 ## Offline guards and evidence
 
@@ -66,9 +67,10 @@ provider/action entry points in this slice to spy on. If implementation introduc
 any, its TC review must add direct spies on those real entry points as well.
 No absent provider implementation is mocked into existence here.
 
-Use `--require-inventory-runtime` for acceptance: absent runtime aborts the run,
-and any remaining skip makes the run unsuccessful. The ordinary test-first CI
-mode preserves explicit skips until implementation lands.
+Use `--require-inventory-runtime`: absent runtime aborts the run, and any
+remaining skip makes the run unsuccessful. CI requires this mode. An ordinary
+run retains module-absence skip markers for the test-first workflow, but cannot
+establish acceptance when any case skips.
 
 For runtime acceptance record the tested commit, Python/dependency versions,
 command and complete pass/fail/skip counts in the linked Harness TCs. All runtime
