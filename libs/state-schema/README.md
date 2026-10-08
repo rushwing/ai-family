@@ -81,6 +81,6 @@ smoke verification are also recorded in Harness evidence. The completed independ
 in [Harness evidence](../../harness/tasks/evidence/REQ-013-review-acceptance.md);
 completion follows the Harness merge gate.
 
-See [REQ-013](../../harness/tasks/features/REQ-013.md),
+See [REQ-013](../../harness/tasks/archive/done/features/REQ-013.md),
 [TC execution instructions](tests/README.md) and the
 [editable apartment workflow](../../docs/product/home-intelligence/examples/README.md).

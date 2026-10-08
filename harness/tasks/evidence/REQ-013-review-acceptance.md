@@ -72,3 +72,11 @@ TC-013-01–07 passing. REQ-013 advances to `pr_draft` / human-001; PR readiness
 follows this recorded review. `pending_bugs` is empty and no BUG links REQ-013.
 Human-001 authorized T15 merge after final-head CI. Engineering completion and
 archival are recorded only after GitHub confirms merge.
+
+## Merge outcome
+
+PR #26 merged on 2026-10-08 at 09:28:17 UTC as
+[7531194](https://github.com/rushwing/ai-family/commit/75311949205ac0ae6a1ef6474f71a25df611ae70),
+from [32bb17e](https://github.com/rushwing/ai-family/commit/32bb17e4acfac4a4de42f381eaee1848acfb9511).
+[Final-head CI](https://github.com/rushwing/ai-family/actions/runs/37756549786)
+passed every applicable job. T15 is recorded in the archived REQ; status is done.
