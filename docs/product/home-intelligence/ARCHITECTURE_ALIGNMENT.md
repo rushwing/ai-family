@@ -20,7 +20,7 @@ All entry points must converge on the shared action policy. Tool-side authorizat
 
 ## Canonical Model
 
-Home, Area, Device, Capability, State and ProviderBinding form a vendor-neutral contract. HA entity_id, vendor ID, MIoT property, robot room ID, Matter endpoint and MQTT topic remain adapter/binding data. Workflows, Agent plans and primary API payloads use canonical IDs. WoT properties/actions/events organize capability semantics; names such as Switchable and Positionable are typed project vocabulary within that existing model.
+Home, Floor, Area, Device, Capability, State and ProviderBinding form a vendor-neutral contract. HA entity_id, vendor ID, MIoT property, robot room ID, Matter endpoint and MQTT topic remain adapter/binding data. Workflows, Agent plans and primary API payloads use canonical IDs. WoT properties/actions/events organize capability semantics; names such as Switchable and Positionable are typed project vocabulary within that existing model.
 
 ## Shared Modules
 

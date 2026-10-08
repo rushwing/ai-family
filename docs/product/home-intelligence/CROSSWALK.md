@@ -56,7 +56,7 @@ The original 68-story workbook and roadmap.yaml remain the historical UI/product
 | S005 | [HI-S005](requirements/stories/HI-S005.md) — Subscribe to HA state changes | ZW-ST-0302 |
 | S006 | [HI-S006](requirements/stories/HI-S006.md) — Normalize HA state change events | ZW-ST-0302 |
 | S007 | [HI-S007](requirements/stories/HI-S007.md) — Reconcile current state after reconnect | ZW-ST-0302, ZW-ST-0304 |
-| S008 | [HI-S008](requirements/stories/HI-S008.md) — Define canonical Home, Area and Device contracts | ZW-ST-0101, ZW-ST-0201 |
+| S008 | [HI-S008](requirements/stories/HI-S008.md) — Define canonical Home, Floor, Area and Device contracts | ZW-ST-0101, ZW-ST-0201 |
 | S009 | [HI-S009](requirements/stories/HI-S009.md) — Define ProviderBinding contract | ZW-ST-1302 |
 | S010 | [HI-S010](requirements/stories/HI-S010.md) — Define canonical State contract | ZW-ST-0304 |
 | S011 | [HI-S011](requirements/stories/HI-S011.md) — Define versioned Capability base contract | ZW-ST-0201, ZW-ST-0202 |
@@ -82,7 +82,7 @@ The original 68-story workbook and roadmap.yaml remain the historical UI/product
 
 ## Existing Engineering Work
 
-REQ-003 remains the GoalAgent delivery/review record; home runtime work is not appended wholesale into it. Reuse its completed identity/RLS/audit patterns and explicitly link any runtime dependencies when admitting action stories. REQ-004 owns generic tool-side auth hardening; home-tool registration must align with it. REQ-005/006 own incremental CI and module boundaries. REQ-007/008/009 own cost/privacy/child-safety work. REQ-010 owns real-node deployment/recovery validation. REQ-011 records the original Home Intelligence handover; REQ-012 records this new planning documentation delivery. None is marked done by this PR.
+REQ-003 remains the GoalAgent delivery/review record; home runtime work is not appended wholesale into it. Reuse its completed identity/RLS/audit patterns and explicitly link any runtime dependencies when admitting action stories. REQ-004 owns generic tool-side auth hardening; home-tool registration must align with it. REQ-005/006 own incremental CI and module boundaries. REQ-007/008/009 own cost/privacy/child-safety work. REQ-010 owns real-node deployment/recovery validation. REQ-011 records the original Home Intelligence handover; REQ-012 records this new planning documentation delivery. REQ-011/012 are now archived as done after acceptance reconciliation in PR #24. HI-S008 is admitted to REQ-013, the authoritative inventory specification; its current lifecycle comes from Harness. Other HI Stories remain candidates.
 
 ## Scope Adjustments from the Prompt
 

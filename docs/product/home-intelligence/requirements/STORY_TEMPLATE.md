@@ -14,6 +14,8 @@ legacy_refs: []
 
 # Story title
 
+This is an unadmitted candidate template. On admission, transfer the specification to Harness and replace this body/metadata with ADMITTED_STORY_TEMPLATE.md.
+
 ## Context
 
 Fill the bounded increment and its evidence requirements.

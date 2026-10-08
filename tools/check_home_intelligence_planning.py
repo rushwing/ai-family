@@ -69,6 +69,28 @@ def metadata(path: Path) -> dict:
     return result
 
 
+def harness_paths(root: Path, req_id: str) -> list[Path]:
+    if not isinstance(req_id, str) or not re.fullmatch(r"REQ-\d{3}", req_id):
+        return []
+    return [
+        path
+        for path in (
+            root / f"harness/tasks/features/{req_id}.md",
+            root / f"harness/tasks/archive/done/features/{req_id}.md",
+        )
+        if path.is_file()
+    ]
+
+
+def engineering_state(root: Path, story: dict) -> dict:
+    """Read admitted engineering metadata; never persist a second lifecycle."""
+    paths = harness_paths(root, story.get("harness_ref"))
+    if len(paths) != 1:
+        raise ValueError("Expected exactly one linked Harness REQ")
+    req = metadata(paths[0])
+    return {key: req[key] for key in ("req_id", "status", "owner", "priority", "depends_on")}
+
+
 def validate(root: Path = ROOT) -> list[str]:
     errors: list[str] = []
     product = root / PRODUCT
@@ -113,7 +135,8 @@ def validate(root: Path = ROOT) -> list[str]:
                 continue
             if ident in objects:
                 errors.append(f"Duplicate ID: {ident}")
-            if entry.get("status") not in states:
+            admitted = kind == "story" and entry.get("harness_ref") is not None
+            if not admitted and entry.get("status") not in states:
                 errors.append(f"Invalid state for {ident}")
             objects[ident] = entry
             group[ident] = entry
@@ -155,6 +178,25 @@ def validate(root: Path = ROOT) -> list[str]:
     legacy = (product / "roadmap.yaml").read_text(encoding="utf-8")
     legacy_ids = set(re.findall(r"ZW-(?:RM|EP|ST|TK)-\d+", legacy))
     checked_paths: set[Path] = set()
+    admitted_dependencies: dict[str, list[str]] = {}
+    claimed_reqs: dict[str, str] = {}
+    story_claims: dict[str, list[Path]] = {}
+    req_folders = (
+        root / "harness/tasks/features",
+        root / "harness/tasks/archive/done/features",
+    )
+    for folder in req_folders:
+        for req_path in folder.glob("REQ-*.md"):
+            text = req_path.read_text(encoding="utf-8")
+            frontmatter = text.split("---", 2)[1] if text.startswith("---") else ""
+            claim = re.search(r'^story_ref: *["\']?(HI-S\d{3})["\']? *$', frontmatter, re.M)
+            if claim:
+                story_claims.setdefault(claim.group(1), []).append(req_path)
+    req_to_story = {
+        entry.get("harness_ref"): ident
+        for ident, entry in stories.items()
+        if isinstance(entry.get("harness_ref"), str)
+    }
     for plural, kind, required in (
         ("features", "feature", FEATURE_SECTIONS),
         ("stories", "story", STORY_SECTIONS),
@@ -176,18 +218,16 @@ def validate(root: Path = ROOT) -> list[str]:
             except (OSError, ValueError) as exc:
                 errors.append(f"Invalid metadata: {ident}: {exc}")
                 continue
-            for key in (
-                "id",
-                "title",
-                "stage",
-                "status",
-                "depends_on",
-                "source_ref",
-                "legacy_refs",
-            ):
+            admitted = kind == "story" and entry.get("harness_ref") is not None
+            shared_keys = ["id", "title", "stage", "source_ref", "legacy_refs"]
+            if not admitted:
+                shared_keys += ["status", "depends_on"]
+            for key in shared_keys:
                 if front.get(key) != entry.get(key):
                     errors.append(f"Index/frontmatter {key} mismatch: {ident}")
-            if front.get("type") != kind or front.get("priority") not in {"P0", "P1", "P2", "P3"}:
+            if front.get("type") != kind or (
+                not admitted and front.get("priority") not in {"P0", "P1", "P2", "P3"}
+            ):
                 errors.append(f"Invalid type or priority: {ident}")
             if entry.get("stage") not in stages:
                 errors.append(f"Unknown stage: {ident}")
@@ -214,12 +254,85 @@ def validate(root: Path = ROOT) -> list[str]:
                     errors.append(f"Future-stage Story is outside refinement boundary: {ident}")
                 harness = entry.get("harness_ref")
                 if harness is not None:
-                    candidates = [
-                        root / f"harness/tasks/features/{harness}.md",
-                        root / f"harness/tasks/archive/done/features/{harness}.md",
-                    ]
-                    if not any(candidate.is_file() for candidate in candidates):
+                    candidates = harness_paths(root, harness)
+                    if len(story_claims.get(ident, [])) > 1:
+                        errors.append(f"Multiple Harness specifications claim Story: {ident}")
+                    if not candidates:
                         errors.append(f"Missing linked Harness REQ: {ident}")
+                    elif len(candidates) != 1:
+                        errors.append(f"Duplicate active/archived Harness REQ: {ident}")
+                    else:
+                        try:
+                            req = metadata(candidates[0])
+                        except (OSError, ValueError) as exc:
+                            errors.append(f"Invalid linked Harness metadata: {ident}: {exc}")
+                            req = {}
+                        if req.get("req_id") != harness or req.get("story_ref") != ident:
+                            errors.append(f"Harness/Story reciprocal identity mismatch: {ident}")
+                        if harness in claimed_reqs:
+                            errors.append(f"Harness REQ shared by multiple Stories: {ident}")
+                        claimed_reqs[harness] = ident
+                        req_states = {
+                            "draft",
+                            "req_review",
+                            "tc_design",
+                            "tc_review",
+                            "tc_impl",
+                            "tc_impl_review",
+                            "req_impl",
+                            "req_impl_review",
+                            "pr_draft",
+                            "blocked",
+                            "done",
+                        }
+                        registry = (root / "harness/agent-registry.yml").read_text(encoding="utf-8")
+                        owners = set(re.findall(r"uid: ([a-z]+-\d{3})", registry))
+                        owners.add("unassigned")
+                        if req.get("status") not in req_states or req.get("owner") not in owners:
+                            errors.append(f"Invalid Harness lifecycle/owner: {ident}")
+                        if req.get("priority") not in {"P0", "P1", "P2", "P3"}:
+                            errors.append(f"Invalid Harness priority: {ident}")
+                        deps = req.get("depends_on")
+                        if (
+                            not isinstance(deps, list)
+                            or any(not isinstance(dep, str) for dep in deps)
+                            or len(deps) != len(set(deps))
+                        ):
+                            errors.append(f"Invalid Harness dependencies: {ident}")
+                            deps = []
+                        for dep in deps:
+                            if len(harness_paths(root, dep)) != 1:
+                                errors.append(
+                                    f"Missing or duplicate Harness dependency: {ident} -> {dep}"
+                                )
+                        admitted_dependencies[ident] = [
+                            req_to_story[dep] for dep in deps if dep in req_to_story
+                        ]
+                        req_text = candidates[0].read_text(encoding="utf-8")
+                        if not req.get("acceptance") or not re.search(r"- \[[ x]\] ", req_text):
+                            errors.append(f"Missing Harness acceptance criteria: {ident}")
+                        story_links = re.findall(
+                            r"\[[^\]\n]+\]\(([^)]+)\)", path.read_text(encoding="utf-8")
+                        )
+                        if not any(
+                            (path.parent / target.split("#", 1)[0]).resolve()
+                            == candidates[0].resolve()
+                            for target in story_links
+                        ):
+                            errors.append(f"Missing canonical Harness link: {ident}")
+                    forbidden = {
+                        "status",
+                        "owner",
+                        "priority",
+                        "depends_on",
+                        "test_case_ref",
+                        "acceptance",
+                        "review_round",
+                        "pending_bugs",
+                        "pr_number",
+                    }
+                    if forbidden.intersection(front) or forbidden.intersection(entry):
+                        errors.append(f"Duplicated engineering metadata in admitted Story: {ident}")
                 elif entry.get("status") in {"active", "done"}:
                     errors.append(f"Engineering state without Harness admission: {ident}")
             refs = entry.get("legacy_refs")
@@ -227,10 +340,20 @@ def validate(root: Path = ROOT) -> list[str]:
                 errors.append(f"Unknown legacy reference: {ident}")
             source = path.read_text(encoding="utf-8")
             headings = set(re.findall(r"^## (.+)$", source, re.M))
-            if not required <= headings:
-                errors.append(f"Missing sections: {ident}: {sorted(required - headings)}")
-            if "- [ ] " not in source:
-                errors.append(f"Missing checkable acceptance criteria: {ident}")
+            if admitted:
+                navigation_sections = {"Context", "Outcome", "Engineering Requirement"}
+                if not navigation_sections <= headings:
+                    errors.append(f"Missing admitted Story navigation sections: {ident}")
+                engineering_sections = STORY_SECTIONS - {"Context", "Outcome"}
+                if engineering_sections.intersection(headings) or re.search(r"- \[[ x]\] ", source):
+                    errors.append(
+                        f"Duplicated engineering specification in admitted Story: {ident}"
+                    )
+            else:
+                if not required <= headings:
+                    errors.append(f"Missing sections: {ident}: {sorted(required - headings)}")
+                if "- [ ] " not in source:
+                    errors.append(f"Missing checkable acceptance criteria: {ident}")
     actual = {
         path.resolve()
         for folder in ("features", "stories")
@@ -250,7 +373,11 @@ def validate(root: Path = ROOT) -> list[str]:
             if ident in visited:
                 return
             visiting.add(ident)
-            deps = group[ident].get("depends_on")
+            deps = (
+                admitted_dependencies.get(ident, [])
+                if plural == "stories" and group[ident].get("harness_ref") is not None
+                else group[ident].get("depends_on")
+            )
             if not isinstance(deps, list) or len(deps) != len(set(deps)):
                 errors.append(f"Invalid dependency list: {ident}")
                 deps = []
@@ -305,6 +432,11 @@ def main() -> int:
         "Home Intelligence planning validation passed: metadata, parents, stages, "
         "dependencies, refinement boundary, legacy references and local links."
     )
+    index = json.loads((ROOT / PRODUCT / "requirements/index.json").read_text(encoding="utf-8"))
+    for story in index["stories"]:
+        if story.get("harness_ref") is not None:
+            state = engineering_state(ROOT, story)
+            print(f"{story['id']} -> {state['req_id']}: {state['status']} / {state['owner']}")
     return 0
 
 
