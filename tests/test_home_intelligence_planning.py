@@ -19,7 +19,10 @@ class PlanningIntegrityTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         shutil.copytree(ROOT / PRODUCT, self.root / PRODUCT)
         shutil.copytree(ROOT / "docs/adr", self.root / "docs/adr")
-        for rel in ("harness/tasks/features/REQ-012.md", "harness/tasks/features/REQ-011.md"):
+        for rel in (
+            "harness/tasks/archive/done/features/REQ-012.md",
+            "harness/tasks/archive/done/features/REQ-011.md",
+        ):
             dest = self.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(ROOT / rel, dest)
@@ -28,6 +31,24 @@ class PlanningIntegrityTests(unittest.TestCase):
 
     def test_published_planning_is_valid(self):
         self.assertEqual(validate(self.root), [])
+
+    def test_active_documentation_req_is_valid(self):
+        archived = self.root / "harness/tasks/archive/done/features/REQ-012.md"
+        active = self.root / "harness/tasks/features/REQ-012.md"
+        active.parent.mkdir(parents=True, exist_ok=True)
+        archived.rename(active)
+        readme = self.root / PRODUCT / "README.md"
+        readme.write_text(
+            readme.read_text(encoding="utf-8").replace(
+                "tasks/archive/done/features/REQ-012.md", "tasks/features/REQ-012.md"
+            ),
+            encoding="utf-8",
+        )
+        self.assertEqual(validate(self.root), [])
+
+    def test_missing_documentation_req_is_rejected(self):
+        (self.root / "harness/tasks/archive/done/features/REQ-012.md").unlink()
+        self.assertIn("Missing documentation Harness REQ", validate(self.root))
 
     def add_valid_story(self, stage="R1", parent="HI-F001"):
         """Add a complete indexed Story, with matching frontmatter and parent list."""

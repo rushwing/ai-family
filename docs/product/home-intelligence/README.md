@@ -31,4 +31,4 @@ Home Intelligence adds household state, vendor-neutral capabilities, workflows a
 
 New planning uses Vision → R Stage → Feature → Story. Persistent implementation Tasks and new R2+ Stories are excluded. Preserve historical IDs; use CROSSWALK when scope overlaps. Before coding, admit a Ready Story to the existing Harness and obey its owner/status gate. Architecture changes require an ADR review first. Do not create a second editable engineering state machine or reverse-sync GitHub into Harness.
 
-This documentation delivery is [REQ-012](../../../harness/tasks/features/REQ-012.md); the prior handover remains [REQ-011](../../../harness/tasks/features/REQ-011.md). Legacy workbook changes still require matching roadmap.yaml changes and its existing validator.
+This documentation delivery is [REQ-012](../../../harness/tasks/archive/done/features/REQ-012.md); the prior handover remains [REQ-011](../../../harness/tasks/archive/done/features/REQ-011.md). Legacy workbook changes still require matching roadmap.yaml changes and its existing validator.

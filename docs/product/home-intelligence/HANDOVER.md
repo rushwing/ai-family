@@ -28,7 +28,7 @@ The original handover below remains historical. The current English planning pac
 - `ARCHITECTURE.md`：与 ai-family 的集成边界；
 - `PROJECT_MANAGEMENT.md`：GitHub Project 与 Harness 的职责和同步方向；
 - `.github/project-management/home-intelligence.yaml`：字段、视图、Milestone 和状态映射的声明式配置；
-- `harness/tasks/features/REQ-011.md`：本次交接的正式 Harness 记录。
+- `harness/tasks/archive/done/features/REQ-011.md`：本次交接的正式 Harness 记录。
 
 ## 不包含
 
