@@ -27,7 +27,7 @@ HI-F003 — Canonical Home Domain Model. R1 is active; other R1 features are pla
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; runtime delivery is pending.
+HI-S001, HI-S009, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
 
 ## Blocked and Pending Stories
 
@@ -37,9 +37,9 @@ Read admitted engineering blockers from Harness; no unadmitted candidate is mark
 
 No unresolved decision prevents the first domain/configuration contract stories. Before action execution, reconcile gateway registry extension, durable confirmation/audit ownership and real executor integration with existing REQ-003/004. Before publishing API contracts, freeze route compatibility against the existing API/BFF draft. Before dispatch integration, reconcile ADR-006 frontmatter through its established review process; do not silently select another broker.
 
-## Recommended First Coding Story
+## Domain Contract Delivery
 
-HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/features/REQ-013.md) is the admitted specification; complete its independent requirement review and required TC handoff before implementing typed shared contracts, offline inventory validation and pure target resolution. It is independently mergeable, requires no HA credentials or hardware, and unlocks mapper/state/mock work.
+HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/archive/done/features/REQ-013.md) records the accepted typed shared contracts, offline inventory validation and pure target resolution delivered in PR #26. This delivery requires no HA credentials or hardware and unlocks mapper/state/mock work.
 
 ## Delivery Order
 

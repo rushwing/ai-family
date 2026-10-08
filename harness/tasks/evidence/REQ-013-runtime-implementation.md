@@ -69,7 +69,7 @@ Independent combined TC-code/feature review is still required.
 
 ## Review entry points
 
-- [Requirement and acceptance](../features/REQ-013.md)
+- [Requirement and acceptance](../archive/done/features/REQ-013.md)
 - [Runtime contracts, loader and resolver](../../../libs/state-schema/src/state_schema/home_inventory.py)
 - [Package/API design and commands](../../../libs/state-schema/README.md)
 - [Test assertions and guard limits](../../../libs/state-schema/tests/README.md)

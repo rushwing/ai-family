@@ -1,6 +1,6 @@
 # Editable Home Inventory Example
 
-[REQ-013](../../../../harness/tasks/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional editable inventory. The offline loader/resolver is implemented; the supplied independent review passed. The JSON is not HA configuration and does not control devices.
+[REQ-013](../../../../harness/tasks/archive/done/features/REQ-013.md) defines the contract and acceptance. [three-bedroom-apartment.example.json](three-bedroom-apartment.example.json) is a fictional editable inventory. The offline loader/resolver is implemented; the supplied independent review passed. The JSON is not HA configuration and does not control devices.
 
 ## Customize
 
