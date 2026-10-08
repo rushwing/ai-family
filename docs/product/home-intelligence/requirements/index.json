@@ -680,10 +680,8 @@
       "title": "Define ProviderBinding contract",
       "parent": "HI-F003",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S009.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-014",
       "legacy_refs": [
         "ZW-ST-1302"
       ],
