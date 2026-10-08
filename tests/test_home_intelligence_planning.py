@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 import shutil
 import tempfile
 import unittest
@@ -33,7 +34,15 @@ class PlanningIntegrityTests(unittest.TestCase):
         ):
             dest = self.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(ROOT / rel, dest)
+            source = ROOT / rel
+            if rel == 'harness/tasks/features/REQ-013.md' and not source.exists():
+                source = ROOT / 'harness/tasks/archive/done/features/REQ-013.md'
+            shutil.copy2(source, dest)
+        # Keep lifecycle mutation fixtures active even after the live REQ is archived.
+        for path in (self.root / PRODUCT).rglob('*.md'):
+            text = path.read_text()
+            path.write_text(text.replace('tasks/archive/done/features/REQ-013.md',
+                                         'tasks/features/REQ-013.md'))
         self.index = self.root / PRODUCT / "requirements/index.json"
         self.baseline = json.loads(self.index.read_text(encoding="utf-8"))
 
@@ -44,8 +53,12 @@ class PlanningIntegrityTests(unittest.TestCase):
         story = next(s for s in self.baseline["stories"] if s["id"] == "HI-S008")
         self.assertNotIn("status", story)
         self.assertNotIn("depends_on", story)
-        self.assertEqual(engineering_state(self.root, story)["status"], "req_review")
         req = self.root / "harness/tasks/features/REQ-013.md"
+        # Control this fixture's lifecycle independently of the live backlog.
+        text = re.sub(r'^status: .*$', 'status: "req_review"', req.read_text(), count=1, flags=re.M)
+        text = re.sub(r'^owner: .*$', 'owner: "evaluator-001"', text, count=1, flags=re.M)
+        req.write_text(text)
+        self.assertEqual(engineering_state(self.root, story)["status"], "req_review")
         req.write_text(req.read_text().replace('status: "req_review"', 'status: "tc_design"'))
         self.assertEqual(engineering_state(self.root, story)["status"], "tc_design")
         self.assertEqual(validate(self.root), [])
@@ -92,7 +105,9 @@ class PlanningIntegrityTests(unittest.TestCase):
                     "tasks/features/REQ-013.md", "tasks/archive/done/features/REQ-013.md"
                 )
             )
-        archived.write_text(archived.read_text().replace('status: "req_review"', 'status: "done"'))
+        archived.write_text(
+            re.sub(r'^status: .*$', 'status: "done"', archived.read_text(), count=1, flags=re.M)
+        )
         self.assertEqual(validate(self.root), [])
         story = next(s for s in self.baseline["stories"] if s["id"] == "HI-S008")
         self.assertEqual(engineering_state(self.root, story)["status"], "done")
