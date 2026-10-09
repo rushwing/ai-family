@@ -7,6 +7,7 @@ import subprocess
 import urllib.request
 
 import pytest
+from binding_support import BINDING_AVAILABLE
 from inventory_support import EXAMPLE, RUNTIME_AVAILABLE
 
 
@@ -17,6 +18,15 @@ def api():
     module = importlib.import_module('state_schema.home_inventory')
     for export in ('validate_inventory', 'load_inventory', 'resolve_targets', 'InventoryError'):
         assert hasattr(module, export), f'Missing reviewed test seam: {export}'
+    return module
+
+
+@pytest.fixture
+def binding_api():
+    module = importlib.import_module('state_schema.provider_binding')
+    for export in ('ProviderBinding', 'BindingCollection', 'BindingError',
+                   'validate_binding', 'validate_bindings'):
+        assert hasattr(module, export), f'Missing binding test seam: {export}'
     return module
 
 
@@ -106,17 +116,22 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-binding-runtime', action='store_true',
+                     help='REQ-014 acceptance: fail on absent binding runtime or skipped tests')
     parser.addoption('--require-inventory-runtime', action='store_true',
                      help='Acceptance mode: fail on absent inventory runtime or skipped tests')
 
 
 def pytest_sessionstart(session):
+    if session.config.getoption('--require-binding-runtime') and not BINDING_AVAILABLE:
+        raise pytest.UsageError('REQ-014 binding runtime is missing; acceptance cannot pass')
     if session.config.getoption('--require-inventory-runtime') and not RUNTIME_AVAILABLE:
         raise pytest.UsageError('REQ-013 inventory runtime is missing; acceptance cannot pass')
 
 
 def pytest_sessionfinish(session, exitstatus):
-    if session.config.getoption('--require-inventory-runtime'):
+    if (session.config.getoption('--require-inventory-runtime')
+            or session.config.getoption('--require-binding-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED

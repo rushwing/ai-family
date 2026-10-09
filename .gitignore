@@ -104,3 +104,6 @@ temp/
 apps/home-intelligence-web/fixtures/private/
 docs/product/home-intelligence/private/
 *.home-inventory.local.json
+
+# Provider mappings may contain private household identifiers.
+*.provider-bindings.local.json

@@ -1,0 +1,52 @@
+{
+  "before": {
+    "schema_version": 1,
+    "bindings": [
+      {
+        "home_id": "home-example",
+        "device_id": "device-bedroom-light-01",
+        "provider": "ha",
+        "provider_instance_id": "ha-fictional",
+        "mapping": {
+          "entity_ids": [
+            "light.fictional_bedroom",
+            "sensor.fictional_bedroom_power"
+          ],
+          "device_registry_id": "fictional-registry-device"
+        }
+      },
+      {
+        "home_id": "home-example",
+        "device_id": "device-bedroom-light-02",
+        "provider": "mock",
+        "provider_instance_id": "mock-fictional",
+        "mapping": {
+          "device_key": "fictional-bedroom-02"
+        }
+      }
+    ]
+  },
+  "after": {
+    "schema_version": 1,
+    "bindings": [
+      {
+        "home_id": "home-example",
+        "device_id": "device-bedroom-light-01",
+        "provider": "mock",
+        "provider_instance_id": "mock-fictional",
+        "mapping": {
+          "device_key": "fictional-bedroom-01"
+        }
+      },
+      {
+        "home_id": "home-example",
+        "device_id": "device-bedroom-light-02",
+        "provider": "mock",
+        "provider_instance_id": "mock-fictional",
+        "mapping": {
+          "device_key": "fictional-bedroom-02"
+        }
+      }
+    ]
+  }
+}
