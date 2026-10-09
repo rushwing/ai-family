@@ -43,7 +43,7 @@ HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](.
 
 HI-S009 — Define ProviderBinding contract is delivered through archived [REQ-014](../../../harness/tasks/archive/done/features/REQ-014.md). PR #29 is merged with the P1 instance-alias correction; human-001 accepted the combined delivery and requested done archival. TC-014-01–06 are passing; post-merge runtime checks report 714 passed with zero skips/failures. Provider mappings remain separate from inventory and offline replacement preserves canonical identity.
 
-HI-S010 — Define canonical State contract is admitted to [REQ-015](../../../harness/tasks/features/REQ-015.md) for specification and acceptance review. Desired intent, reported observations, availability, observed_at and epoch/sequence ordering are explicit; unknown/offline cannot become false/zero, and ACK alone cannot establish physical convergence. No state runtime is delivered by this admission. Owner/status derive from Harness.
+HI-S010 — Define canonical State contract is admitted to [REQ-015](../../../harness/tasks/features/REQ-015.md). PR #30 is merged, and human-001 explicitly authorized implementation. The shared package now delivers strict offline State validation, per-member ordering updates and derived convergence with TC-015-01–06 implemented for combined review. Desired intent, reported observations, availability, observed_at and epoch/sequence ordering remain separate; unknown/offline cannot become false/zero and ACK alone cannot establish physical convergence. Runtime revision self-checks on Linux aarch64 / CPython 3.12.12 and 3.14.3 each pass 957 cases with zero skips/failures; independent TC/code/feature acceptance remains pending. Owner/status derive from Harness.
 
 ## Delivery Order
 

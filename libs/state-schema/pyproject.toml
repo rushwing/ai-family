@@ -1,7 +1,7 @@
 [project]
 name = "ai-family-state-schema"
 version = "0.1.0"
-description = "Provider-neutral inventory, offline target resolution and provider binding contracts"
+description = "Provider-neutral inventory, bindings and canonical State contracts"
 requires-python = ">=3.12"
 dependencies = []
 

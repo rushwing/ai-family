@@ -13,7 +13,10 @@ from inventory_support import ROOT
 pytestmark = binding_required
 
 
-def test_pure_validation(binding_api, inventory, monkeypatch):
+@pytest.mark.parametrize("link_present", [True, False])
+def test_pure_validation(binding_api, inventory, monkeypatch, link_present):
+    if not link_present:
+        monkeypatch.delattr(os, "link", raising=False)
     calls = []
 
     def deny(*args, **kwargs):
@@ -56,7 +59,7 @@ def test_pure_validation(binding_api, inventory, monkeypatch):
             "utime",
             "system",
         ):
-            patch.setattr(os, name, deny)
+            patch.setattr(os, name, deny, raising=False)
         patch.setattr(Path, "write_text", deny)
         patch.setattr(Path, "write_bytes", deny)
         assert binding_api.validate_bindings(collection(binding()), inventory=inventory)

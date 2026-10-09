@@ -2,9 +2,11 @@
 
 import importlib
 import json
+import os
 import socket
 import subprocess
 import urllib.request
+from importlib.util import find_spec
 
 import pytest
 from binding_support import BINDING_AVAILABLE
@@ -31,16 +33,29 @@ def binding_api():
 
 
 @pytest.fixture
+def state_api():
+    module = importlib.import_module('state_schema.canonical_state')
+    for export in ('DeviceState', 'StateCollection', 'StateError', 'Ordering',
+                   'Observation', 'Availability', 'DesiredState', 'validate_state',
+                   'validate_states', 'apply_state_update', 'evaluate_convergence'):
+        assert hasattr(module, export), f'Missing State test seam: {export}'
+    return module
+
+
+@pytest.fixture
 def inventory():
     return json.loads(EXAMPLE.read_text(encoding='utf-8'))
 
 
 @pytest.fixture(autouse=True)
-def offline_guard(monkeypatch):
-    calls = []
+def offline_guard(monkeypatch, request):
+    attempts = 0
+    expected_marker = request.node.get_closest_marker("expected_offline_attempts")
+    expected = expected_marker.args[0] if expected_marker else 0
 
     def deny(*args, **kwargs):
-        calls.append((args, kwargs))
+        nonlocal attempts
+        attempts += 1
         raise AssertionError('Inventory code attempted network or action-process execution')
 
     with monkeypatch.context() as patch:
@@ -50,8 +65,17 @@ def offline_guard(monkeypatch):
         patch.setattr(socket, 'getaddrinfo', deny)
         patch.setattr(urllib.request, 'urlopen', deny)
         patch.setattr(subprocess, 'Popen', deny)
-        yield calls
-    assert not calls, 'Forbidden effects were attempted, even if their errors were caught'
+        for name in dir(os):
+            if (name in ('system', 'fork', 'forkpty')
+                    or name.startswith(('exec', 'spawn', 'posix_spawn'))):
+                if callable(getattr(os, name)):
+                    patch.setattr(os, name, deny)
+        # Expose only an integer reader; callers cannot clear the evidence.
+        # Infrastructure probes predeclare the exact expected count by marker.
+        yield lambda: attempts
+    assert attempts == expected, (
+        'Forbidden effects were attempted, even if their errors were caught'
+    )
 
 
 # Save before the autouse offline guard patches parent-side process creation.
@@ -85,7 +109,7 @@ import sys
 log = open(os.environ['INVENTORY_EFFECT_LOG'], 'a', encoding='utf-8')
 def audit(event, args):
     forbidden = event.startswith('socket.') or event in (
-        'subprocess.Popen', 'os.system', 'os.posix_spawn', 'os.exec',
+        'subprocess.Popen', 'os.system', 'os.posix_spawn', 'os.exec', 'os.fork', 'os.forkpty',
         'os.remove', 'os.rename', 'os.mkdir', 'os.rmdir', 'os.link',
         'os.symlink', 'os.truncate', 'os.chmod', 'os.chown', 'os.utime',
     )
@@ -116,6 +140,8 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-state-runtime', action='store_true',
+                     help='REQ-015 acceptance: fail on absent State runtime or skipped tests')
     parser.addoption('--require-binding-runtime', action='store_true',
                      help='REQ-014 acceptance: fail on absent binding runtime or skipped tests')
     parser.addoption('--require-inventory-runtime', action='store_true',
@@ -123,6 +149,9 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    if (session.config.getoption('--require-state-runtime')
+            and find_spec('state_schema.canonical_state') is None):
+        raise pytest.UsageError('REQ-015 State runtime is missing; acceptance cannot pass')
     if session.config.getoption('--require-binding-runtime') and not BINDING_AVAILABLE:
         raise pytest.UsageError('REQ-014 binding runtime is missing; acceptance cannot pass')
     if session.config.getoption('--require-inventory-runtime') and not RUNTIME_AVAILABLE:
@@ -131,7 +160,8 @@ def pytest_sessionstart(session):
 
 def pytest_sessionfinish(session, exitstatus):
     if (session.config.getoption('--require-inventory-runtime')
-            or session.config.getoption('--require-binding-runtime')):
+            or session.config.getoption('--require-binding-runtime')
+            or session.config.getoption('--require-state-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED
