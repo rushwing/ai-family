@@ -397,6 +397,11 @@ interpreter cannot JSON-encode also reject with a fixed value-free error.
 
 Idempotency/task/trace identifiers are exact case-sensitive ASCII tokens of 1–128
 characters from letters/digits/`.`/`_`/`:`/`-`, without trim or normalization.
+Requester `subject_id` and `family_member_id` are nonblank strings of at most 256
+characters, retained exactly; spaces and Unicode are allowed. These externally
+established identity strings have a separate grammar from contract correlation
+tokens, so identity providers need no token-alphabet conversion. Requester `home_id`
+still follows the canonical Inventory grammar.
 `compare_idempotency(task, request, *, requester, inventory, catalogue)` returns
 `distinct`, `replay` or `conflict` in the Home/member/subject/key scope. Replay
 retains the original Task and trace. Argument comparison is recursively type-exact:
@@ -418,7 +423,8 @@ is structural validation, not proof of the caller's claimed provenance/history.
 
 Result `output` is `{present, value}`: absent requires null, while present null must
 still pass the declared output schema. Error is null except failed/timed_out, which
-require a stable `{code}`. Evidence is separate and repeats exact task/trace/action
+require a stable `{code}`. This revision does not represent cancellation reasons:
+cancelled requires null error. Evidence is separate and repeats exact task/trace/action
 identity; kinds are ack/event/state. All non-success outcomes say physical_outcome
 unverified. `ack_only` can terminate as acknowledged, never succeeded. ACK/output
 alone cannot confirm an event or observed state. Terminal tasks do not regress;
