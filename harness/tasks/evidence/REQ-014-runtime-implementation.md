@@ -47,3 +47,18 @@ The original author implemented the TC and feature code under human-001's explic
 ## CI
 
 Implementation CI: [run 37760464531](https://github.com/rushwing/ai-family/actions/runs/37760464531), head `b3fabd22db07833a37a38a59a53ac3307e8c1170`. All six applicable jobs passed: governance-gates, changes, req002-integration, state-schema-tc, goal-agent and mcp-toolsets. The two unrelated web/requirements jobs were skipped by change detection; the required runtime suite had zero skipped tests. The T12 handoff is recorded in REQ-014. Final handoff documentation receives its own CI run.
+
+## 2026-10-09 P1 Review Revision
+
+Human-001 supplied a request-changes review: instance identifiers accepted endpoint/credential values. Revision on `feat/req-014-provider-binding`, based on `3528ac6`, committed as `fix(REQ-014): restrict provider instance aliases`. External factories now require `^[a-z][a-z0-9_-]{0,63}$`; the reason and structured path contain no supplied values. The contract and README specify nonsensitive local aliases with connection configuration stored separately. Syntax validation cannot identify arbitrary ID-shaped secrets.
+
+Added 8 valid-alias cases to TC-014-01 and 48 rejection/privacy cases to TC-014-02. Both HA/mock providers exercise both factories and both validators; rejected values include user-info URLs, hostnames/IPs/ports, encoded URLs, credential assignments/Bearer/JWT forms, path/query/fragment syntax, controls, non-ASCII, uppercase, digit-leading and overlong IDs. Failure checks verify unchanged inputs, exact individual/collection paths, deterministic messages and absence of supplied values in string/repr/message diagnostics.
+
+Local environment: Linux aarch64, Python 3.12.12, `/tmp/req014-env`, non-root UID 1000. The existing unreadable-file case executes normally.
+
+```bash
+/tmp/req014-env/bin/python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime -q --junitxml=/tmp/req014-p1-results.xml
+```
+
+714 passed, zero skips/failures. TC-014-01: 15 passed; TC-014-02: 188 passed; other TC counts unchanged (239 total binding cases). Ruff, strict mypy (3 source files), diff whitespace, all governance gates/21 planning regressions, public-data and legacy requirements checks passed. These results supersede the original runtime counts for this revision; historical artifact/CI results above remain unchanged. Independent acceptance of the fix is pending; PR #29 remains draft, TCs remain `implemented` and AC checkboxes remain unchecked.

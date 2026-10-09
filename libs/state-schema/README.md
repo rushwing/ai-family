@@ -115,7 +115,12 @@ Direct dataclass constructors are internal typed records and do not validate
 external input; always use the factories at external boundaries.
 
 Each binding has `home_id`, `device_id`, exact provider kind `ha` or `mock`, an
-opaque `provider_instance_id`, and a discriminated `mapping`. HA requires a
+opaque `provider_instance_id`, and a discriminated `mapping`. The instance must
+be a nonsensitive local alias matching `^[a-z][a-z0-9_-]{0,63}$` (1–64 ASCII
+characters). URL, host-port, user-info and credential-assignment syntax is rejected
+with value-free diagnostics. Store endpoints and credentials in separate connection
+configuration; arbitrary ID-shaped secrets cannot be detected by syntax validation.
+HA requires a
 nonempty distinct `entity_ids` list and optionally `device_registry_id` (omitted
 normalizes to null). Mock requires `device_key`. All identifiers in mappings are
 nonempty trimmed opaque strings: no live resource existence or HA syntax check

@@ -9,6 +9,20 @@ from binding_support import binding, binding_required, collection
 pytestmark = binding_required
 
 
+@pytest.mark.parametrize("provider", ["ha", "mock"])
+@pytest.mark.parametrize("instance", ["a", "ha-main", "mock_fixture_01", "a" * 64])
+def test_instance_alias_round_trip(binding_api, inventory, provider, instance):
+    data = binding(provider, instance=instance)
+    normalized = binding_api.validate_binding(data)
+    assert normalized["provider_instance_id"] == instance
+    assert binding_api.ProviderBinding.from_dict(data).to_dict() == normalized
+    snapshot = binding_api.BindingCollection.from_dict(
+        collection(data), inventory=inventory
+    ).to_dict()
+    assert snapshot == collection(normalized)
+    assert binding_api.validate_bindings(snapshot, inventory=inventory) == snapshot
+
+
 @pytest.mark.parametrize(
     "mapping",
     [

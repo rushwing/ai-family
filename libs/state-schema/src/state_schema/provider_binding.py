@@ -58,6 +58,16 @@ def _id(value: object, path: ErrorPath) -> str:
     return value
 
 
+def _instance_id(value: object, path: ErrorPath) -> str:
+    if not isinstance(value, str) or _ID.fullmatch(value) is None:
+        raise BindingError(
+            path,
+            "expected a provider instance alias matching ^[a-z][a-z0-9_-]{0,63}$; "
+            "endpoints and credentials are not allowed",
+        )
+    return value
+
+
 @dataclass(frozen=True, slots=True)
 class HAMapping:
     entity_ids: tuple[str, ...]
@@ -122,7 +132,7 @@ class ProviderBinding:
         provider = _text(data["provider"], (*path, "provider"))
         if provider not in ("ha", "mock"):
             raise BindingError((*path, "provider"), "unsupported provider; expected ha or mock")
-        instance = _text(data["provider_instance_id"], (*path, "provider_instance_id"))
+        instance = _instance_id(data["provider_instance_id"], (*path, "provider_instance_id"))
         mapping = (
             HAMapping.from_dict(data["mapping"], (*path, "mapping"))
             if provider == "ha"

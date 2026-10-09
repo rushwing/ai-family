@@ -11,6 +11,54 @@ INVALID_TEXT = [None, True, 7, [], {}, "", " ", " leading", "trailing "]
 
 @pytest.mark.parametrize("provider", ["ha", "mock"])
 @pytest.mark.parametrize(
+    "value",
+    [
+        "https://user:super-secret@ha.example:8123",
+        "https://ha.example",
+        "http%3A%2F%2Fha.example",
+        "//ha.example:8123",
+        "ha.example",
+        "localhost:8123",
+        "192.0.2.1",
+        "[2001:db8::1]:8123",
+        "user:super-secret@localhost",
+        "user@localhost",
+        "password=super-secret",
+        "Bearer super-secret",
+        "eyJhbGci.eyJzdWIi.signature",
+        "ha/main",
+        "ha\\main",
+        "ha?token=super-secret",
+        "ha#super-secret",
+        "HA-main",
+        "1-instance",
+        "ha main",
+        "h\u0430-main",
+        "ha\nmain",
+        "ha\x00main",
+        "a" * 65,
+    ],
+)
+def test_invalid_instance_alias_privacy(binding_api, inventory, provider, value):
+    data = binding(provider, instance=value)
+    document = collection(data)
+    original = deepcopy(document)
+    private = (value, "super-secret", "ha.example")
+    for call in (
+        lambda: binding_api.ProviderBinding.from_dict(data),
+        lambda: binding_api.validate_binding(data),
+    ):
+        error_at(binding_api, call, ("provider_instance_id",), private=private)
+    for call in (
+        lambda: binding_api.BindingCollection.from_dict(document, inventory=inventory),
+        lambda: binding_api.validate_bindings(document, inventory=inventory),
+    ):
+        error_at(binding_api, call, ("bindings", 0, "provider_instance_id"), private=private)
+    assert document == original
+
+
+@pytest.mark.parametrize("provider", ["ha", "mock"])
+@pytest.mark.parametrize(
     "field", ["home_id", "device_id", "provider", "provider_instance_id", "mapping"]
 )
 def test_missing_fields(binding_api, provider, field):
