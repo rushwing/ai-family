@@ -288,14 +288,14 @@ def _instance(schema: Schema, value: object, path: ErrorPath) -> None:
             number = cast(int | float, value)
             bound = cast(int | float, limit)
             if (key == "minimum" and number < bound) or (key == "maximum" and number > bound):
-                raise CapabilityError(path, "value is outside numeric bounds")
+                raise CapabilityError((*path, key), "value is outside numeric bounds")
         else:
             size = len(cast(str | list[object], value))
             bound_int = cast(int, limit)
             if (key.startswith("min") and size < bound_int) or (
                 key.startswith("max") and size > bound_int
             ):
-                raise CapabilityError(path, "value is outside length bounds")
+                raise CapabilityError((*path, key), "value is outside length bounds")
 
 
 @dataclass(frozen=True, slots=True)

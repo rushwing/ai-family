@@ -269,6 +269,9 @@ revalidate records. Nested collections are tuples; no mutable caller data is
 retained. Interaction kinds are `property`, `action_input`, `action_output`,
 `event`; unknown names/kinds and unsupported exact revisions fail closed.
 
+Capability IDs have 2–4 dot-separated segments of 1–32 characters each;
+the maximum total length is 131 characters (4 × 32 + 3 separators).
+
 The bounded schema profile supports seven JSON types and the documented
 scalar enum/bound, object required/closed-property and array-item/length
 constraints. It rejects unlisted keywords, references, defaults, composition,
@@ -290,7 +293,13 @@ still requires REQ-015's eligible post-baseline current-generation reports.
 
 `CapabilityError.path` / `.message` provide deterministic value-free errors.
 Unknown keys and invalid names are redacted; duplicate text keys use
-`("<unknown>",)`. There is no provider client, dispatch, store, clock or runtime
+`("<unknown>",)`. This duplicate-key path is fixed even for nested objects:
+the JSON object-pairs hook does not provide the containing path, so it cannot
+locate the duplicate within a large document. Numeric and length bound errors
+append the violated schema keyword to the payload node path: root string
+overflow is `("maxLength",)`, and nested array underflow can be
+`("values", "minItems")`. These suffixes name constraints, not payload fields.
+There is no provider client, dispatch, store, clock or runtime
 dependency. Required acceptance adds `--require-capability-runtime`; missing
 runtime or any skip fails. TC-016-01–06 are implemented for external combined
 review; AC1–AC7 remain unchecked. See [REQ-016](../../harness/tasks/features/REQ-016.md)

@@ -37,6 +37,41 @@ def test_schema_payload_cases(capability_api, schema, good, bad):
 
 
 @pytest.mark.parametrize(
+    "schema,bad,constraint",
+    [
+        ({"type": "integer", "minimum": 0}, -1, "minimum"),
+        ({"type": "integer", "maximum": 2}, 3, "maximum"),
+        ({"type": "number", "minimum": 0.0}, -0.5, "minimum"),
+        ({"type": "number", "maximum": 2.0}, 2.5, "maximum"),
+        ({"type": "string", "minLength": 20}, "PRIVATE_PAYLOAD", "minLength"),
+        ({"type": "string", "maxLength": 2}, "PRIVATE_PAYLOAD", "maxLength"),
+        ({"type": "array", "items": {"type": "null"}, "minItems": 1}, [], "minItems"),
+        ({"type": "array", "items": {"type": "null"}, "maxItems": 1}, [None, None], "maxItems"),
+    ],
+)
+@pytest.mark.parametrize("location", ["root", "object", "array"])
+def test_payload_bound_diagnostics(capability_api, schema, bad, constraint, location):
+    path = ()
+    if location == "object":
+        schema, bad = obj({"value": schema}), {"value": bad}
+        path = ("value",)
+    elif location == "array":
+        schema, bad = {"type": "array", "items": schema}, [bad]
+        path = (0,)
+    original_schema, original_payload = deepcopy(schema), deepcopy(bad)
+    record = capability_api.Schema.from_dict(schema)
+    for validate in (record.validate, lambda value: capability_api.validate_payload(schema, value)):
+        reject(
+            capability_api,
+            lambda: validate(bad),
+            (*path, constraint),
+            private=("PRIVATE_PAYLOAD",),
+        )
+    assert schema == original_schema and bad == original_payload
+    assert record.to_dict() == original_schema
+
+
+@pytest.mark.parametrize(
     "schema",
     [
         {},
