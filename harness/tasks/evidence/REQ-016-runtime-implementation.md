@@ -62,3 +62,23 @@ Risk/idempotency/timeout/completion metadata runs no task engine, deadline, dedu
 [CI run 37881889833](https://github.com/rushwing/ai-family/actions/runs/37881889833), evidence head `7556f67`, passes all eight applicable jobs: governance-gates, changes, req002-integration, goal-agent, mcp-toolsets, and state-schema-tc for Python 3.12/3.13/3.14. Each contract matrix job runs lint/type, zero-skip required tests, fixture/legacy checks and installed-wheel smoke. Web/workbook jobs skip by path filtering; legacy checks still execute in the matrix. Runtime artifact remains `4c400c7`.
 
 T12 ends req_impl and hands off req_impl_review / evaluator-001 for the external combined review human-001 will arrange. PR #32 stays draft, TC-016-01–06 stay implemented and AC1–AC7 stay unchecked. No author self-approval, ready, merge or further implementation follows this handoff. Final documentation has a separate CI run and does not alter runtime evidence.
+
+## Human-supplied Local Pre-review and Authorized Repairs
+
+[human-001][2026-10-09] Supplied the non-signing PR #32 local pre-review of `4bad1aca` and instructed resuming to fix its findings. That reviewer reports 1272 passed on Android/Termux aarch64 / CPython 3.14.6, governance/21 planning regressions and isolated installed-wheel smoke passed, with no blocking findings. Ruff/mypy were checked through CI rather than run on Termux. This is attributed reviewer evidence for the prior revision, not an author-performed run and not T03/T07/T10/T13 approval. It does not verify the repaired revision below; the additional independent adversarial review mentioned in the supplied report has not been supplied.
+
+| Finding | Disposition |
+|---|---|
+| P2/F-1: root payload bound failures have empty paths | Fixed: numeric/length failures now append the violated constraint keyword to the value-node path, e.g. `("maxLength",)` at root or `("value", "minItems")` for a nested array. Nested member/index locations are retained; no submitted values are exposed. |
+| Information/F-2: fixed duplicate-key path cannot locate nested duplicates | Explicitly documented in the specification and package README: object-pairs hooks supply no containing path, so every duplicate-key error uses `("<unknown>",)` without exposing the key. |
+| Information/F-3: implicit capability ID length bound | Explicitly documented in Q4 and the README: at most 131 characters, from four 32-character segments plus three dots. |
+| Information/F-4: combined closeout/specification/runtime PR | Retain the combined delivery already authorized by human-001. This informational observation identifies no correctness defect or requirement to split the PR. |
+| Information/F-5: defensive schema snapshot/revalidation cost | Retain revalidation at public boundaries, including internally constructed typed records. The reviewer reports no practical descriptor-scale impact; no performance optimization or benchmark claim is made. |
+
+Repair source/test artifact: `a682623`. Linux aarch64, UID 1000, CPython 3.12.12 and 3.14.3 / pytest 9.1.1. Added 24 cases covering integer/number minimum/maximum and string/array minimum/maximum lengths at root, object member and array element locations through both `Schema.validate` and `validate_payload`. Every case checks deterministic exact paths, privacy and unchanged input/record snapshots. All 24 failed before the fix and pass afterward.
+
+Both interpreters pass **1296 tests, zero failed/skipped**: 339 Capability cases (336 public-validator/helper cases plus the same three static/acceptance probes) and 957 existing cases. Per-TC counts are **102 / 137 / 39 / 39 / 17 / 5** for TC-016-01–06. JUnit results: `/tmp/req016-review-fixes-py312.xml` and `/tmp/req016-review-fixes-py314.xml`. The four required-runtime flags remain enabled.
+
+Ruff and strict mypy (five sources), governance/all 21 planning regressions, public-data, legacy requirements and whitespace checks pass. Offline wheel/sdist build to `/tmp/req016-review-fixes-dist` passes; fresh isolated installations into `/tmp/req016-review-wheel312` and `/tmp/req016-review-wheel314` both pass committed `wheel_smoke.py` with `-I` from `/tmp`. No author Termux/3.14.6 run is claimed for the repair.
+
+REQ-016 remains `req_impl_review` / evaluator-001, all six TCs remain implemented and AC1–AC7 unchecked. PR #32 stays draft for independent combined review; no readiness, queue approval or merge disposition is inferred from this non-signing report.
