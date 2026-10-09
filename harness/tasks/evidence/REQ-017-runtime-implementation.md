@@ -1,6 +1,6 @@
 # REQ-017 — TC and Runtime Self-check Evidence
 
-Authority: [REQ-017](../features/REQ-017.md). Human-001 supplied PR #33's non-signing pre-review and explicitly authorized its merge, then TC/code/runtime delivery through req_impl and a stop for external review. This is Generator implementation evidence, not independent T07/T10/T13 approval. AC1–AC7 remain unchecked and TC-017-01–06 remain implemented.
+Authority: [REQ-017](../archive/done/features/REQ-017.md). Human-001 supplied PR #33's non-signing pre-review and explicitly authorized its merge, then TC/code/runtime delivery through req_impl and a stop for external review. This is Generator implementation evidence, not independent T07/T10/T13 approval. At the original implementation handoff, AC1–AC7 were unchecked and TC-017-01–06 implemented. Human final acceptance below supersedes that boundary; merge/done disposition is recorded in [closeout evidence](REQ-017-review-acceptance.md).
 
 ## Specification and Artifact Provenance
 

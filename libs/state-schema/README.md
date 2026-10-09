@@ -324,7 +324,7 @@ The no-argument accessor reads the fixed UTF-8 package resource
 [initial_capabilities.v1.json](src/state_schema/initial_capabilities.v1.json)
 on each call, validates duplicate keys and the complete REQ-016 contract, then
 requires exactly the six ordered revision-1 identities. It returns fresh immutable
-records with detached snapshots. There is no import-time catalogue read or cache;
+records with detached snapshots. There is no import-time catalogue read or cache.
 Missing/unreadable resource errors of type `OSError` or `UnicodeError` are
 wrapped in value-free `CapabilityError` diagnostics. Other resource-loader
 exception classes have no promised fixed-message wrapper.
@@ -362,6 +362,8 @@ do not enforce Capability types, and a float position is rejected by this
 Capability contract even though generic State supports numeric scalar comparison.
 No provider adapter, task engine, Device attachment or store integration is added.
 
-[REQ-017](../../harness/tasks/features/REQ-017.md) owns the specification and
-lifecycle. Human-001 accepted AC1–AC7 and TC-017-01–06 under the explicit
-PR #34 merge disposition; no independent evaluator signature is inferred.
+[REQ-017](../../harness/tasks/archive/done/features/REQ-017.md) owns the specification and
+lifecycle. PR #34 is merged; human-001 accepted AC1–AC7 and TC-017-01–06
+under the explicit merge/archive disposition. REQ-017 is archived done; no
+independent evaluator signature is inferred. See
+[closeout evidence](../../harness/tasks/evidence/REQ-017-review-acceptance.md).
