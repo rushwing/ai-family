@@ -325,7 +325,17 @@ The no-argument accessor reads the fixed UTF-8 package resource
 on each call, validates duplicate keys and the complete REQ-016 contract, then
 requires exactly the six ordered revision-1 identities. It returns fresh immutable
 records with detached snapshots. There is no import-time catalogue read or cache;
-missing/unreadable resources fail with value-free `CapabilityError` diagnostics.
+Missing/unreadable resource errors of type `OSError` or `UnicodeError` are
+wrapped in value-free `CapabilityError` diagnostics. Other resource-loader
+exception classes have no promised fixed-message wrapper.
+
+Runtime checks enforce structural validity and the exact ordered identity/revision
+pairs. Equality with this specification's schemas, metadata, titles and unit wording
+is checked by independently transcribed TCs, version-controlled review and release
+checks; the accessor performs no frozen-digest or full expected-content comparison.
+Keep `_IDENTITIES`, the packaged resource and independent test expectations
+synchronized when reviewing catalogue revisions. Clients should treat error paths
+as diagnostic locations, not use their differing shapes to dispatch recovery logic.
 
 | Identity | Property | Unit and range | Action |
 |---|---|---|---|
@@ -353,5 +363,5 @@ Capability contract even though generic State supports numeric scalar comparison
 No provider adapter, task engine, Device attachment or store integration is added.
 
 [REQ-017](../../harness/tasks/features/REQ-017.md) owns the specification and
-lifecycle. TC-017-01–06 are implemented for external combined review; AC1–AC7
-remain unchecked until that disposition.
+lifecycle. Human-001 accepted AC1–AC7 and TC-017-01–06 under the explicit
+PR #34 merge disposition; no independent evaluator signature is inferred.
