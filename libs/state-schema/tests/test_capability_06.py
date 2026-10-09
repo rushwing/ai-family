@@ -84,7 +84,10 @@ def test_pure_factories_and_failures(capability_api, monkeypatch, link_present):
     assert not attempts
 
 
-def test_module_boundary(capability_api):
+def test_module_boundary(capability_api, state_api):
+    # Keep offline modules independent while guarding their common member grammar.
+    assert capability_api._MEMBER.pattern == state_api._PROPERTY.pattern
+    assert capability_api._MEMBER.flags == state_api._PROPERTY.flags
     tree = ast.parse(Path(capability_api.__file__).read_text())
     allowed = {"__future__", "dataclasses", "json", "math", "re", "typing"}
     for node in ast.walk(tree):

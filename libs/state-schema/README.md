@@ -299,6 +299,10 @@ locate the duplicate within a large document. Numeric and length bound errors
 append the violated schema keyword to the payload node path: root string
 overflow is `("maxLength",)`, and nested array underflow can be
 `("values", "minItems")`. These suffixes name constraints, not payload fields.
+Root type and enum failures retain `()` because the value node is the root.
+For descriptor payload selection, a canonical but undeclared interaction name
+uses `("<unknown>",)`; malformed names use `("<property>",)`. Neither error
+echoes the supplied name, so undeclared interactions have no member location.
 There is no provider client, dispatch, store, clock or runtime
 dependency. Required acceptance adds `--require-capability-runtime`; missing
 runtime or any skip fails. TC-016-01–06 are implemented for external combined
