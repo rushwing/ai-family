@@ -11,7 +11,7 @@
       "goal": "Connect HA, normalize current state and safely execute vendor-neutral device actions.",
       "capabilities": "HA REST/WebSocket; canonical models/capabilities; mapper; state; guard/audit; mocks; API.",
       "exit_criteria": "Demonstrate an authorized confirmed action on one existing physical device through the canonical API with reported completion, audit and failure recovery. Mock CI passes without HA.",
-      "dependencies": "Existing identity/audit/task boundaries; HI-F001\u2013HI-F010.",
+      "dependencies": "Existing identity/audit/task boundaries; HI-F001–HI-F010.",
       "depends_on": []
     },
     {
@@ -22,7 +22,7 @@
       "goal": "Deliver reviewed household workflows rather than isolated device commands.",
       "capabilities": "Runtime/persistence; trigger/condition/wait/timeout/retry; confirmation; sleep, aquarium, laundry and mock cleaning; notifications.",
       "exit_criteria": "Restart a run without duplicated physical effects; demonstrate all four scenarios with defined failure paths and duplicate-feeding prevention.",
-      "dependencies": "R1; HI-F101\u2013HI-F110.",
+      "dependencies": "R1; HI-F101–HI-F110.",
       "depends_on": [
         "R1"
       ]
@@ -692,10 +692,8 @@
       "title": "Define canonical State contract",
       "parent": "HI-F003",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S010.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-015",
       "legacy_refs": [
         "ZW-ST-0304"
       ],
