@@ -717,12 +717,8 @@
       "title": "Define six initial capability schemas",
       "parent": "HI-F004",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S012.md",
-      "depends_on": [
-        "HI-S011"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-017",
       "legacy_refs": [
         "ZW-ST-0202"
       ],
