@@ -120,8 +120,9 @@ python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
 State acceptance mode fails on absent runtime and any skip. Isolated subprocess
 cases exercise those failure gates. Parent network/DNS/process guards apply
 throughout; pure contract tests also deny common filesystem mutations.
-All six TCs remain implemented pending independent combined text/code and
-feature review; runtime self-checks are not approval.
+PR #31 merged as `58f411e`; human-001 accepted all six State TCs under the
+explicit merge disposition. REQ-015 is archived done; no evaluator signature
+is inferred from author self-checks.
 
 ## Pre-review portability and guard revision
 
@@ -135,3 +136,25 @@ and available `os.system`/fork/exec/spawn paths are patched; swallowed attempts
 still fail teardown. This is reviewed test instrumentation, not protection
 against intentionally modified tests, monkeypatches, native code or preopened
 descriptors. Filesystem guards tolerate unavailable OS methods.
+
+## REQ-016 Capability acceptance tests
+
+TC-016-01–06 exercise real descriptor/catalogue factories, strict text ingestion,
+bounded schema/payload validation, action metadata and completion references.
+Q1–Q5 clarify duplicate-key handling, structural equality, independent depth
+counts, 2–4 segment IDs and exact interaction text limits. The ACK timeline
+calls the existing REQ-015 State helper; it creates no task/event executor.
+
+```bash
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime --require-state-runtime \
+  --require-capability-runtime -q
+```
+
+Absent Capability runtime and any required skip fail acceptance; isolated actual
+pytest probes demonstrate both. Parent network/DNS/process guards apply, and
+pure contract cases additionally deny filesystem mutations on success/failure,
+including environments with missing OS methods. CI runs the full package,
+lint/type and installed-wheel smoke on Python 3.12/3.13/3.14. These are author
+self-checks: TC-016-01–06 remain implemented, not passing, until the external
+combined text/code/feature review requested by human-001.

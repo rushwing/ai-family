@@ -704,10 +704,8 @@
       "title": "Define versioned Capability base contract",
       "parent": "HI-F004",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S011.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-016",
       "legacy_refs": [
         "ZW-ST-0201",
         "ZW-ST-0202"
