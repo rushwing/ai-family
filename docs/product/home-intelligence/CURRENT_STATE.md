@@ -27,7 +27,7 @@ HI-F003 — Canonical Home Domain Model. R1 is active; other R1 features are pla
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S010, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
+HI-S001, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
 
 ## Blocked and Pending Stories
 
@@ -41,7 +41,9 @@ No unresolved decision prevents the first domain/configuration contract stories.
 
 HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](../../../harness/tasks/archive/done/features/REQ-013.md) records the accepted typed shared contracts, offline inventory validation and pure target resolution delivered in PR #26. This delivery requires no HA credentials or hardware and supplies canonical identity prerequisites for later mapper/state/mock work.
 
-HI-S009 — Define ProviderBinding contract is admitted to [REQ-014](../../../harness/tasks/features/REQ-014.md). Admission PR #28 is merged; draft PR #29 implements the offline binding contracts and TC-014-01–06 for combined TC/code review. Owner/status derive from Harness. Provider mappings remain separate from inventory, replacement preserves canonical identity, and live HA calls/action dispatch are excluded. Binding runtime self-checks pass, but independent combined review and engineering acceptance remain pending. Admission alone did not deliver runtime.
+HI-S009 — Define ProviderBinding contract is delivered through archived [REQ-014](../../../harness/tasks/archive/done/features/REQ-014.md). PR #29 is merged with the P1 instance-alias correction; human-001 accepted the combined delivery and requested done archival. TC-014-01–06 are passing; post-merge runtime checks report 714 passed with zero skips/failures. Provider mappings remain separate from inventory and offline replacement preserves canonical identity.
+
+HI-S010 — Define canonical State contract is admitted to [REQ-015](../../../harness/tasks/features/REQ-015.md) for specification and acceptance review. Desired intent, reported observations, availability, observed_at and epoch/sequence ordering are explicit; unknown/offline cannot become false/zero, and ACK alone cannot establish physical convergence. No state runtime is delivered by this admission. Owner/status derive from Harness.
 
 ## Delivery Order
 

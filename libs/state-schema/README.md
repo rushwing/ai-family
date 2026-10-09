@@ -88,9 +88,9 @@ See [REQ-013](../../harness/tasks/archive/done/features/REQ-013.md),
 ## ProviderBinding (REQ-014)
 
 `state_schema.provider_binding` implements offline, version-1 mapping contracts
-separately from inventory. Independent combined TC/code review is pending in
-[PR #29](https://github.com/rushwing/ai-family/pull/29); self-check results do not
-mark REQ-014 complete. No provider runtime or dispatch path is introduced.
+separately from inventory. [PR #29](https://github.com/rushwing/ai-family/pull/29) is merged; human-001’s
+final acceptance and post-merge verification are recorded in
+[closeout evidence](../../harness/tasks/evidence/REQ-014-review-acceptance.md). No provider runtime or dispatch path is introduced.
 
 ```python
 import json

@@ -1,6 +1,6 @@
 # REQ-014 — Combined TC and Runtime Self-check Evidence
 
-Independent combined TC text/code and feature review is pending in [PR #29](https://github.com/rushwing/ai-family/pull/29). These are Generator self-checks, not T07/T10/T13 approval. Requirement authority: [REQ-014](../features/REQ-014.md).
+Historical self-check record; final human acceptance and merge disposition are recorded in [closeout evidence](REQ-014-review-acceptance.md). At the original handoff, independent combined TC text/code and feature review was pending in [PR #29](https://github.com/rushwing/ai-family/pull/29). These are Generator self-checks, not T07/T10/T13 approval. Requirement authority: [REQ-014](../archive/done/features/REQ-014.md).
 
 ## Tested Artifact and Environment
 

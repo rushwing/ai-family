@@ -31,19 +31,22 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/archive/done/features/REQ-011.md",
             "harness/tasks/features/REQ-013.md",
             "harness/tasks/features/REQ-014.md",
+            "harness/tasks/features/REQ-015.md",
             "harness/agent-registry.yml",
         ):
             dest = self.root / rel
             dest.parent.mkdir(parents=True, exist_ok=True)
             source = ROOT / rel
-            if rel == 'harness/tasks/features/REQ-013.md' and not source.exists():
-                source = ROOT / 'harness/tasks/archive/done/features/REQ-013.md'
+            if rel.startswith('harness/tasks/features/REQ-') and not source.exists():
+                source = ROOT / 'harness/tasks/archive/done/features' / Path(rel).name
             shutil.copy2(source, dest)
         # Keep lifecycle mutation fixtures active even after the live REQ is archived.
         for path in (self.root / PRODUCT).rglob('*.md'):
             text = path.read_text()
             path.write_text(text.replace('tasks/archive/done/features/REQ-013.md',
-                                         'tasks/features/REQ-013.md'))
+                                         'tasks/features/REQ-013.md').replace(
+                                             'tasks/archive/done/features/REQ-014.md',
+                                             'tasks/features/REQ-014.md'))
         self.index = self.root / PRODUCT / "requirements/index.json"
         self.baseline = json.loads(self.index.read_text(encoding="utf-8"))
 
