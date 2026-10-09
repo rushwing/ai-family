@@ -122,7 +122,58 @@ def main():
     snapshot = loaded.to_dict()
     snapshot["capabilities"].clear()
     assert len(loaded.capabilities) == len(load_initial_capabilities().capabilities) == 6
-    print("Installed-wheel smoke passed: State, Capability APIs and all six initial definitions.")
+    import state_schema.action_contracts as actions
+
+    assert Path(actions.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
+    request = {
+        "schema_version": 1, "home_id": "home-example",
+        "device_id": "device-bedroom-light-01", "capability_id": "home.switchable",
+        "capability_version": 1, "action_id": "set_on", "arguments": {"is_on": False},
+        "idempotency_key": "wheel-key", "trace_id": "wheel-trace",
+    }
+    context = {"home_id": "home-example", "subject_id": "wheel-subject",
+               "family_member_id": "wheel-member", "role": "adult"}
+    cat = loaded.to_dict()
+    task = actions.create_task(request, requester=context, task_id="wheel-task",
+                               inventory=inventory, catalogue=cat)
+    identity = {k: request[k] for k in (
+        "home_id", "device_id", "capability_id", "capability_version", "action_id")}
+    correlation = {"task_id": task["task_id"], "trace_id": task["trace_id"], **identity}
+    out = {"schema_version": 1, **correlation, "state": "running",
+           "output": {"present": True, "value": None}, "error": None,
+           "evidence": {"kind": "ack", **correlation}, "physical_outcome": "unverified"}
+    task = actions.transition_task(task, out, inventory=inventory, catalogue=cat,
+                                   dispatch_context={"current_epoch": 1,
+                                                     "baseline": {"epoch": 1, "sequence": 1}})
+    assert actions.validate_task(task, inventory=inventory, catalogue=cat) == task
+    assert actions.ActionRequest.from_dict(request).to_dict() == request
+    assert actions.Task.from_dict(task).to_dict() == task
+    assert actions.ActionResult.from_dict(out).to_dict() == out
+    try:
+        actions.transition_task(task, {**out, "state": "succeeded",
+                                      "physical_outcome": "confirmed"},
+                                inventory=inventory, catalogue=cat)
+    except actions.ActionError:
+        pass
+    else:
+        raise AssertionError("Installed Action contract treated ACK as success")
+    observed = {"home_id": request["home_id"], "device_id": request["device_id"],
+                "desired_state": None, "reported_state": {"is_on": {
+                    "status": "known", "value": False,
+                    "observed_at": "2026-01-01T12:00:00Z",
+                    "ordering": {"epoch": 1, "sequence": 2}}},
+                "availability": {"status": "online", "observed_at": "2026-01-01T12:00:00Z",
+                                 "ordering": {"epoch": 1, "sequence": 2}}}
+    done = actions.transition_task(task, {**out, "state": "succeeded",
+                                          "physical_outcome": "confirmed",
+                                          "evidence": {"kind": "state", **correlation,
+                                                       "state": observed}},
+                                   inventory=inventory, catalogue=cat)
+    assert done["state"] == "succeeded"
+    assert actions.compare_idempotency(done, {**request, "trace_id": "new-trace"},
+                                       requester=context, inventory=inventory,
+                                       catalogue=cat) == "replay"
+    print("Installed-wheel smoke passed: State, Capability, catalogue and Action contracts.")
 
 
 if __name__ == "__main__":
