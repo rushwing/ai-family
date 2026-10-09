@@ -52,3 +52,7 @@ Installed the wheel without dependencies into `/tmp/req015-wheel-env`, then ran 
 The package has no store, provider client, action/task runtime, clock/TTL allocator, persisted epoch generator or device write path. Caller-supplied generation context must be retained by the future owner; stateless checks only detect rollback against epochs in the submitted snapshot. Null update arguments mean no update; revisionless intent cancellation is excluded. Direct dataclass constructors remain internal typed records; external boundaries use factories. Unknown structural/property keys are redacted in diagnostics while valid property names remain in paths.
 
 TC-015-01–06 stay implemented and AC1–AC7 stay unchecked until independent combined text/code/feature review accepts them. No passing/complete State lifecycle or independent review signature is inferred from these self-checks.
+
+## Implementation CI and Handoff
+
+[CI run 37872795653](https://github.com/rushwing/ai-family/actions/runs/37872795653), head `8be63cd`, passed all six applicable jobs: governance-gates, changes, req002-integration, state-schema-tc, goal-agent and mcp-toolsets. The unrelated web/workbook jobs were skipped by path filtering; required contract execution had zero skips. [Draft PR #31](https://github.com/rushwing/ai-family/pull/31) holds the combined review. T12 hands off REQ-015 to `req_impl_review` / evaluator-001. Final handoff documentation receives its own CI run; this historical run verifies the implementation/evidence artifact.
