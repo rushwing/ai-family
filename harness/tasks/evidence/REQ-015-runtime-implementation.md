@@ -109,5 +109,17 @@ wheel/sdist rebuild succeeded in `/tmp/req015-revision-dist`. Reinstalled the
 wheel without dependencies, then ran the committed `tests/wheel_smoke.py` from
 `/tmp` with `-I` on both interpreters: installed-module path, reference validation,
 ACK rejection, observed false/zero agreement and epoch fencing passed.
-CI matrix results are recorded after the revised branch head finishes checks;
-these local commands remain Generator self-check evidence.
+These local commands remain Generator self-check evidence.
+
+### Revised CI and Handoff
+
+[CI run 37875942512](https://github.com/rushwing/ai-family/actions/runs/37875942512),
+head `a80216f`, passes all eight applicable jobs: governance-gates, changes,
+req002-integration, goal-agent, mcp-toolsets and state-schema-tc for Python
+3.12/3.13/3.14. Each State job runs lint/type, required runtime tests,
+public-data/legacy validation and the built/installed-wheel smoke on GitHub's
+ubuntu-latest runner. Path-filtered web/workbook jobs skip; legacy validation
+still runs in the State matrix. Revised T12 returns REQ-015 to
+`req_impl_review` / evaluator-001. Final documentation gets its own CI run.
+PR #31 remains draft; no independent approval, passing TC status or accepted
+AC checkboxes are inferred from these self-checks.
