@@ -123,3 +123,11 @@ still runs in the State matrix. Revised T12 returns REQ-015 to
 `req_impl_review` / evaluator-001. Final documentation gets its own CI run.
 PR #31 remains draft; no independent approval, passing TC status or accepted
 AC checkboxes are inferred from these self-checks.
+
+## Human-supplied Second-round Verification and Merge Disposition
+
+On 2026-10-09 human-001 supplied DSH's second-round local pre-review of `31ef0988cf49660827925e7f4a1dedcbad0f73eb`. Reported environment: Android/Termux aarch64, CPython 3.14.6, pytest 9.1.1. Required acceptance: 957 passed, zero failed/skipped; State counts 137/17/19/23/37/5 (238 total). Governance and 21 planning regressions passed. `pip wheel` and isolated installed-wheel `python -I tests/wheel_smoke.py` passed; Termux used virtualenv because ensurepip was unavailable. DSH checked final CI run 37876129251 and the 3.14 job's lint/type/runtime/public-data/legacy/wheel steps. Local Termux Ruff/mypy execution remained unavailable. These are human-supplied external results, not author-performed Termux runs.
+
+DSH confirms F1–F7 fixed, F8–F11 disposed as documented, and no new blocking findings. Its report explicitly supplies no registered independent T07/T10/T13 signature. The remaining informational request to trace the REQ-014 diagnostic change is recorded in REQ-014-review-acceptance.md.
+
+Human-001 then explicitly instructed checking for any further amendments and merging PR #31. This is the human final acceptance/merge disposition, superseding the pending handoff for this delivery; it does not turn DSH's report or Generator self-checks into independent evaluator signatures. AC1–AC7 are accepted and TC-015-01–06 marked passing under that human disposition. No code changes are needed following round two.
