@@ -82,3 +82,26 @@ Both interpreters pass **1296 tests, zero failed/skipped**: 339 Capability cases
 Ruff and strict mypy (five sources), governance/all 21 planning regressions, public-data, legacy requirements and whitespace checks pass. Offline wheel/sdist build to `/tmp/req016-review-fixes-dist` passes; fresh isolated installations into `/tmp/req016-review-wheel312` and `/tmp/req016-review-wheel314` both pass committed `wheel_smoke.py` with `-I` from `/tmp`. No author Termux/3.14.6 run is claimed for the repair.
 
 REQ-016 remains `req_impl_review` / evaluator-001, all six TCs remain implemented and AC1–AC7 unchecked. PR #32 stays draft for independent combined review; no readiness, queue approval or merge disposition is inferred from this non-signing report.
+
+## Supplemental Findings and Repaired-head Reviewer Verification
+
+[human-001][2026-10-09] Subsequently supplied S-1–S-5 from the local/fresh-eyes combined report and its third-round verification of `42fd26cb`. The earlier statement that the additional adversarial findings had not been supplied describes the preceding handoff; those findings are now available through the supplied report excerpts, although the separate local report file itself was not transferred.
+
+The reviewer reports Android/Termux aarch64 / CPython 3.14.6: **1296 passed, zero failed/skipped**, per-TC **102 / 137 / 39 / 39 / 17 / 5**, governance/all 21 planning regressions and isolated built-wheel smoke passed. The reviewer independently confirms the F-1 root/nested paths and observes 24 failures when reverting its two implementation lines, then 24 passes after restoration. [CI run 37885901949](https://github.com/rushwing/ai-family/actions/runs/37885901949) verifies that exact head with eight successful applicable jobs and two path-filtered skips; the author also checked each Python 3.12/3.13/3.14 job's lint/type/required-runtime/public-fixture/installed-wheel steps. These results apply to `42fd26cb`, not the supplement below.
+
+The supplied report also records seven fresh-eyes mutation classes caught by the existing suite (additional properties, read-only targets, latest-version fallback, duplicate keys, depth, enum and payload-required rules). The local reviewer separately reports four caught mutations: bool-as-integer (4 failures), missing read-only-target rule (1), schema depth relaxed to 100 (2), unknown structural fields allowed (37). These are attributed reviewer experiments on prior artifacts, not author-performed experiments or independent acceptance signatures.
+
+| Supplemental item | Disposition |
+|---|---|
+| S-1: repeated Capability/State member-name regex | Add pattern and flags parity assertions to the existing TC-016-06 module-boundary probe. No sibling-module import is added to runtime and test counts stay unchanged. |
+| S-2: repeated `ErrorPath` alias | Retain the equivalent local type alias so Capability stays stdlib-only; no behavior defect identified. |
+| S-3: redacted undeclared interaction location | Document the selection diagnostics: canonical undeclared names use `("<unknown>",)`, malformed names use `("<property>",)`. Neither echoes the caller's name. |
+| S-4: `review_round` still zero | Correct to 1 for the prior human-authorized F-1 implementation revision, following REQ-015's precedent. GLOSSARY §9.2 increments on revision returns, not each report or recheck. This supplemental nonblocking follow-up remains in that revision cycle and confers no independent T14 or acceptance signature. |
+| S-5: Termux lint/type and author-interpreter reproducibility | Retain explicit attribution: reviewer Termux runtime results and CI lint/type evidence are distinct from author Linux 3.12/3.14 results. |
+| Additional root type/enum path observation | Document `()` as the root value-node location; only numeric/length bounds append violated keywords. Preserve this value-free convention. |
+
+Supplement test/document artifact: `54397da`; runtime source remains the tested `a682623` artifact. Linux aarch64, UID 1000, CPython 3.12.12 and 3.14.3 / pytest 9.1.1 each pass **1296, zero failed/skipped**, using all four required-runtime flags. Counts remain 339 Capability (336 public-validator/helper cases plus three static/acceptance probes) + 957 existing; TC-016-01–06 remain 102 / 137 / 39 / 39 / 17 / 5. JUnit files: `/tmp/req016-supplement-py312.xml` and `/tmp/req016-supplement-py314.xml`.
+
+The author ran temporary pytest-plugin mutations in separate processes without changing repository source: shortening the member regex from 63 to 62 makes the pattern assertion fail; dropping `re.ASCII` makes the flags assertion fail. Each mutation produces one failure in the module-boundary probe; the unmodified full suites above pass. Ruff, strict mypy (five sources), governance/all 21 planning regressions, public-data/legacy requirements and whitespace checks pass. Runtime and packaging configuration are unchanged; the preceding source artifact's offline wheel/sdist and dual-interpreter isolated smoke evidence remains applicable. No author Termux run is claimed for this supplement.
+
+Keep PR #32 draft, `req_impl_review` / evaluator-001, implemented TCs and unchecked AC1–AC7 for independent T07/T10/T13 grading. The supplied report states no blocking findings and explicitly remains non-signing.
