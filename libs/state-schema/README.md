@@ -305,6 +305,7 @@ uses `("<unknown>",)`; malformed names use `("<property>",)`. Neither error
 echoes the supplied name, so undeclared interactions have no member location.
 There is no provider client, dispatch, store, clock or runtime
 dependency. Required acceptance adds `--require-capability-runtime`; missing
-runtime or any skip fails. TC-016-01–06 are implemented for external combined
-review; AC1–AC7 remain unchecked. See [REQ-016](../../harness/tasks/features/REQ-016.md)
+runtime or any skip fails. PR #32 is merged; human-001 accepted AC1–AC7 and TC-016-01–06 under
+the final merge disposition. REQ-016 is archived done; no independent evaluator
+signature is inferred. See [closeout evidence](../../harness/tasks/evidence/REQ-016-review-acceptance.md), [REQ-016](../../harness/tasks/archive/done/features/REQ-016.md)
 and [runtime self-check evidence](../../harness/tasks/evidence/REQ-016-runtime-implementation.md).
