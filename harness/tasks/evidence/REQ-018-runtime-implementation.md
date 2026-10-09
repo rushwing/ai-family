@@ -60,3 +60,7 @@ Shape-only factories and trusted persisted snapshots cannot establish authentici
 ## External Review Handoff
 
 Independent combined review of TC text/code and runtime remains pending. CI result and draft implementation PR linkage are recorded in the REQ after final-head verification. No evaluator signature or completed status is inferred from these results.
+
+## Implementation CI and PR
+
+[Draft PR #37](https://github.com/rushwing/ai-family/pull/37) is the external combined-review artifact. Evidence head `852c118` passed all eight applicable jobs in [CI run 37906485048](https://github.com/rushwing/ai-family/actions/runs/37906485048), including required-runtime tests/lint/type/installed-wheel smoke on Python 3.12/3.13/3.14. Two unrelated jobs skipped by path filtering. Final handoff adds only Harness documentation and preserves tested source/test artifact `c6e2ce5`; final-head checks are also verified before reporting completion. REQ-018 is req_impl_review / evaluator-001, ACs unchecked and TCs implemented. Stop for human-arranged external review; no readiness or merge is authorized.
