@@ -309,3 +309,49 @@ runtime or any skip fails. PR #32 is merged; human-001 accepted AC1–AC7 and TC
 the final merge disposition. REQ-016 is archived done; no independent evaluator
 signature is inferred. See [closeout evidence](../../harness/tasks/evidence/REQ-016-review-acceptance.md), [REQ-016](../../harness/tasks/archive/done/features/REQ-016.md)
 and [runtime self-check evidence](../../harness/tasks/evidence/REQ-016-runtime-implementation.md).
+
+## Six Initial Capabilities — REQ-017
+
+```python
+from state_schema.initial_capabilities import load_initial_capabilities
+
+catalogue = load_initial_capabilities()
+catalogue.validate_payload("home.switchable", 1, "action_input", "set_on", {"is_on": False})
+catalogue.validate_payload("home.power_meter", 1, "property", "power_w", -125.5)
+```
+
+The no-argument accessor reads the fixed UTF-8 package resource
+[initial_capabilities.v1.json](src/state_schema/initial_capabilities.v1.json)
+on each call, validates duplicate keys and the complete REQ-016 contract, then
+requires exactly the six ordered revision-1 identities. It returns fresh immutable
+records with detached snapshots. There is no import-time catalogue read or cache;
+missing/unreadable resources fail with value-free `CapabilityError` diagnostics.
+
+| Identity | Property | Unit and range | Action |
+|---|---|---|---|
+| `home.switchable` | `is_on` | Boolean on/off, separate from availability | `set_on` |
+| `home.positionable` | `position_percent` | Integer opening percent, 0 closed / 100 open | `set_position` |
+| `home.temperature_sensor` | `temperature_c` | Celsius, minimum -273.15; finite numbers | none |
+| `home.humidity_sensor` | `relative_humidity_percent` | Relative humidity percent, 0–100 | none |
+| `home.power_meter` | `power_w` | Signed watts; positive import, negative export | none |
+| `home.battery_powered` | `battery_percent` | Remaining charge percent, 0–100 | none |
+
+Clients must deliberately support the exact `(identity, revision, property)`
+meaning to interpret units and direction. Descriptions do not grant compatibility;
+there is no `unit` schema keyword or automatic conversion. All measurements are
+read-only; all event maps are empty. Unknown/offline stays in REQ-015 State metadata,
+never a fabricated false/zero reading. Exact-version selection never falls back.
+
+Both actions declare `medium` risk, `safe_repeat` intent and `state_converged`
+completion; dispatch deadlines are 30000 ms for `set_on` and 120000 ms for
+`set_position`. Inputs require their single canonical property, outputs are null.
+These declarations execute nothing and grant no authorization or retry guarantee.
+ACK/null output cannot establish observed convergence. Future integrations must
+validate canonical reports before applying State updates: generic State helpers
+do not enforce Capability types, and a float position is rejected by this
+Capability contract even though generic State supports numeric scalar comparison.
+No provider adapter, task engine, Device attachment or store integration is added.
+
+[REQ-017](../../harness/tasks/features/REQ-017.md) owns the specification and
+lifecycle. TC-017-01–06 are implemented for external combined review; AC1–AC7
+remain unchecked until that disposition.

@@ -92,7 +92,11 @@ sys.addaudithook(audit)
 import state_schema.initial_capabilities
 assert not attempts
 """
-    result = launch([sys.executable, "-B", "-c", script], cwd=ROOT)
+    result = launch(
+        [sys.executable, "-B", "-c", script],
+        cwd=ROOT,
+        env=dict(os.environ, PYTHONPATH=str(ROOT / "libs/state-schema/src")),
+    )
     assert result.returncode == 0, result.stderr
 
 

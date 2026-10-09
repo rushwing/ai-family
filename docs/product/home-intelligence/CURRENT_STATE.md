@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `262871e` on 2026-10-09. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `d609783` on 2026-10-09. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -23,11 +23,11 @@ No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, 
 
 ## Active Feature
 
-R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base delivery and HI-S012 admitted for specification review; its Feature remains planned until product refinement/execution is explicitly advanced. Child contract acceptance alone does not complete a Feature.
+R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base delivery and HI-S012 admitted with authorized initial-catalogue implementation; its Feature remains planned until product refinement/execution is explicitly advanced. Child contract acceptance alone does not complete a Feature.
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S019 and HI-S025 are dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). HI-S012 is admitted to [REQ-017](../../../harness/tasks/features/REQ-017.md) for specification review only. Read engineering state from Harness; admission does not deliver the six concrete schemas.
+HI-S001, HI-S019 and HI-S025 are dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). HI-S012 is implemented under [REQ-017](../../../harness/tasks/features/REQ-017.md) for external combined review after human-001 authorized proceeding. Read engineering state from Harness; implementation awaiting acceptance does not satisfy later delivered-schema prerequisites.
 
 ## Blocked and Pending Stories
 
@@ -47,7 +47,7 @@ HI-S010 — Define canonical State contract is delivered through archived [REQ-0
 
 HI-S011 — Define versioned Capability base contract is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). [PR #32](https://github.com/rushwing/ai-family/pull/32) merged as `262871e`; human-001 accepted AC1–AC7 and TC-016-01–06 under the final merge disposition. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 1296 tests with zero skips/failures. Strict offline descriptor/catalogue/schema/payload validation supplies descriptive risk/timeout/idempotency/completion metadata; ACK cannot create observed convergence. No provider dispatch, task/deadline/event-correlation engine or six concrete schemas are delivered. [Closeout evidence](../../../harness/tasks/evidence/REQ-016-review-acceptance.md) preserves provenance and environment limits.
 
-HI-S012 — Define six initial capability schemas is admitted to [REQ-017](../../../harness/tasks/features/REQ-017.md) for specification and acceptance review. This defines the initial vocabulary using the accepted base contract; TC design/code and implementation await the Harness review gates.
+HI-S012 — Define six initial capability schemas is implemented in [REQ-017](../../../harness/tasks/features/REQ-017.md) for the external combined review requested by human-001. PR #33 merged the approved specification as `d609783`; the implementation adds a packaged six-descriptor catalogue, fresh validated accessor and TC-017-01–06. Units/ranges, read-only sensor boundaries and two absolute-target actions reuse REQ-016; there is no provider execution or State integration. AC1–AC7 remain unchecked and TCs remain implemented until external acceptance.
 
 ## Delivery Order
 

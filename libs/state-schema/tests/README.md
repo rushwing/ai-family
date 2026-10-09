@@ -156,5 +156,34 @@ pytest probes demonstrate both. Parent network/DNS/process guards apply, and
 pure contract cases additionally deny filesystem mutations on success/failure,
 including environments with missing OS methods. CI runs the full package,
 lint/type and installed-wheel smoke on Python 3.12/3.13/3.14. These are author
-self-checks: TC-016-01–06 remain implemented, not passing, until the external
-combined text/code/feature review requested by human-001.
+self-checks, distinct from later human final acceptance: PR #32 is merged and
+TC-016-01–06 are passing under the human merge disposition. See REQ-016 closeout evidence.
+
+## REQ-017 Initial Capability acceptance tests
+
+TC-017-01–06 exercise all six packaged definitions through
+`state_schema.initial_capabilities.load_initial_capabilities`, the existing
+Capability payload validators and actual State helpers. Required mode distinguishes
+this slice from the already-present base Capability module:
+
+```bash
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime --require-state-runtime \
+  --require-capability-runtime --require-initial-capabilities-runtime -q
+```
+
+Module absence fails fast; a missing/malformed resource or broken accessor fails
+actual tests, and any skip fails required acceptance. Resource fault injection
+replaces only the read boundary, leaving real decoding/validation intact. Tests
+cover fixed machine schemas, units, metadata, sensor read-only selection, detached
+snapshots and private diagnostics; no provider or task service is invented.
+A subprocess verifies import performs no catalogue read; explicit retrieval allows
+only the fixed package read while denying writes/clocks/environment discovery.
+All parent network/process guards remain active, including swallowed effects.
+Source import probes explicitly use this checkout's source path on every interpreter;
+installed-wheel smoke separately runs with `-I` from `/tmp` and imports the wheel.
+
+CI runs all five required-runtime options on Python 3.12/3.13/3.14 plus lint/type
+and installed-wheel smoke that reads all six definitions. Build evidence also
+checks the JSON resource in wheel and sdist. This is implementation evidence;
+TC-017-01–06 stay implemented and independent acceptance remains pending.
