@@ -145,3 +145,80 @@ Keep real mappings in Git-ignored `*.provider-bindings.local.json` files; public
 fixtures are fictional. No new inventory schema, loader, adapter, API route or
 runtime dependency is needed. Standard-library validation follows the existing
 package design and remains subject to independent implementation review.
+
+## Canonical State (REQ-015)
+
+`state_schema.canonical_state` supplies offline version-1 State contracts and
+pure ordering/convergence helpers. State lives separately from inventory and
+ProviderBinding. `DeviceState.from_dict` / `validate_state` validate individual
+shape; `StateCollection.from_dict` / `validate_states(data, inventory=...)` also
+validate inventory references and one record per Device. Direct dataclass
+constructors are internal typed records; use factories for external input.
+Frozen nested records and tuple property maps expose detached `to_dict()` JSON.
+There are no omitted-field defaults. Scalar bool/int/float/string types and
+observation timestamp spellings are preserved.
+
+```python
+from state_schema.canonical_state import validate_state, apply_state_update, evaluate_convergence
+
+snapshot = validate_state(my_state_document)
+updated = apply_state_update(
+    snapshot, current_epoch=1,
+    reported_state={"power": {
+        "status": "known", "value": False,
+        "observed_at": "2026-01-01T12:00:00Z",
+        "ordering": {"epoch": 1, "sequence": 2},
+    }},
+)
+result = evaluate_convergence(updated, current_epoch=1)
+```
+
+`desired_state` is nullable intent with a positive revision, nonempty `values`
+and nullable `report_baseline`. Reports are per-property tagged observations;
+known requires a scalar and UTC observation time/order, unknown requires null
+value and either paired null metadata or actual observation metadata.
+Availability is independently tagged online/offline/unknown. Offline preserves
+last known false/zero values without making them currently confirmed evidence.
+Unknown, absent property and literal known string `"unknown"` remain distinct.
+
+The owner explicitly supplies `current_epoch` to both helpers. Higher epochs
+establish generations; lower-than-accepted context is rejected. Updates must
+belong to the established epoch, including after sequence resets. Greater
+member ordering replaces; stale updates are ignored; identical typed replay is
+idempotent and conflicting equal-order replay fails. Each property and
+availability compares its own accepted pair. Timestamps never determine order.
+Equal replay preserves exact numeric types; convergence compares numbers by
+numeric value while keeping booleans distinct. Batch errors never mutate input.
+
+Update arguments omitted or None mean no update. A null-metadata unknown
+snapshot cannot be applied as an event; explicit unknown events need order/time.
+Intent changes use independent revision ordering. Null intent cancellation
+through the update helper is not supported because it carries no new revision.
+The caller supplies counters/epochs; the module provides no store, allocation,
+clock-based TTL or restart coordination. The owner must retain the established
+epoch even before refreshed observations record it; stateless validation can
+only detect context rollback against epochs present in the supplied snapshot.
+Shape-only helpers prove no inventory
+integrity or authenticity of submitted observations.
+
+Convergence yields `not_requested`, `unknown`, `pending` or `confirmed`.
+Confirmation requires current-epoch online availability and every desired
+property known, matching and strictly later than the intent baseline in that
+epoch. Missing/null/cross-epoch baselines or ineligible reports yield unknown.
+A generation change requires explicit intent rebasing with a higher revision.
+Agreement does not prove that a command caused the change. ACK/task success is
+outside State and cannot create observed values/time/order or online status.
+There is no dispatch or provider runtime; unknown completion fields reject.
+
+`StateError.path` / `.message` locate failures without supplied values. Unknown
+structural keys and malformed property names are redacted as `<unknown>` and
+`<property>`; valid canonical property names remain useful in paths. Invalid
+inventory errors retain only the inventory-prefixed path and generic reason.
+The public [fictional timeline](../../docs/product/home-intelligence/examples/canonical-state-timeline.example.json)
+shows intent → ACK only → actual mismatch → matching false/zero observations.
+It is an example bundle, not the State collection envelope or a live integration.
+
+Required runtime acceptance adds `--require-state-runtime` to the shared pytest
+command. Missing module or any skip fails acceptance. Specification and required
+TCs: [REQ-015](../../harness/tasks/features/REQ-015.md). Independent combined
+TC/feature review remains pending; passing self-checks do not mark delivery done.

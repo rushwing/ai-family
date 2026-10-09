@@ -83,9 +83,8 @@ gates must also pass. TC code review and runtime acceptance are separate handoff
 
 TC-014-01–06 are implemented against `state_schema.provider_binding`, with
 fictional HA/mock resource strings and the separate before/after fixture.
-Independent TC text/code and feature review is deferred to PR #29 under the
-explicit instruction to prepare one combined review. TCs remain `implemented`
-until that review; test execution alone does not confer acceptance.
+PR #29 is merged; human-001 accepted the combined delivery and TC-014-01–06
+are passing. Final disposition is recorded in the REQ-014 closeout evidence.
 
 Run both sets of required contracts:
 
@@ -102,3 +101,24 @@ inventory/target equality across replacement. Parent socket/DNS/process guards
 apply to all cases; the pure-validation case also blocks filesystem writes.
 The guards cover standard Python entry points, not native code or an OS sandbox.
 No provider service is mocked into existence or dispatched by this suite.
+
+## REQ-015 Canonical State acceptance tests
+
+TC-015-01–06 exercise the real `state_schema.canonical_state` factories,
+collection validation, partial updates and derived convergence. The public
+API and exact error path conventions are recorded in REQ-015. Fixtures are
+fictional; no provider or dispatcher is mocked into existence. Tests cover
+strict scalar/time/reference handling, type-preserving unavailable values,
+per-member stale/replay/conflict decisions, epoch fencing, separate intent
+revisions and ACK-only versus physically observed agreement.
+
+```bash
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime --require-state-runtime -q
+```
+
+State acceptance mode fails on absent runtime and any skip. Isolated subprocess
+cases exercise those failure gates. Parent network/DNS/process guards apply
+throughout; pure contract tests also deny common filesystem mutations.
+All six TCs remain implemented pending independent combined text/code and
+feature review; runtime self-checks are not approval.

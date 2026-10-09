@@ -5,6 +5,7 @@ import json
 import socket
 import subprocess
 import urllib.request
+from importlib.util import find_spec
 
 import pytest
 from binding_support import BINDING_AVAILABLE
@@ -27,6 +28,16 @@ def binding_api():
     for export in ('ProviderBinding', 'BindingCollection', 'BindingError',
                    'validate_binding', 'validate_bindings'):
         assert hasattr(module, export), f'Missing binding test seam: {export}'
+    return module
+
+
+@pytest.fixture
+def state_api():
+    module = importlib.import_module('state_schema.canonical_state')
+    for export in ('DeviceState', 'StateCollection', 'StateError', 'Ordering',
+                   'Observation', 'Availability', 'DesiredState', 'validate_state',
+                   'validate_states', 'apply_state_update', 'evaluate_convergence'):
+        assert hasattr(module, export), f'Missing State test seam: {export}'
     return module
 
 
@@ -116,6 +127,8 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-state-runtime', action='store_true',
+                     help='REQ-015 acceptance: fail on absent State runtime or skipped tests')
     parser.addoption('--require-binding-runtime', action='store_true',
                      help='REQ-014 acceptance: fail on absent binding runtime or skipped tests')
     parser.addoption('--require-inventory-runtime', action='store_true',
@@ -123,6 +136,9 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    if (session.config.getoption('--require-state-runtime')
+            and find_spec('state_schema.canonical_state') is None):
+        raise pytest.UsageError('REQ-015 State runtime is missing; acceptance cannot pass')
     if session.config.getoption('--require-binding-runtime') and not BINDING_AVAILABLE:
         raise pytest.UsageError('REQ-014 binding runtime is missing; acceptance cannot pass')
     if session.config.getoption('--require-inventory-runtime') and not RUNTIME_AVAILABLE:
@@ -131,7 +147,8 @@ def pytest_sessionstart(session):
 
 def pytest_sessionfinish(session, exitstatus):
     if (session.config.getoption('--require-inventory-runtime')
-            or session.config.getoption('--require-binding-runtime')):
+            or session.config.getoption('--require-binding-runtime')
+            or session.config.getoption('--require-state-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED

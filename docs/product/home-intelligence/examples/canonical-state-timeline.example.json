@@ -1,0 +1,80 @@
+{
+  "initial_state": {
+    "home_id": "home-example",
+    "device_id": "device-bedroom-light-01",
+    "desired_state": {
+      "revision": 1,
+      "values": {
+        "power": false,
+        "level": 0
+      },
+      "report_baseline": {
+        "epoch": 1,
+        "sequence": 1
+      }
+    },
+    "reported_state": {},
+    "availability": {
+      "status": "unknown",
+      "observed_at": null,
+      "ordering": null
+    }
+  },
+  "provider_ack": {
+    "accepted": true
+  },
+  "observations": [
+    {
+      "reported_state": {
+        "power": {
+          "status": "known",
+          "value": true,
+          "observed_at": "2026-01-01T12:00:00Z",
+          "ordering": {
+            "epoch": 1,
+            "sequence": 2
+          }
+        },
+        "level": {
+          "status": "known",
+          "value": 5,
+          "observed_at": "2026-01-01T12:00:00Z",
+          "ordering": {
+            "epoch": 1,
+            "sequence": 2
+          }
+        }
+      },
+      "availability": {
+        "status": "online",
+        "observed_at": "2026-01-01T12:00:00Z",
+        "ordering": {
+          "epoch": 1,
+          "sequence": 2
+        }
+      }
+    },
+    {
+      "reported_state": {
+        "power": {
+          "status": "known",
+          "value": false,
+          "observed_at": "2026-01-01T12:00:00Z",
+          "ordering": {
+            "epoch": 1,
+            "sequence": 3
+          }
+        },
+        "level": {
+          "status": "known",
+          "value": 0,
+          "observed_at": "2026-01-01T12:00:00Z",
+          "ordering": {
+            "epoch": 1,
+            "sequence": 3
+          }
+        }
+      }
+    }
+  ]
+}

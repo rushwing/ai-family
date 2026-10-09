@@ -80,3 +80,14 @@ Do not insert bindings into the canonical inventory JSON. This compares data;
 it neither switches a live provider nor implements a mock device or action.
 Keep private copies in Git-ignored `*.provider-bindings.local.json` files.
 REQ-014 implementation is awaiting independent combined review in PR #29.
+
+## Canonical State timeline
+
+[canonical-state-timeline.example.json](canonical-state-timeline.example.json)
+is a fictional REQ-015 acceptance bundle: `initial_state` is a canonical State
+record, `provider_ack` is separate task evidence, and `observations` contains
+partial helper updates. Intent targets power false and level zero; ACK alone
+leaves observations unknown. The first actual report mismatches, and the second
+provides current-generation post-baseline agreement. The bundle is not itself
+a State collection; wrap records in `{schema_version: 1, states: [...]}` when
+validating references. No device write or provider connection is performed.
