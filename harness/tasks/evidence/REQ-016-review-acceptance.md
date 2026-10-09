@@ -32,7 +32,7 @@ Tested source commit: `262871e69f0c58abb5671fb6838b318330dd3851`, before documen
 
 Record T15 under human-001's explicit final instruction. AC1–AC7 remain accepted, TC-016-01–06 remain passing, and no pending or linked unresolved req_bug prevents done. [REQ-016](../archive/done/features/REQ-016.md) becomes done / human-001 and is the sole archived specification. Historical pending-review statements are superseded; the non-signing local reviews remain non-signing. Catalogue and payload validation still supplies no provider execution, task engine or physical evidence.
 
-Repair Story, TC, evidence and package links in this closeout package. HI-S012 is separately admitted to [REQ-017](../features/REQ-017.md) for six-capability specification review only. Its admission creates no TC/runtime implementation or acceptance. Product Feature/Stage completion is not inferred from child acceptance.
+Repair Story, TC, evidence and package links in this closeout package. HI-S012 is separately admitted to [REQ-017](../archive/done/features/REQ-017.md) for six-capability specification review only. Its admission creates no TC/runtime implementation or acceptance. Product Feature/Stage completion is not inferred from child acceptance.
 
 ## Closeout and Admission Validation
 

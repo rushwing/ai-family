@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `d609783` on 2026-10-09. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `0443b84` on 2026-10-09. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -23,11 +23,11 @@ No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, 
 
 ## Active Feature
 
-R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base delivery and HI-S012 admitted with authorized initial-catalogue implementation; its Feature remains planned until product refinement/execution is explicitly advanced. Child contract acceptance alone does not complete a Feature.
+R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base and HI-S012 initial-catalogue deliveries; its Feature remains planned until product refinement/execution is explicitly advanced. Child contract acceptance alone does not complete a Feature.
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S019 and HI-S025 are dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). HI-S012 is implemented under [REQ-017](../../../harness/tasks/features/REQ-017.md) for external combined review after human-001 authorized proceeding. Read engineering state from Harness; implementation awaiting acceptance does not satisfy later delivered-schema prerequisites.
+HI-S001, HI-S019 and HI-S025 are dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). HI-S012 is delivered through archived [REQ-017](../../../harness/tasks/archive/done/features/REQ-017.md). Its schema prerequisite is satisfied for later stories; their remaining dependencies and explicit Harness admission still apply. Read engineering state from Harness.
 
 ## Blocked and Pending Stories
 
@@ -47,7 +47,7 @@ HI-S010 — Define canonical State contract is delivered through archived [REQ-0
 
 HI-S011 — Define versioned Capability base contract is delivered through archived [REQ-016](../../../harness/tasks/archive/done/features/REQ-016.md). [PR #32](https://github.com/rushwing/ai-family/pull/32) merged as `262871e`; human-001 accepted AC1–AC7 and TC-016-01–06 under the final merge disposition. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 1296 tests with zero skips/failures. Strict offline descriptor/catalogue/schema/payload validation supplies descriptive risk/timeout/idempotency/completion metadata; ACK cannot create observed convergence. No provider dispatch, task/deadline/event-correlation engine or six concrete schemas are delivered. [Closeout evidence](../../../harness/tasks/evidence/REQ-016-review-acceptance.md) preserves provenance and environment limits.
 
-HI-S012 — Define six initial capability schemas is implemented in [REQ-017](../../../harness/tasks/features/REQ-017.md) for the external combined review requested by human-001. PR #33 merged the approved specification as `d609783`; the implementation adds a packaged six-descriptor catalogue, fresh validated accessor and TC-017-01–06. Units/ranges, read-only sensor boundaries and two absolute-target actions reuse REQ-016; there is no provider execution or State integration. AC1–AC7 remain unchecked and TCs remain implemented until external acceptance.
+HI-S012 — Define six initial capability schemas is delivered through archived [REQ-017](../../../harness/tasks/archive/done/features/REQ-017.md). [PR #34](https://github.com/rushwing/ai-family/pull/34) merged as `0443b84`; human-001 accepted AC1–AC7 and TC-017-01–06 under the final merge/archive disposition. The packaged six-descriptor catalogue and fresh validated accessor reuse REQ-016, with explicit units/ranges, read-only sensor boundaries and two absolute-target actions. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 1493 tests, zero skips/failures. Runtime validates structure and identity/revision; specification content equality is checked by independently transcribed TCs and VCS/release review. Future adapters must validate Capability values before State updates. No provider execution or State integration is delivered. [Closeout evidence](../../../harness/tasks/evidence/REQ-017-review-acceptance.md) preserves merge and acceptance provenance.
 
 ## Delivery Order
 

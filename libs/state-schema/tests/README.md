@@ -186,4 +186,6 @@ installed-wheel smoke separately runs with `-I` from `/tmp` and imports the whee
 CI runs all five required-runtime options on Python 3.12/3.13/3.14 plus lint/type
 and installed-wheel smoke that reads all six definitions. Build evidence also
 checks the JSON resource in wheel and sdist. This is implementation evidence;
-TC-017-01–06 stay implemented and independent acceptance remains pending.
+PR #34 is merged and TC-017-01–06 are passing under human-001’s final
+merge/archive disposition. REQ-017 is archived done; no independent evaluator
+signature is inferred.
