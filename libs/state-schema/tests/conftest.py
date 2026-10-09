@@ -161,6 +161,8 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-action-runtime', action='store_true',
+                     help='REQ-018 acceptance: fail on absent Action runtime or skipped tests')
     parser.addoption('--require-initial-capabilities-runtime', action='store_true',
                      help='REQ-017 acceptance: fail on absent initial catalogue or skipped tests')
     parser.addoption('--require-capability-runtime', action='store_true',
@@ -174,6 +176,9 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    if (session.config.getoption('--require-action-runtime')
+            and find_spec('state_schema.action_contracts') is None):
+        raise pytest.UsageError('REQ-018 Action runtime is missing; acceptance cannot pass')
     if (session.config.getoption('--require-initial-capabilities-runtime')
             and find_spec('state_schema.initial_capabilities') is None):
         raise pytest.UsageError(
@@ -196,7 +201,23 @@ def pytest_sessionfinish(session, exitstatus):
             or session.config.getoption('--require-binding-runtime')
             or session.config.getoption('--require-state-runtime')
             or session.config.getoption('--require-capability-runtime')
-            or session.config.getoption('--require-initial-capabilities-runtime')):
+            or session.config.getoption('--require-initial-capabilities-runtime')
+            or session.config.getoption('--require-action-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED
+
+
+@pytest.fixture
+def action_api():
+    module = importlib.import_module('state_schema.action_contracts')
+    for export in ('ActionError', 'ActionRequest', 'RequesterContext', 'ActionResult', 'Task',
+                   'validate_request', 'validate_task', 'validate_result', 'create_task',
+                   'transition_task', 'compare_idempotency'):
+        assert hasattr(module, export), f'Missing Action seam: {export}'
+    return module
+
+
+@pytest.fixture
+def initial_cat():
+    return importlib.import_module('state_schema.initial_capabilities').load_initial_capabilities().to_dict()
