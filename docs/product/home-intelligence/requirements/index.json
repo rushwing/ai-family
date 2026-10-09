@@ -837,10 +837,8 @@
       "title": "Define Action Request, Result and Task contracts",
       "parent": "HI-F007",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S019.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-018",
       "legacy_refs": [
         "ZW-ST-1201"
       ],
