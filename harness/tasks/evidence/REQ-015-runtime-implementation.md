@@ -1,6 +1,6 @@
 # REQ-015 — Combined TC and Runtime Self-check Evidence
 
-Date: 2026-10-09. Authority: [REQ-015](../features/REQ-015.md).
+Date: 2026-10-09. Authority: [REQ-015](../archive/done/features/REQ-015.md).
 Human-001 explicitly requested merging PR #30 and starting REQ-015. PR #30
 merged as `09f1abd`; scope approval and combined-delivery sequencing are recorded
 in the REQ. These are Generator self-checks, not independent T07/T10/T13 approval.
@@ -131,3 +131,7 @@ On 2026-10-09 human-001 supplied DSH's second-round local pre-review of `31ef098
 DSH confirms F1–F7 fixed, F8–F11 disposed as documented, and no new blocking findings. Its report explicitly supplies no registered independent T07/T10/T13 signature. The remaining informational request to trace the REQ-014 diagnostic change is recorded in REQ-014-review-acceptance.md.
 
 Human-001 then explicitly instructed checking for any further amendments and merging PR #31. This is the human final acceptance/merge disposition, superseding the pending handoff for this delivery; it does not turn DSH's report or Generator self-checks into independent evaluator signatures. AC1–AC7 are accepted and TC-015-01–06 marked passing under that human disposition. No code changes are needed following round two.
+
+## Merge and Closeout
+
+PR #31 merged as `58f411edf7199ede236f274632b77b73d08bed02` on 2026-10-09. REQ-015 is archived done under human-001's explicit final disposition. Historical pending-review statements above are superseded. [Closeout evidence](REQ-015-review-acceptance.md) records merge provenance and the post-merge offline verification; no new independent review signature is claimed.

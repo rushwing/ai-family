@@ -224,8 +224,10 @@ It is an example bundle, not the State collection envelope or a live integration
 
 Required runtime acceptance adds `--require-state-runtime` to the shared pytest
 command. Missing module or any skip fails acceptance. Specification and required
-TCs: [REQ-015](../../harness/tasks/features/REQ-015.md). Independent combined
-TC/feature review remains pending; passing self-checks do not mark delivery done.
+TCs: [REQ-015](../../harness/tasks/archive/done/features/REQ-015.md). PR #31
+merged as `58f411e`; human-001 accepted AC1–AC7 and TC-015-01–06
+under the explicit merge disposition. REQ-015 is archived done; no independent
+evaluator signature is inferred. See [closeout evidence](../../harness/tasks/evidence/REQ-015-review-acceptance.md).
 
 Canonical ID validation in all three contract modules uses the shared
 `home_inventory.CANONICAL_ID_PATTERN`. State timestamps enforce hour 0–23,

@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-Evidence is based on the local repository at base commit `c595649`, inspected on 2026-10-07. This is a source review, not a new live-service or physical-device certification.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `58f411e` on 2026-10-09. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -23,11 +23,11 @@ No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, 
 
 ## Active Feature
 
-HI-F003 — Canonical Home Domain Model. R1 is active; other R1 features are planned until their own refinement/execution begins.
+R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 now has HI-S011 admitted for Capability base specification review; its Feature remains planned until product refinement/execution is explicitly advanced. Child contract acceptance alone does not complete a Feature.
 
 ## Dependency-ready Candidates
 
-HI-S001, HI-S011 and HI-S019 have no Story prerequisites and remain draft until scope approval and a correctly owned Harness REQ exist. HI-S008 is admitted to REQ-013; read its current owner/status from Harness. Its expanded specification includes Floor, room types/labels and editable group-target inventory; the offline inventory package is delivered in PR #26.
+HI-S001 and HI-S019 remain dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is admitted to [REQ-016](../../../harness/tasks/features/REQ-016.md) for specification review only. Read engineering state from Harness; its admission supplies no runtime contract and does not satisfy HI-S012's delivery prerequisite.
 
 ## Blocked and Pending Stories
 
@@ -43,7 +43,9 @@ HI-S008 — Define canonical Home, Floor, Area and Device contracts. [REQ-013](.
 
 HI-S009 — Define ProviderBinding contract is delivered through archived [REQ-014](../../../harness/tasks/archive/done/features/REQ-014.md). PR #29 is merged with the P1 instance-alias correction; human-001 accepted the combined delivery and requested done archival. TC-014-01–06 are passing; post-merge runtime checks report 714 passed with zero skips/failures. Provider mappings remain separate from inventory and offline replacement preserves canonical identity.
 
-HI-S010 — Define canonical State contract is admitted to [REQ-015](../../../harness/tasks/features/REQ-015.md). PR #30 is merged, and human-001 explicitly authorized implementation. The shared package now delivers strict offline State validation, per-member ordering updates and derived convergence with TC-015-01–06 implemented for combined review. Desired intent, reported observations, availability, observed_at and epoch/sequence ordering remain separate; unknown/offline cannot become false/zero and ACK alone cannot establish physical convergence. Runtime revision self-checks on Linux aarch64 / CPython 3.12.12 and 3.14.3 each pass 957 cases with zero skips/failures; independent TC/code/feature acceptance remains pending. Owner/status derive from Harness.
+HI-S010 — Define canonical State contract is delivered through archived [REQ-015](../../../harness/tasks/archive/done/features/REQ-015.md). [PR #31](https://github.com/rushwing/ai-family/pull/31) merged as `58f411e`; human-001 accepted AC1–AC7 and TC-015-01–06 under the explicit merge disposition. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 957 tests with zero skips/failures. Desired intent, reported observations, availability and ordering remain separate; unknown/offline never becomes false/zero and ACK cannot establish physical convergence. [Closeout evidence](../../../harness/tasks/evidence/REQ-015-review-acceptance.md) preserves acceptance provenance and environment limits.
+
+HI-S011 — Define versioned Capability base contract is admitted to [REQ-016](../../../harness/tasks/features/REQ-016.md). Its specification defines properties/actions/events, bounded input/output schemas and required risk/timeout/idempotency/completion-policy metadata. The draft review package keeps provider acceptance separate from physical convergence and excludes provider calls/dispatch. Requirement approval, TC design/code and runtime implementation remain pending; owner/status derive from Harness.
 
 ## Delivery Order
 

@@ -32,6 +32,8 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/features/REQ-013.md",
             "harness/tasks/features/REQ-014.md",
             "harness/tasks/features/REQ-015.md",
+            "harness/tasks/features/REQ-016.md",
+            "harness/tasks/evidence/REQ-015-review-acceptance.md",
             "harness/agent-registry.yml",
         ):
             dest = self.root / rel
@@ -46,7 +48,9 @@ class PlanningIntegrityTests(unittest.TestCase):
             path.write_text(text.replace('tasks/archive/done/features/REQ-013.md',
                                          'tasks/features/REQ-013.md').replace(
                                              'tasks/archive/done/features/REQ-014.md',
-                                             'tasks/features/REQ-014.md'))
+                                             'tasks/features/REQ-014.md').replace(
+                                             'tasks/archive/done/features/REQ-015.md',
+                                             'tasks/features/REQ-015.md'))
         self.index = self.root / PRODUCT / "requirements/index.json"
         self.baseline = json.loads(self.index.read_text(encoding="utf-8"))
 
