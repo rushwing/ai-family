@@ -31,7 +31,8 @@ def test_ack_never_succeeds(action_api, inventory, initial_cat, kind):
 def test_immediate_evidence_requires_running(action_api, inventory, terminal):
     cat, r = custom('ack_only' if terminal == 'acknowledged' else 'event_confirmed')
     t = make(action_api, inventory, cat, r)
-    out = result(t, terminal, evidence=evidence(t, 'ack' if terminal == 'acknowledged' else 'event'))
+    kind = 'ack' if terminal == 'acknowledged' else 'event'
+    out = result(t, terminal, evidence=evidence(t, kind))
     reject(action_api, lambda: action_api.transition_task(
         t, out, inventory=inventory, catalogue=cat))
 
@@ -70,7 +71,8 @@ def test_ineligible_event_baseline(action_api, inventory, baseline):
     t = running(action_api, inventory, cat, r,
                 dispatch={'current_epoch': 1, 'baseline': baseline})
     reject(action_api, lambda: action_api.transition_task(
-        t, result(t, 'succeeded', evidence=evidence(t, 'event')), inventory=inventory, catalogue=cat))
+        t, result(t, 'succeeded', evidence=evidence(t, 'event')),
+        inventory=inventory, catalogue=cat))
 
 
 def test_running_can_record_ack_without_success(action_api, inventory):
@@ -81,3 +83,30 @@ def test_running_can_record_ack_without_success(action_api, inventory):
                                          dispatch_context={'current_epoch': 1, 'baseline': None})
     assert started['state'] == 'running'
     assert started['result']['physical_outcome'] == 'unverified'
+
+
+@pytest.mark.parametrize('field', ['task_id', 'trace_id', 'home_id', 'device_id',
+                                   'capability_id', 'capability_version', 'action_id'])
+def test_ack_correlation(action_api, inventory, field):
+    cat, r = custom('ack_only')
+    t = running(action_api, inventory, cat, r)
+    e = evidence(t)
+    e[field] = 2 if field == 'capability_version' else (
+        'demo.other' if field == 'capability_id' else 'other')
+    reject(action_api, lambda: action_api.transition_task(
+        t, result(t, 'acknowledged', evidence=e), inventory=inventory, catalogue=cat))
+
+
+@pytest.mark.parametrize('kind', ['ack', 'event', 'state'])
+def test_evidence_fields(action_api, inventory, initial_cat, kind):
+    cat, r = custom() if kind == 'event' else (initial_cat, None)
+    t = running(action_api, inventory, cat, r)
+    e = evidence(t, kind)
+    state = 'running' if kind == 'ack' else 'succeeded'
+    for field in e:
+        broken = {k: v for k, v in e.items() if k != field}
+        reject(action_api, lambda: action_api.ActionResult.from_dict(
+            result(t, state, evidence=broken)))
+    reject(action_api, lambda: action_api.ActionResult.from_dict(
+        result(t, state, evidence={**e, 'PRIVATE-KEY': 'PRIVATE-VALUE'})),
+        private=('PRIVATE-KEY', 'PRIVATE-VALUE'))

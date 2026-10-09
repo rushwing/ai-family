@@ -70,7 +70,7 @@ jobs:
               - 'agents/goal/tests/integration/test_legacy_direct_disabled.py'
               - '.github/workflows/ci.yml'
 
-  # REQ-013/014/015/016/017 runtime contracts: required tests execute with zero skips.
+  # REQ-013/014/015/016/017/018 runtime contracts: required tests execute with zero skips.
   state-schema-tc:
     strategy:
       fail-fast: false
@@ -90,11 +90,11 @@ jobs:
         run: ruff check libs/state-schema/src libs/state-schema/tests
       - name: Type-check shared contracts
         run: mypy --config-file libs/state-schema/pyproject.toml libs/state-schema/src
-      - name: Run inventory, binding, State, Capability and initial catalogue TCs without skips
+      - name: Run all shared contract TCs without skips
         run: >-
           python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests
           --require-inventory-runtime --require-binding-runtime --require-state-runtime
-          --require-capability-runtime --require-initial-capabilities-runtime -q
+          --require-capability-runtime --require-initial-capabilities-runtime --require-action-runtime -q
           --junitxml=/tmp/state-schema-results.xml
       - name: Validate public fixtures and legacy requirements
         run: |

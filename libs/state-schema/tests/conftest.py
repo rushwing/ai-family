@@ -220,4 +220,5 @@ def action_api():
 
 @pytest.fixture
 def initial_cat():
-    return importlib.import_module('state_schema.initial_capabilities').load_initial_capabilities().to_dict()
+    module = importlib.import_module('state_schema.initial_capabilities')
+    return module.load_initial_capabilities().to_dict()

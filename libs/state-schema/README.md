@@ -1,4 +1,4 @@
-# Canonical home inventory, bindings, State and Capability contracts
+# Canonical home inventory, bindings, State, Capability and Action contracts
 
 REQ-013 implements provider-neutral Home, Floor, Area, Device, Label and AreaGroup
 contracts, a UTF-8 JSON loader and pure target resolution. The public apartment
@@ -367,3 +367,83 @@ lifecycle. PR #34 is merged; human-001 accepted AC1–AC7 and TC-017-01–06
 under the explicit merge/archive disposition. REQ-017 is archived done; no
 independent evaluator signature is inferred. See
 [closeout evidence](../../harness/tasks/evidence/REQ-017-review-acceptance.md).
+
+## Action Request, Result and Task (REQ-018)
+
+`state_schema.action_contracts` adds version-1 pure action contracts. It neither
+executes actions nor authenticates a requester. Device capability support,
+authorization/confirmation, durable tasks/idempotency/audit, deadlines and provider
+integration remain separate prerequisites before writes. TC/feature acceptance
+is pending external review; see [REQ-018](../../harness/tasks/features/REQ-018.md).
+
+Use `validate_request(data, *, requester, inventory, catalogue)` or
+`create_task(data, *, requester, task_id, inventory, catalogue)` at the trusted
+boundary. All context objects are explicit JSON snapshots; use Inventory and
+CapabilityCatalogue `.to_dict()` for typed records. Wire Request fields are exactly
+schema_version/home_id/device_id/capability_id/capability_version/action_id/arguments/
+idempotency_key/trace_id. Requester is a separate trusted input with
+subject_id/family_member_id/home_id/role (`admin`, `adult`, `kid`). A role or selected
+catalogue action proves no membership, Device support, permission or confirmation.
+Do not use `from_dict()` to authenticate a client or establish trusted completion.
+
+`ActionRequest`, `RequesterContext`, `ActionResult` and `Task` factories validate
+shape only, return frozen records, and expose detached `.to_dict()` snapshots.
+Nested JSON is stored as immutable text internally; arguments/output/evidence
+properties also return detached snapshots. Contextual validators revalidate exact
+Inventory references, catalogue revision, action input/output and completion evidence.
+Direct constructors remain internal-only. External unknown fields, non-JSON/cyclic/
+nonfinite payloads and depth above 16 reject; unusually large integers that the
+interpreter cannot JSON-encode also reject with a fixed value-free error.
+
+Idempotency/task/trace identifiers are exact case-sensitive ASCII tokens of 1–128
+characters from letters/digits/`.`/`_`/`:`/`-`, without trim or normalization.
+`compare_idempotency(task, request, *, requester, inventory, catalogue)` returns
+`distinct`, `replay` or `conflict` in the Home/member/subject/key scope. Replay
+retains the original Task and trace. Argument comparison is recursively type-exact:
+230 and 230.0 conflict even for a number schema; object-key order is irrelevant.
+This differs deliberately from Capability enum and State numeric equality. There
+is no key reservation, concurrency/restart protection or dispatch in this package.
+
+`create_task` starts accepted with caller-provided IDs and null result/dispatch_context.
+`transition_task(task, result, *, inventory, catalogue, dispatch_context=None)` requires
+an explicit `{current_epoch, baseline}` when accepted becomes running, then freezes
+that context. Even immediate ACK/success evidence must pass through running. The
+baseline may be null for uncertain execution; success needs an eligible current-epoch
+baseline. Task snapshots retain the descriptor's exact completion policy. Result
+fields and every allowed edge are fixed in REQ-018's seam and transition table.
+`validate_result(result, *, task, inventory, catalogue)` checks context/evidence;
+`transition_task` additionally checks transition legality. `validate_task` validates
+the stored Result against the Task state and descriptor. Loading a trusted snapshot
+is structural validation, not proof of the caller's claimed provenance/history.
+
+Result `output` is `{present, value}`: absent requires null, while present null must
+still pass the declared output schema. Error is null except failed/timed_out, which
+require a stable `{code}`. Evidence is separate and repeats exact task/trace/action
+identity; kinds are ack/event/state. All non-success outcomes say physical_outcome
+unverified. `ack_only` can terminate as acknowledged, never succeeded. ACK/output
+alone cannot confirm an event or observed state. Terminal tasks do not regress;
+exact same-state Result replay is a no-op, conflicting replay rejects. Recording a
+new ACK on an already-running task would be a conflicting Result replay: record it
+on the explicit accepted → running step, or retain it in the later service's separate
+transport telemetry. This pure slice is not an incremental progress-event store.
+
+Event completion validates the declared payload and trusted correlated ordering
+strictly after the frozen baseline in the current epoch. State completion first
+validates relevant known target observations through the actual Capability property
+schemas, then derives intent from Request/descriptor and calls actual State convergence.
+Submitted State desired_state never chooses targets or rebases dispatch. This prevents
+float positions from bypassing the initial integer schema through generic State numeric
+equality. Unknown/offline/stale/missing/wrong-epoch/mismatched observations cannot
+confirm; false/zero retain their meaning. Event confirmation and State agreement do
+not establish command causation. Cancellation/timeout do not promise physical rollback
+or safe retry; later durable reconciliation must handle uncertain outcomes.
+
+`ActionError.path`/`.message` are deterministic value-free diagnostics, not a recovery
+protocol. Upstream failures are wrapped with fixed reasons and suppressed context;
+no raw provider exception or private argument is accepted as an error description.
+Helpers perform no file/network/clock/environment lookup, allocation or State mutation.
+
+Required acceptance adds `--require-action-runtime` to all five previous required-runtime
+options. CI runs the package on Python 3.12/3.13/3.14 plus lint/type and isolated
+installed-wheel Request/Task/Result smoke. Executed tests are author evidence, not
+independent T07/T10/T13 approval.

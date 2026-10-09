@@ -189,3 +189,27 @@ checks the JSON resource in wheel and sdist. This is implementation evidence;
 PR #34 is merged and TC-017-01–06 are passing under human-001’s final
 merge/archive disposition. REQ-017 is archived done; no independent evaluator
 signature is inferred.
+
+## REQ-018 Action contracts acceptance tests
+
+TC-018-01–06 exercise actual `state_schema.action_contracts` shape/context validators,
+scoped type-exact replay classification, every task transition, ACK/event policies and
+Capability-validated State convergence. Fixtures carry explicit trusted context,
+correlation identities, current epochs and dispatch baselines; no dispatcher or durable
+store is substituted into existence. Synthetic descriptors only add test-local event,
+ack-only and number/multiple-target semantics while the shipped catalogue remains unchanged.
+
+```bash
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime --require-state-runtime \
+  --require-capability-runtime --require-initial-capabilities-runtime \
+  --require-action-runtime -q
+```
+
+The actual pytest subprocess probes show module absence and any required skip fail.
+Parent network/process guards apply; pure-call tests also deny files/clocks/environment
+lookup, and a child import audit checks application I/O. The installed-wheel smoke is
+separate and imports real Request/Task/Result helpers under `-I` outside the source tree,
+rejects ACK-as-success and verifies observed false success plus replay classification.
+TCs remain implemented and ACs unchecked until human-arranged external combined review;
+test execution does not supply independent approval.

@@ -7,7 +7,6 @@ import os
 import shutil
 import sys
 import time
-from pathlib import Path
 
 import pytest
 from action_support import evidence, make, reject, request, required, result, running
@@ -62,7 +61,8 @@ def test_cycles_depth_and_unknown_keys(action_api):
            private=('SECRET-KEY', 'SECRET-VALUE'))
 
 
-def test_pure_helpers_without_files_clocks_environment(action_api, inventory, initial_cat, monkeypatch):
+def test_pure_helpers_without_files_clocks_environment(
+        action_api, inventory, initial_cat, monkeypatch):
     attempts = []
 
     def deny(*args, **kwargs):
@@ -81,7 +81,8 @@ def test_pure_helpers_without_files_clocks_environment(action_api, inventory, in
         done = action_api.transition_task(t, out, inventory=inventory, catalogue=initial_cat)
         assert action_api.validate_task(done, inventory=inventory, catalogue=initial_cat) == done
         assert action_api.compare_idempotency(done, request(), requester=done['requester'],
-                                              inventory=inventory, catalogue=initial_cat) == 'replay'
+                                              inventory=inventory,
+                                              catalogue=initial_cat) == 'replay'
         reject(action_api, lambda: action_api.transition_task(
             t, result(t, 'succeeded', evidence=evidence(t)),
             inventory=inventory, catalogue=initial_cat))
@@ -129,3 +130,12 @@ def test_actual_required_gate(tmp_path, launch, present):
                  cwd=isolated, env=dict(os.environ, PYTHONPATH=str(isolated)))
     assert out.returncode != 0
     assert ('1 skipped' in out.stdout if present else 'Action runtime is missing' in out.stderr)
+
+
+def test_unrepresentable_integer_error(action_api):
+    r = request()
+    r['arguments'] = {'private-input': 10**5000}
+    # Python's default JSON integer conversion bound fails with a sanitized error.
+    if sys.get_int_max_str_digits():
+        reject(action_api, lambda: action_api.ActionRequest.from_dict(r),
+               private=('private-input',))

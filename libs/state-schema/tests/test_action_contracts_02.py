@@ -16,8 +16,10 @@ pytestmark = required
 def test_comparison(action_api, inventory, initial_cat, field, value, expected):
     t = make(action_api, inventory, initial_cat)
     r = changed(request(), [field], value)
-    call = lambda: action_api.compare_idempotency(
-        t, r, requester=requester(), inventory=inventory, catalogue=initial_cat)
+    def call():
+        return action_api.compare_idempotency(
+            t, r, requester=requester(), inventory=inventory, catalogue=initial_cat)
+
     if expected == 'invalid':
         reject(action_api, call)
     else:

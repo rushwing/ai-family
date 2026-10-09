@@ -4,7 +4,15 @@ from copy import deepcopy
 
 import pytest
 from action_support import (
-    STATES, changed, custom, evidence, make, reject, required, result, running,
+    STATES,
+    changed,
+    custom,
+    evidence,
+    make,
+    reject,
+    required,
+    result,
+    running,
 )
 
 pytestmark = required
@@ -47,7 +55,9 @@ def test_every_transition(action_api, inventory, initial_cat, before, after):
     kwargs = {'inventory': inventory, 'catalogue': cat}
     if before == 'accepted' and after == 'running':
         kwargs['dispatch_context'] = {'current_epoch': 1, 'baseline': {'epoch': 1, 'sequence': 1}}
-    call = lambda: action_api.transition_task(t, out, **kwargs)
+    def call():
+        return action_api.transition_task(t, out, **kwargs)
+
     if before == after or after in EDGES.get(before, set()):
         updated = call()
         assert updated['state'] == after
@@ -119,3 +129,40 @@ def test_running_requires_context(action_api, inventory, initial_cat):
     t = make(action_api, inventory, initial_cat)
     reject(action_api, lambda: action_api.transition_task(
         t, result(t), inventory=inventory, catalogue=initial_cat))
+
+
+@pytest.mark.parametrize('factory', ['Task', 'ActionResult'])
+@pytest.mark.parametrize('mode', ['missing', 'unknown'])
+def test_every_envelope_field(action_api, inventory, initial_cat, factory, mode):
+    t = running(action_api, inventory, initial_cat)
+    value = t if factory == 'Task' else result(t)
+    if mode == 'missing':
+        for field in value:
+            broken = {k: v for k, v in value.items() if k != field}
+            reject(action_api, lambda: getattr(action_api, factory).from_dict(broken))
+    else:
+        reject(action_api, lambda: getattr(action_api, factory).from_dict(
+            {**value, 'PRIVATE-KEY': 'PRIVATE-VALUE'}), private=('PRIVATE-KEY', 'PRIVATE-VALUE'))
+
+
+@pytest.mark.parametrize('field', ['task_id', 'trace_id'])
+@pytest.mark.parametrize('value', ['', 'x'*129, ' x', 'x ', 'x\x00', 'é', 1, None])
+def test_result_and_evidence_tokens(action_api, inventory, initial_cat, field, value):
+    t = running(action_api, inventory, initial_cat)
+    out = result(t, 'succeeded', evidence=evidence(t, 'state'))
+    for container in [out, out['evidence']]:
+        original = container[field]
+        container[field] = value
+        reject(action_api, lambda: action_api.ActionResult.from_dict(out))
+        container[field] = original
+
+
+def test_persisted_success_revalidated(action_api, inventory, initial_cat):
+    cat, t = seed(action_api, inventory, initial_cat, 'succeeded')
+    t['result']['evidence'] = evidence(t)  # structurally valid ACK, false success label
+    reject(action_api, lambda: action_api.validate_task(t, inventory=inventory, catalogue=cat))
+    cat, t = seed(action_api, inventory, initial_cat, 'succeeded')
+    t['result']['evidence']['state']['reported_state']['is_on']['value'] = True
+    # Shape-only factory may load the record, but contextual completion cannot confirm it.
+    assert action_api.Task.from_dict(t).state == 'succeeded'
+    reject(action_api, lambda: action_api.validate_task(t, inventory=inventory, catalogue=cat))
