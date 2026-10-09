@@ -72,6 +72,10 @@ jobs:
 
   # REQ-013/014/015 runtime contracts: required tests execute with zero skips.
   state-schema-tc:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
     needs: changes
     if: ${{ needs.changes.outputs.libs == 'true' }}
     runs-on: ubuntu-latest
@@ -79,7 +83,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
       - name: Install shared contract package and validation tools
         run: python -m pip install -e 'libs/state-schema[test]'
       - name: Lint shared contract package and tests
@@ -91,10 +95,21 @@ jobs:
           python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests
           --require-inventory-runtime --require-binding-runtime --require-state-runtime -q
           --junitxml=/tmp/state-schema-results.xml
+      - name: Validate public fixtures and legacy requirements
+        run: |
+          python tools/check_home_intelligence_public_data.py
+          python tools/check_home_intelligence_requirements.py
+      - name: Build and smoke-test the installed wheel
+        run: |
+          python -m pip wheel --no-deps --wheel-dir /tmp/state-schema-wheel libs/state-schema
+          python -m venv /tmp/state-schema-wheel-env
+          /tmp/state-schema-wheel-env/bin/python -m pip install --no-deps /tmp/state-schema-wheel/*.whl
+          cd /tmp
+          /tmp/state-schema-wheel-env/bin/python -I "$GITHUB_WORKSPACE/libs/state-schema/tests/wheel_smoke.py"
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: state-schema-tc-results
+          name: state-schema-tc-results-${{ matrix.python-version }}
           path: /tmp/state-schema-results.xml
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——

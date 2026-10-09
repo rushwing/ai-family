@@ -298,3 +298,48 @@ def test_inventory_and_binding_remain_separate(state_api, api, binding_api, inve
     mapping["availability"] = data["availability"]
     with pytest.raises(binding_api.BindingError):
         binding_api.validate_binding(mapping)
+
+
+@pytest.mark.parametrize("branch", ["home", "device", "root"])
+def test_inventory_arbitrary_key_privacy(state_api, binding_api, inventory, branch):
+    from binding_support import binding
+    from binding_support import collection as binding_collection
+
+    private = "PRIVATE_INVENTORY_KEY"
+    data = deepcopy(inventory)
+    target = {"home": data["home"], "device": data["devices"][0], "root": data}[branch]
+    target[private] = "PRIVATE_INVENTORY_VALUE"
+    base = {"home": ("home",), "device": ("devices", 0), "root": ()}[branch]
+    error_at(
+        state_api,
+        lambda: state_api.validate_states(collection(state()), inventory=data),
+        ("inventory", *base, "<unknown>"),
+        private=(private, "PRIVATE_INVENTORY_VALUE"),
+    )
+    with pytest.raises(binding_api.BindingError) as caught:
+        binding_api.validate_bindings(binding_collection(binding()), inventory=data)
+    assert caught.value.path == ("inventory", *base, "<unknown>")
+    assert private not in str(caught.value)
+    assert private not in repr(caught.value)
+
+
+@pytest.mark.parametrize("hour,minute,second", [(24, 0, 0), (23, 60, 0), (23, 59, 60)])
+def test_explicit_clock_ranges_before_parser(state_api, monkeypatch, hour, minute, second):
+    class PermissiveParser:
+        @staticmethod
+        def fromisoformat(value):
+            pytest.fail("Invalid clock range reached the interpreter parser")
+
+    monkeypatch.setattr(state_api, "datetime", PermissiveParser)
+    time = f"2026-01-01T{hour:02}:{minute:02}:{second:02}Z"
+    data = changed(state(), ("reported_state", "power", "observed_at"), time)
+    error_at(
+        state_api,
+        lambda: state_api.validate_state(data),
+        ("reported_state", "power", "observed_at"),
+    )
+
+
+def test_canonical_id_pattern_has_one_authority(api, binding_api, state_api):
+    assert binding_api.CANONICAL_ID_PATTERN is api.CANONICAL_ID_PATTERN
+    assert state_api.CANONICAL_ID_PATTERN is api.CANONICAL_ID_PATTERN

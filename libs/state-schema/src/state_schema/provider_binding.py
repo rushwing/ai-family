@@ -7,14 +7,19 @@ provide no provider connection, availability, permission or dispatch behavior.
 
 from __future__ import annotations
 
-import re
 from dataclasses import dataclass
 from typing import Literal, cast
 
-from .home_inventory import ErrorPath, Inventory, InventoryError
+from .home_inventory import (
+    CANONICAL_ID_PATTERN,
+    ErrorPath,
+    Inventory,
+    InventoryError,
+    safe_inventory_path,
+)
 
 Provider = Literal["ha", "mock"]
-_ID = re.compile(r"[a-z][a-z0-9_-]{0,63}", re.ASCII)
+
 
 
 class BindingError(ValueError):
@@ -53,13 +58,13 @@ def _text(value: object, path: ErrorPath) -> str:
 
 
 def _id(value: object, path: ErrorPath) -> str:
-    if not isinstance(value, str) or _ID.fullmatch(value) is None:
+    if not isinstance(value, str) or CANONICAL_ID_PATTERN.fullmatch(value) is None:
         raise BindingError(path, "expected a canonical ID matching ^[a-z][a-z0-9_-]{0,63}$")
     return value
 
 
 def _instance_id(value: object, path: ErrorPath) -> str:
-    if not isinstance(value, str) or _ID.fullmatch(value) is None:
+    if not isinstance(value, str) or CANONICAL_ID_PATTERN.fullmatch(value) is None:
         raise BindingError(
             path,
             "expected a provider instance alias matching ^[a-z][a-z0-9_-]{0,63}$; "
@@ -167,9 +172,11 @@ class BindingCollection:
         try:
             canonical = Inventory.from_dict(inventory)
         except InventoryError as error:
-            # Inventory diagnostics may include private label/ID values. Preserve
-            # the location, suppress the original message and exception chain.
-            raise BindingError(("inventory", *error.path), "invalid canonical inventory") from None
+            # Preserve schema locations but redact arbitrary submitted keys,
+            # messages and exception chains from private inventory diagnostics.
+            raise BindingError(
+                ("inventory", *safe_inventory_path(error.path)), "invalid canonical inventory"
+            ) from None
         bindings = tuple(
             ProviderBinding.from_dict(raw, ("bindings", index))
             for index, raw in enumerate(data["bindings"])

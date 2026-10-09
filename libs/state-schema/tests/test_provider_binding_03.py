@@ -67,7 +67,7 @@ def test_no_provider_fields_in_inventory(api, binding_api, inventory, kind):
     error_at(
         binding_api,
         lambda: binding_api.validate_bindings(collection(), inventory=data),
-        ("inventory", *path, "provider"),
+        ("inventory", *path, "<unknown>"),
     )
 
 

@@ -177,7 +177,9 @@ result = evaluate_convergence(updated, current_epoch=1)
 and nullable `report_baseline`. Reports are per-property tagged observations;
 known requires a scalar and UTC observation time/order, unknown requires null
 value and either paired null metadata or actual observation metadata.
-Availability is independently tagged online/offline/unknown. Offline preserves
+Availability is independently tagged online/offline/unknown. Current-generation
+online availability may predate the intent baseline; the strict post-baseline
+requirement applies to each desired property report. Offline preserves
 last known false/zero values without making them currently confirmed evidence.
 Unknown, absent property and literal known string `"unknown"` remain distinct.
 
@@ -213,7 +215,9 @@ There is no dispatch or provider runtime; unknown completion fields reject.
 `StateError.path` / `.message` locate failures without supplied values. Unknown
 structural keys and malformed property names are redacted as `<unknown>` and
 `<property>`; valid canonical property names remain useful in paths. Invalid
-inventory errors retain only the inventory-prefixed path and generic reason.
+inventory errors retain schema fields/indices with an inventory prefix and
+generic reason; arbitrary submitted inventory keys become `<unknown>`. The
+legacy inventory validator keeps its own original diagnostic convention.
 The public [fictional timeline](../../docs/product/home-intelligence/examples/canonical-state-timeline.example.json)
 shows intent → ACK only → actual mismatch → matching false/zero observations.
 It is an example bundle, not the State collection envelope or a live integration.
@@ -222,3 +226,10 @@ Required runtime acceptance adds `--require-state-runtime` to the shared pytest
 command. Missing module or any skip fails acceptance. Specification and required
 TCs: [REQ-015](../../harness/tasks/features/REQ-015.md). Independent combined
 TC/feature review remains pending; passing self-checks do not mark delivery done.
+
+Canonical ID validation in all three contract modules uses the shared
+`home_inventory.CANONICAL_ID_PATTERN`. State timestamps enforce hour 0–23,
+minute/second 0–59 before calendar parsing, so interpreter parser normalization
+cannot broaden the accepted contract. CI runs State validation, lint/type and
+installed-wheel smoke on Python 3.12, 3.13 and 3.14; these Linux checks do not
+claim Termux runtime validation.

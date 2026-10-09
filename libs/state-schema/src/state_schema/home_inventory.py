@@ -29,7 +29,7 @@ AREA_TYPES = frozenset({
     'study', 'home_office', 'playroom', 'entrance', 'hallway', 'stairwell',
     'storage_room', 'garage', 'balcony', 'terrace', 'garden', 'other',
 })
-_ID = re.compile(r'[a-z][a-z0-9_-]{0,63}', re.ASCII)
+CANONICAL_ID_PATTERN = re.compile(r'[a-z][a-z0-9_-]{0,63}', re.ASCII)
 T = TypeVar('T')
 
 
@@ -68,7 +68,7 @@ def _text(value: object, path: ErrorPath, *, trimmed: bool = True) -> str:
 
 
 def _id(value: object, path: ErrorPath) -> str:
-    if not isinstance(value, str) or _ID.fullmatch(value) is None:
+    if not isinstance(value, str) or CANONICAL_ID_PATTERN.fullmatch(value) is None:
         raise InventoryError(path, 'expected a canonical ID matching ^[a-z][a-z0-9_-]{0,63}$')
     return value
 
@@ -289,6 +289,19 @@ class Inventory:
     def to_dict(self) -> dict[str, object]:
         """Return a detached JSON-compatible snapshot; editing it cannot alter IDs here."""
         return cast(dict[str, object], _json_value(self))
+
+
+
+def safe_inventory_path(path: ErrorPath) -> ErrorPath:
+    """Retain schema fields/indices for wrappers, redact arbitrary submitted keys.
+
+    Inventory's own diagnostics retain its legacy path convention. Wrappers
+    with value-free error contracts use this schema-derived safe vocabulary.
+    """
+    allowed = {field.name for model in (Inventory, Home, Floor, Area, Device, Label, AreaGroup)
+               for field in fields(model)}
+    return tuple(part if isinstance(part, int) or part in allowed else '<unknown>'
+                 for part in path)
 
 
 def validate_inventory(data: object) -> dict[str, object]:

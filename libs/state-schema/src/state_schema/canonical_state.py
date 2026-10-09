@@ -12,11 +12,16 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Literal, cast
 
-from .home_inventory import ErrorPath, Inventory, InventoryError
+from .home_inventory import (
+    CANONICAL_ID_PATTERN,
+    ErrorPath,
+    Inventory,
+    InventoryError,
+    safe_inventory_path,
+)
 
 Scalar = bool | int | float | str
 Convergence = Literal["not_requested", "unknown", "pending", "confirmed"]
-_ID = re.compile(r"[a-z][a-z0-9_-]{0,63}", re.ASCII)
 _PROPERTY = re.compile(r"[a-z][a-z0-9_]{0,63}", re.ASCII)
 _TIME = re.compile(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,6})?Z", re.ASCII)
 
@@ -58,7 +63,7 @@ def _integer(value: object, path: ErrorPath, minimum: int = 0) -> int:
 
 
 def _identifier(value: object, path: ErrorPath) -> str:
-    if type(value) is not str or _ID.fullmatch(value) is None:
+    if type(value) is not str or CANONICAL_ID_PATTERN.fullmatch(value) is None:
         raise StateError(path, "expected a canonical identifier")
     return value
 
@@ -74,6 +79,11 @@ def _scalar(value: object, path: ErrorPath) -> Scalar:
 def _timestamp(value: object, path: ErrorPath) -> str:
     if type(value) is not str or _TIME.fullmatch(value) is None:
         raise StateError(path, "expected a UTC timestamp ending in Z")
+    # Enforce the contract independently of fromisoformat's version-dependent
+    # acceptance/normalization (e.g. 24:00:00 in newer interpreters).
+    hour, minute, second = (int(value[start : start + 2]) for start in (11, 14, 17))
+    if hour > 23 or minute > 59 or second > 59:
+        raise StateError(path, "invalid UTC clock time")
     try:
         datetime.fromisoformat(value[:-1] + "+00:00")
     except ValueError:
@@ -261,7 +271,9 @@ class StateCollection:
         try:
             canonical = Inventory.from_dict(inventory)
         except InventoryError as error:
-            raise StateError(("inventory", *error.path), "invalid canonical inventory") from None
+            raise StateError(
+                ("inventory", *safe_inventory_path(error.path)), "invalid canonical inventory"
+            ) from None
         states = tuple(
             DeviceState.from_dict(item, ("states", index)) for index, item in enumerate(raw)
         )

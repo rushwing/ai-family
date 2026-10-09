@@ -90,7 +90,7 @@ def test_resolver_cannot_write_or_mutate(api, inventory, monkeypatch, selector, 
         patch.setattr(io, 'open', guarded_open(real_io_open))
         patch.setattr(os, 'open', guarded_os_open)
         for name in ('remove', 'unlink', 'rename', 'replace', 'mkdir', 'rmdir', 'system'):
-            patch.setattr(os, name, deny)
+            patch.setattr(os, name, deny, raising=False)
         if areas is None:
             assert_error(api, lambda: resolve(api, data, selector), ('selector', 'area_ids', 0))
         else:

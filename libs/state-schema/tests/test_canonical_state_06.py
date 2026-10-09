@@ -15,7 +15,10 @@ from state_support import collection, observation, state, state_required
 pytestmark = state_required
 
 
-def test_pure_contract_helpers(state_api, inventory, monkeypatch):
+@pytest.mark.parametrize("link_present", [True, False])
+def test_pure_contract_helpers(state_api, inventory, monkeypatch, link_present):
+    if not link_present:
+        monkeypatch.delattr(os, "link", raising=False)
     calls = []
 
     def deny(*args, **kwargs):
@@ -56,7 +59,7 @@ def test_pure_contract_helpers(state_api, inventory, monkeypatch):
             "utime",
             "system",
         ):
-            patch.setattr(os, name, deny)
+            patch.setattr(os, name, deny, raising=False)
         patch.setattr(Path, "write_text", deny)
         patch.setattr(Path, "write_bytes", deny)
         assert state_api.validate_states(collection(state()), inventory=inventory)

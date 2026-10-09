@@ -3,7 +3,7 @@
 TC-013-01–07 implement the reviewed acceptance text against the delivered
 inventory package. Tests call the public API directly and never substitute a
 fake validator, loader or resolver. Frozen-record and strict JSON decoding
-regressions supplement the original TC code. The seven guard checks are
+regressions supplement the original TC code. The guard checks are
 infrastructure checks; all remaining cases execute the runtime.
 
 The independent combined TC-code/feature review supplied by human-001 passed. Successful test execution
@@ -58,7 +58,7 @@ Resolver purity cases also deny common filesystem write/mutation paths. CLI test
 launch the real command with a child `sitecustomize` audit hook that denies socket
 events, process execution and filesystem mutation. The hook records attempts
 before raising; swallowed guard exceptions therefore fail the parent assertion.
-Bytecode writes are disabled. Seven independent infrastructure tests exercise
+Bytecode writes are disabled. Infrastructure tests exercise
 those guards and the real Git ignore rule even while runtime TCs skip.
 
 These guards cover Python's audited/standard-library paths; they do not provide
@@ -122,3 +122,16 @@ cases exercise those failure gates. Parent network/DNS/process guards apply
 throughout; pure contract tests also deny common filesystem mutations.
 All six TCs remain implemented pending independent combined text/code and
 feature review; runtime self-checks are not approval.
+
+## Pre-review portability and guard revision
+
+State CI uses Python 3.12, 3.13 and 3.14. Its workflow runs lint/type, required
+runtime tests, fixture/legacy checks and built/installed-wheel smoke; these are
+separate automated steps, not all assertions in TC-015-06's unit-test file.
+Parent guard evidence uses a private counter exposed through a read-only getter;
+only infrastructure probes predeclare expected denied attempts via marker.
+The fixture exposes no mutable list or clearing method. Socket/DNS, subprocess
+and available `os.system`/fork/exec/spawn paths are patched; swallowed attempts
+still fail teardown. This is reviewed test instrumentation, not protection
+against intentionally modified tests, monkeypatches, native code or preopened
+descriptors. Filesystem guards tolerate unavailable OS methods.

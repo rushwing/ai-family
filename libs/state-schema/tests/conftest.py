@@ -2,6 +2,7 @@
 
 import importlib
 import json
+import os
 import socket
 import subprocess
 import urllib.request
@@ -47,11 +48,14 @@ def inventory():
 
 
 @pytest.fixture(autouse=True)
-def offline_guard(monkeypatch):
-    calls = []
+def offline_guard(monkeypatch, request):
+    attempts = 0
+    expected_marker = request.node.get_closest_marker("expected_offline_attempts")
+    expected = expected_marker.args[0] if expected_marker else 0
 
     def deny(*args, **kwargs):
-        calls.append((args, kwargs))
+        nonlocal attempts
+        attempts += 1
         raise AssertionError('Inventory code attempted network or action-process execution')
 
     with monkeypatch.context() as patch:
@@ -61,8 +65,17 @@ def offline_guard(monkeypatch):
         patch.setattr(socket, 'getaddrinfo', deny)
         patch.setattr(urllib.request, 'urlopen', deny)
         patch.setattr(subprocess, 'Popen', deny)
-        yield calls
-    assert not calls, 'Forbidden effects were attempted, even if their errors were caught'
+        for name in dir(os):
+            if (name in ('system', 'fork', 'forkpty')
+                    or name.startswith(('exec', 'spawn', 'posix_spawn'))):
+                if callable(getattr(os, name)):
+                    patch.setattr(os, name, deny)
+        # Expose only an integer reader; callers cannot clear the evidence.
+        # Infrastructure probes predeclare the exact expected count by marker.
+        yield lambda: attempts
+    assert attempts == expected, (
+        'Forbidden effects were attempted, even if their errors were caught'
+    )
 
 
 # Save before the autouse offline guard patches parent-side process creation.
@@ -96,7 +109,7 @@ import sys
 log = open(os.environ['INVENTORY_EFFECT_LOG'], 'a', encoding='utf-8')
 def audit(event, args):
     forbidden = event.startswith('socket.') or event in (
-        'subprocess.Popen', 'os.system', 'os.posix_spawn', 'os.exec',
+        'subprocess.Popen', 'os.system', 'os.posix_spawn', 'os.exec', 'os.fork', 'os.forkpty',
         'os.remove', 'os.rename', 'os.mkdir', 'os.rmdir', 'os.link',
         'os.symlink', 'os.truncate', 'os.chmod', 'os.chown', 'os.utime',
     )

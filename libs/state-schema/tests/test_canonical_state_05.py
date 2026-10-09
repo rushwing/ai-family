@@ -119,11 +119,53 @@ def test_public_ack_timeline(state_api, inventory):
     original = deepcopy(data)
     assert state_api.validate_states({"schema_version": 1, "states": [data]}, inventory=inventory)
     assert state_api.evaluate_convergence(data, current_epoch=1) == "unknown"
-    assert fixture["provider_ack"] == {"accepted": True}
-    # ACK is task evidence outside State; it has no update argument or dispatch path.
-    assert state_api.apply_state_update(data, current_epoch=1) == original
+    # The real public helper rejects the task ACK rather than turning it into
+    # availability/value/time/order. The failed call leaves evidence unchanged.
+    with pytest.raises(TypeError):
+        state_api.apply_state_update(data, current_epoch=1, ack=fixture["provider_ack"])
+    assert data == original
     assert state_api.evaluate_convergence(data, current_epoch=1) == "unknown"
     for event, expected in zip(fixture["observations"], ["pending", "confirmed"], strict=True):
         data = state_api.apply_state_update(data, current_epoch=1, **event)
         assert state_api.evaluate_convergence(data, current_epoch=1) == expected
     assert original == fixture["initial_state"]
+
+
+def test_ack_cannot_enter_helper_or_state(state_api):
+    import inspect
+
+    parameters = set(inspect.signature(state_api.apply_state_update).parameters)
+    assert parameters == {
+        "data",
+        "current_epoch",
+        "reported_state",
+        "availability",
+        "desired_state",
+    }
+    data = state()
+    data["reported_state"] = {}
+    original = deepcopy(data)
+    ack = {"accepted": True}
+    for name in ("ack", "success", "converged"):
+        with pytest.raises(TypeError):
+            state_api.apply_state_update(data, current_epoch=1, **{name: ack})
+        assert data == original
+    error_at(
+        state_api,
+        lambda: state_api.apply_state_update(data, current_epoch=1, reported_state=ack),
+        ("reported_state", "accepted"),
+    )
+    error_at(
+        state_api,
+        lambda: state_api.apply_state_update(data, current_epoch=1, availability=ack),
+        ("availability", "status"),
+    )
+    assert data == original
+
+
+def test_online_before_intent_is_current_generation_reachability(state_api):
+    data = state()
+    data["desired_state"]["report_baseline"] = order(5)
+    data["availability"]["ordering"] = order(1)
+    data["reported_state"]["power"] = observation(False, 6)
+    assert state_api.evaluate_convergence(data, current_epoch=1) == "confirmed"
