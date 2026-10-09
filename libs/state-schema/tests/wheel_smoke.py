@@ -7,6 +7,7 @@ from pathlib import Path
 import state_schema.canonical_state as api
 import state_schema.capability as capabilities
 from state_schema.home_inventory import load_inventory
+from state_schema.initial_capabilities import load_initial_capabilities
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -71,7 +72,57 @@ def main():
             pass
         else:
             raise AssertionError("Invalid Capability version/payload/schema/text accepted")
-    print("Installed-wheel smoke passed: State evidence boundaries and Capability APIs.")
+    import state_schema.initial_capabilities as initial
+
+    assert Path(initial.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
+    loaded = load_initial_capabilities()
+    expected = (
+        ("home.switchable", "is_on", False),
+        ("home.positionable", "position_percent", 50),
+        ("home.temperature_sensor", "temperature_c", -273.15),
+        ("home.humidity_sensor", "relative_humidity_percent", 45.5),
+        ("home.power_meter", "power_w", -125.5),
+        ("home.battery_powered", "battery_percent", 62.5),
+    )
+    assert [(item.capability_id, item.capability_version) for item in loaded.capabilities] == [
+        (identity, 1) for identity, _, _ in expected
+    ]
+    for identity, member, value in expected:
+        assert loaded.validate_payload(identity, 1, "property", member, value) == value
+        for invalid in (None, "unknown"):
+            try:
+                loaded.validate_payload(identity, 1, "property", member, invalid)
+            except capabilities.CapabilityError:
+                pass
+            else:
+                raise AssertionError("Invalid initial measurement accepted")
+    for operation in (
+        lambda: loaded.get("home.switchable", 2),
+        lambda: loaded.validate_payload(
+            "home.positionable", 1, "property", "position_percent", 50.0
+        ),
+        lambda: loaded.validate_payload(
+            "home.positionable", 1, "action_input", "set_position", {"position_percent": 101}
+        ),
+        lambda: loaded.validate_payload("home.temperature_sensor", 1, "action_input", "set_on", {}),
+        lambda: loaded.validate_payload(
+            "home.switchable", 1, "action_output", "set_on", {"accepted": True}
+        ),
+    ):
+        try:
+            operation()
+        except capabilities.CapabilityError:
+            pass
+        else:
+            raise AssertionError("Invalid initial capability selection/payload accepted")
+    assert loaded.validate_payload(
+        "home.switchable", 1, "action_input", "set_on", {"is_on": False}
+    ) == {"is_on": False}
+    assert loaded.validate_payload("home.switchable", 1, "action_output", "set_on", None) is None
+    snapshot = loaded.to_dict()
+    snapshot["capabilities"].clear()
+    assert len(loaded.capabilities) == len(load_initial_capabilities().capabilities) == 6
+    print("Installed-wheel smoke passed: State, Capability APIs and all six initial definitions.")
 
 
 if __name__ == "__main__":

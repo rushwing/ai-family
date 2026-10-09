@@ -55,6 +55,15 @@ def capability_api():
 
 
 @pytest.fixture
+def initial_api():
+    module = importlib.import_module('state_schema.initial_capabilities')
+    assert callable(getattr(module, 'load_initial_capabilities', None)), (
+        'Missing initial catalogue seam'
+    )
+    return module
+
+
+@pytest.fixture
 def inventory():
     return json.loads(EXAMPLE.read_text(encoding='utf-8'))
 
@@ -152,6 +161,8 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-initial-capabilities-runtime', action='store_true',
+                     help='REQ-017 acceptance: fail on absent initial catalogue or skipped tests')
     parser.addoption('--require-capability-runtime', action='store_true',
                      help='REQ-016 acceptance: fail on absent Capability runtime or skipped tests')
     parser.addoption('--require-state-runtime', action='store_true',
@@ -163,6 +174,11 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    if (session.config.getoption('--require-initial-capabilities-runtime')
+            and find_spec('state_schema.initial_capabilities') is None):
+        raise pytest.UsageError(
+            'REQ-017 initial Capability runtime is missing; acceptance cannot pass'
+        )
     if (session.config.getoption('--require-capability-runtime')
             and find_spec('state_schema.capability') is None):
         raise pytest.UsageError('REQ-016 Capability runtime is missing; acceptance cannot pass')
@@ -179,7 +195,8 @@ def pytest_sessionfinish(session, exitstatus):
     if (session.config.getoption('--require-inventory-runtime')
             or session.config.getoption('--require-binding-runtime')
             or session.config.getoption('--require-state-runtime')
-            or session.config.getoption('--require-capability-runtime')):
+            or session.config.getoption('--require-capability-runtime')
+            or session.config.getoption('--require-initial-capabilities-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED

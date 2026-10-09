@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "capabilities": [
+    {
+      "schema_version": 1,
+      "capability_id": "home.switchable",
+      "capability_version": 1,
+      "title": "Switchable",
+      "description": "Boolean control state: true means on and false means off; this is not device availability. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "is_on": {
+          "title": "On state",
+          "description": "Boolean control state: true means on and false means off; this is not device availability.",
+          "value_schema": {
+            "type": "boolean"
+          },
+          "read_only": false
+        }
+      },
+      "actions": {
+        "set_on": {
+          "title": "Set on state",
+          "description": "Declare an absolute target; completion requires eligible observed State agreement, not provider ACK. No execution is implemented by this descriptor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "is_on": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "is_on"
+            ],
+            "additionalProperties": false
+          },
+          "output_schema": {
+            "type": "null"
+          },
+          "risk": "medium",
+          "timeout_ms": 30000,
+          "idempotency": "safe_repeat",
+          "completion_policy": {
+            "kind": "state_converged",
+            "targets": {
+              "is_on": {
+                "source": "input",
+                "field": "is_on"
+              }
+            }
+          }
+        }
+      },
+      "events": {}
+    },
+    {
+      "schema_version": 1,
+      "capability_id": "home.positionable",
+      "capability_version": 1,
+      "title": "Positionable",
+      "description": "Absolute opening percent as an integer: 0 means fully closed, 100 means fully open; inclusive range 0–100 with no tolerance or rounding. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "position_percent": {
+          "title": "Opening position",
+          "description": "Absolute opening percent as an integer: 0 means fully closed, 100 means fully open; inclusive range 0–100 with no tolerance or rounding.",
+          "value_schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "read_only": false
+        }
+      },
+      "actions": {
+        "set_position": {
+          "title": "Set absolute opening position",
+          "description": "Declare an absolute target; completion requires eligible observed State agreement, not provider ACK. No execution is implemented by this descriptor.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "position_percent": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              }
+            },
+            "required": [
+              "position_percent"
+            ],
+            "additionalProperties": false
+          },
+          "output_schema": {
+            "type": "null"
+          },
+          "risk": "medium",
+          "timeout_ms": 120000,
+          "idempotency": "safe_repeat",
+          "completion_policy": {
+            "kind": "state_converged",
+            "targets": {
+              "position_percent": {
+                "source": "input",
+                "field": "position_percent"
+              }
+            }
+          }
+        }
+      },
+      "events": {}
+    },
+    {
+      "schema_version": 1,
+      "capability_id": "home.temperature_sensor",
+      "capability_version": 1,
+      "title": "TemperatureSensor",
+      "description": "Temperature in degrees Celsius; minimum -273.15 (absolute zero), with no generic upper bound. Known finite values only. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "temperature_c": {
+          "title": "Temperature",
+          "description": "Temperature in degrees Celsius; minimum -273.15 (absolute zero), with no generic upper bound. Known finite values only.",
+          "value_schema": {
+            "type": "number",
+            "minimum": -273.15
+          },
+          "read_only": true
+        }
+      },
+      "actions": {},
+      "events": {}
+    },
+    {
+      "schema_version": 1,
+      "capability_id": "home.humidity_sensor",
+      "capability_version": 1,
+      "title": "HumiditySensor",
+      "description": "Relative humidity in percent, inclusive range 0–100; fractional values are allowed. Known finite values only. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "relative_humidity_percent": {
+          "title": "Relative humidity",
+          "description": "Relative humidity in percent, inclusive range 0–100; fractional values are allowed. Known finite values only.",
+          "value_schema": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "read_only": true
+        }
+      },
+      "actions": {},
+      "events": {}
+    },
+    {
+      "schema_version": 1,
+      "capability_id": "home.power_meter",
+      "capability_version": 1,
+      "title": "PowerMeter",
+      "description": "Instantaneous active power in watts: positive means consumption/import and negative means generation/export. Zero is an observed zero; signed finite values have no generic magnitude bound. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "power_w": {
+          "title": "Active power",
+          "description": "Instantaneous active power in watts: positive means consumption/import and negative means generation/export. Zero is an observed zero; signed finite values have no generic magnitude bound.",
+          "value_schema": {
+            "type": "number"
+          },
+          "read_only": true
+        }
+      },
+      "actions": {},
+      "events": {}
+    },
+    {
+      "schema_version": 1,
+      "capability_id": "home.battery_powered",
+      "capability_version": 1,
+      "title": "BatteryPowered",
+      "description": "Reported remaining charge in percent, inclusive range 0–100; fractional values are allowed. No charging, health or remaining-runtime inference. Revision 1 of the canonical household capability; availability is separate State metadata.",
+      "properties": {
+        "battery_percent": {
+          "title": "Remaining charge",
+          "description": "Reported remaining charge in percent, inclusive range 0–100; fractional values are allowed. No charging, health or remaining-runtime inference.",
+          "value_schema": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "read_only": true
+        }
+      },
+      "actions": {},
+      "events": {}
+    }
+  ]
+}
