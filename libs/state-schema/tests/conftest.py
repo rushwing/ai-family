@@ -43,6 +43,18 @@ def state_api():
 
 
 @pytest.fixture
+def capability_api():
+    module = importlib.import_module('state_schema.capability')
+    for export in ('Schema', 'Property', 'Action', 'Event', 'CompletionPolicy',
+                   'TargetSource', 'CapabilityDescriptor', 'CapabilityCatalogue',
+                   'CapabilityError', 'validate_capability', 'validate_capabilities',
+                   'load_capability_json', 'load_capabilities_json',
+                   'validate_schema', 'validate_payload'):
+        assert hasattr(module, export), f'Missing Capability seam: {export}'
+    return module
+
+
+@pytest.fixture
 def inventory():
     return json.loads(EXAMPLE.read_text(encoding='utf-8'))
 
@@ -140,6 +152,8 @@ sys.addaudithook(audit)
 
 
 def pytest_addoption(parser):
+    parser.addoption('--require-capability-runtime', action='store_true',
+                     help='REQ-016 acceptance: fail on absent Capability runtime or skipped tests')
     parser.addoption('--require-state-runtime', action='store_true',
                      help='REQ-015 acceptance: fail on absent State runtime or skipped tests')
     parser.addoption('--require-binding-runtime', action='store_true',
@@ -149,6 +163,9 @@ def pytest_addoption(parser):
 
 
 def pytest_sessionstart(session):
+    if (session.config.getoption('--require-capability-runtime')
+            and find_spec('state_schema.capability') is None):
+        raise pytest.UsageError('REQ-016 Capability runtime is missing; acceptance cannot pass')
     if (session.config.getoption('--require-state-runtime')
             and find_spec('state_schema.canonical_state') is None):
         raise pytest.UsageError('REQ-015 State runtime is missing; acceptance cannot pass')
@@ -161,7 +178,8 @@ def pytest_sessionstart(session):
 def pytest_sessionfinish(session, exitstatus):
     if (session.config.getoption('--require-inventory-runtime')
             or session.config.getoption('--require-binding-runtime')
-            or session.config.getoption('--require-state-runtime')):
+            or session.config.getoption('--require-state-runtime')
+            or session.config.getoption('--require-capability-runtime')):
         reporter = session.config.pluginmanager.getplugin('terminalreporter')
         if reporter and reporter.stats.get('skipped'):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED

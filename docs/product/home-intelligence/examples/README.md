@@ -91,3 +91,7 @@ leaves observations unknown. The first actual report mismatches, and the second
 provides current-generation post-baseline agreement. The bundle is not itself
 a State collection; wrap records in `{schema_version: 1, states: [...]}` when
 validating references. No device write or provider connection is performed.
+
+## Capability Base Review Fixture
+
+[capability-base.example.json](capability-base.example.json) is a fictional `demo.power` descriptor catalogue for REQ-016 offline tests and installed-wheel smoke. It is not one of HI-S012's six production capability definitions and attaches to no Device/provider. It declares typed power input, accepted output and a state-converged target; output acceptance cannot create State evidence.

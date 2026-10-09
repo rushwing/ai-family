@@ -27,7 +27,7 @@ R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived RE
 
 ## Dependency-ready Candidates
 
-HI-S001 and HI-S019 remain dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is admitted to [REQ-016](../../../harness/tasks/features/REQ-016.md) for specification review only. Read engineering state from Harness; its admission supplies no runtime contract and does not satisfy HI-S012's delivery prerequisite.
+HI-S001 and HI-S019 remain dependency-ready candidates awaiting their own scope approval and Harness admission. HI-S011 is admitted to [REQ-016](../../../harness/tasks/features/REQ-016.md) for external combined implementation review under human-001's explicit proceed instruction. Read engineering state from Harness; implementation awaiting acceptance does not satisfy HI-S012's delivered prerequisite.
 
 ## Blocked and Pending Stories
 
@@ -45,7 +45,7 @@ HI-S009 — Define ProviderBinding contract is delivered through archived [REQ-0
 
 HI-S010 — Define canonical State contract is delivered through archived [REQ-015](../../../harness/tasks/archive/done/features/REQ-015.md). [PR #31](https://github.com/rushwing/ai-family/pull/31) merged as `58f411e`; human-001 accepted AC1–AC7 and TC-015-01–06 under the explicit merge disposition. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 957 tests with zero skips/failures. Desired intent, reported observations, availability and ordering remain separate; unknown/offline never becomes false/zero and ACK cannot establish physical convergence. [Closeout evidence](../../../harness/tasks/evidence/REQ-015-review-acceptance.md) preserves acceptance provenance and environment limits.
 
-HI-S011 — Define versioned Capability base contract is admitted to [REQ-016](../../../harness/tasks/features/REQ-016.md). Its specification defines properties/actions/events, bounded input/output schemas and required risk/timeout/idempotency/completion-policy metadata. The draft review package keeps provider acceptance separate from physical convergence and excludes provider calls/dispatch. Requirement approval, TC design/code and runtime implementation remain pending; owner/status derive from Harness.
+HI-S011 — Define versioned Capability base contract is implemented in [REQ-016](../../../harness/tasks/features/REQ-016.md) for the external combined review requested by human-001. Draft PR #32 includes the strict offline descriptor/catalogue/schema/payload APIs and TC-016-01–06, plus the REQ-015 closeout. Q1–Q5 are explicit and tested. Action risk/timeout/idempotency/completion metadata is descriptive; ACK cannot create observed convergence. No live calls, dispatch, task/deadline/event-correlation engine or HI-S012 concrete schemas are delivered. AC1–AC7 remain unchecked and TCs remain implemented until external acceptance; owner/status derive from Harness.
 
 ## Delivery Order
 

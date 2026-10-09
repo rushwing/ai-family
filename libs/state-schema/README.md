@@ -1,4 +1,4 @@
-# Canonical home inventory and provider bindings
+# Canonical home inventory, bindings, State and Capability contracts
 
 REQ-013 implements provider-neutral Home, Floor, Area, Device, Label and AreaGroup
 contracts, a UTF-8 JSON loader and pure target resolution. The public apartment
@@ -69,14 +69,16 @@ checks. The supplied independent combined review accepted this implementation ch
 Run the required checks from the repository root:
 
 ```bash
-python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests --require-inventory-runtime --require-binding-runtime -q
+python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests \
+  --require-inventory-runtime --require-binding-runtime --require-state-runtime \
+  --require-capability-runtime -q
 ruff check libs/state-schema/src libs/state-schema/tests
 mypy --config-file libs/state-schema/pyproject.toml libs/state-schema/src
 bash scripts/check.sh
 ```
 
 Acceptance mode rejects absent runtime or any skipped test. CI runs these checks
-on Python 3.12 and uploads JUnit results. Package wheel installation and CLI/API
+on Python 3.12/3.13/3.14 and uploads JUnit results. Package wheel installation and CLI/API
 smoke verification are also recorded in Harness evidence. The completed independent combined review and post-polish acceptance are recorded
 in [Harness evidence](../../harness/tasks/evidence/REQ-013-review-acceptance.md);
 completion follows the Harness merge gate.
@@ -235,3 +237,61 @@ minute/second 0–59 before calendar parsing, so interpreter parser normalizatio
 cannot broaden the accepted contract. CI runs State validation, lint/type and
 installed-wheel smoke on Python 3.12, 3.13 and 3.14; these Linux checks do not
 claim Termux runtime validation.
+
+## Versioned Capability Base — REQ-016
+
+`state_schema.capability` provides immutable typed descriptors/catalogues and
+pure payload validators. The [fictional catalogue](../../docs/product/home-intelligence/examples/capability-base.example.json)
+contains `demo.power` revision 1; this is a base-contract fixture, not HI-S012's
+six concrete capability definitions or a Device/provider attachment.
+
+```python
+from state_schema.capability import load_capabilities_json, validate_payload
+
+catalogue = load_capabilities_json(json_text)  # text supplied by the caller; no file I/O
+capability = catalogue.get("demo.power", 1)  # exact revision, never latest fallback
+validated = capability.validate_payload("action_input", "set_power", {"power": False})
+accepted = catalogue.validate_payload(
+    "demo.power", 1, "action_output", "set_power", {"accepted": True}
+)
+assert validate_payload({"type": "integer", "minimum": 0}, 0) == 0
+```
+
+`CapabilityDescriptor.from_dict` / `CapabilityCatalogue.from_dict` validate
+external objects; `validate_capability` / `validate_capabilities` return detached
+JSON snapshots. `load_capability_json` / `load_capabilities_json` accept strings
+and reject duplicate keys at every object level, malformed text and nonfinite
+constants. Already-parsed dictionaries cannot recover keys discarded by an
+upstream decoder. `Schema`, `Property`, `Action`, `Event`, `CompletionPolicy`
+and `TargetSource` also expose validating factories and detached snapshots.
+Direct constructors are internal typed records; public payload/lookup methods
+revalidate records. Nested collections are tuples; no mutable caller data is
+retained. Interaction kinds are `property`, `action_input`, `action_output`,
+`event`; unknown names/kinds and unsupported exact revisions fail closed.
+
+The bounded schema profile supports seven JSON types and the documented
+scalar enum/bound, object required/closed-property and array-item/length
+constraints. It rejects unlisted keywords, references, defaults, composition,
+nonfinite numbers and coercion. Schema depth counts root/child schema nodes;
+payload depth independently counts actual root/member/element JSON values,
+with a maximum of 16 in each tree. Bool never equals a numeric enum/target.
+State-converged input/property schemas require recursive structural equality:
+object key order is ignored, list order retained, missing constraints never
+receive defaults, and integer/float numbers compare numerically.
+
+Every action requires risk (`low`/`medium`/`high`), timeout 1–86400000 ms,
+idempotency (`safe_repeat`/`key_required`/`non_idempotent`) and one completion
+policy: `ack_only`, `event_confirmed` with a declared event, or `state_converged`
+with writable-property targets from required matching input fields/valid
+constants. These declarations grant no authorization and run no deadlines,
+correlation, deduplication or completion engine. A validated `accepted` output
+cannot set reported State, availability or ordering; physical convergence
+still requires REQ-015's eligible post-baseline current-generation reports.
+
+`CapabilityError.path` / `.message` provide deterministic value-free errors.
+Unknown keys and invalid names are redacted; duplicate text keys use
+`("<unknown>",)`. There is no provider client, dispatch, store, clock or runtime
+dependency. Required acceptance adds `--require-capability-runtime`; missing
+runtime or any skip fails. TC-016-01–06 are implemented for external combined
+review; AC1–AC7 remain unchecked. See [REQ-016](../../harness/tasks/features/REQ-016.md)
+and [runtime self-check evidence](../../harness/tasks/evidence/REQ-016-runtime-implementation.md).

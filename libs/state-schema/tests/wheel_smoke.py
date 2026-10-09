@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import state_schema.canonical_state as api
+import state_schema.capability as capabilities
 from state_schema.home_inventory import load_inventory
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -45,9 +46,32 @@ def main():
             pass
         else:
             raise AssertionError("Invalid generation/completion field accepted")
-    print(
-        "Installed-wheel smoke passed: references, ACK rejection, agreement and epoch fencing."
+    assert Path(capabilities.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
+    catalogue = capabilities.load_capabilities_json(
+        (examples / "capability-base.example.json").read_text()
     )
+    payload = {"power": False}
+    assert (
+        catalogue.validate_payload("demo.power", 1, "action_input", "set_power", payload) == payload
+    )
+    assert catalogue.validate_payload(
+        "demo.power", 1, "action_output", "set_power", {"accepted": True}
+    ) == {"accepted": True}
+    for operation in (
+        lambda: catalogue.get("demo.power", 2),
+        lambda: catalogue.validate_payload(
+            "demo.power", 1, "action_input", "set_power", {"power": 0}
+        ),
+        lambda: capabilities.load_capability_json('{"private":1,"private":2}'),
+        lambda: capabilities.validate_schema({"type": "string", "$ref": "private"}),
+    ):
+        try:
+            operation()
+        except capabilities.CapabilityError:
+            pass
+        else:
+            raise AssertionError("Invalid Capability version/payload/schema/text accepted")
+    print("Installed-wheel smoke passed: State evidence boundaries and Capability APIs.")
 
 
 if __name__ == "__main__":

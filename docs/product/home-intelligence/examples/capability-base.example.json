@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "capabilities": [
+    {
+      "schema_version": 1,
+      "capability_id": "demo.power",
+      "capability_version": 1,
+      "title": "Fictional power",
+      "description": "Offline review fixture.",
+      "properties": {
+        "power": {
+          "title": "Power",
+          "description": "Observed power.",
+          "value_schema": {
+            "type": "boolean"
+          },
+          "read_only": false
+        }
+      },
+      "actions": {
+        "set_power": {
+          "title": "Set power",
+          "description": "Declare an intent.",
+          "input_schema": {
+            "type": "object",
+            "properties": {
+              "power": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "power"
+            ],
+            "additionalProperties": false
+          },
+          "output_schema": {
+            "type": "object",
+            "properties": {
+              "accepted": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "accepted"
+            ],
+            "additionalProperties": false
+          },
+          "risk": "low",
+          "timeout_ms": 5000,
+          "idempotency": "key_required",
+          "completion_policy": {
+            "kind": "state_converged",
+            "targets": {
+              "power": {
+                "source": "input",
+                "field": "power"
+              }
+            }
+          }
+        }
+      },
+      "events": {
+        "changed": {
+          "title": "Changed",
+          "description": "Fictional event.",
+          "data_schema": {
+            "type": "object",
+            "properties": {
+              "power": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "power"
+            ],
+            "additionalProperties": false
+          }
+        }
+      }
+    }
+  ]
+}
