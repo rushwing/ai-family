@@ -30,3 +30,11 @@ Follow-up local verification and artifact provenance are recorded in
 [runtime evidence](REQ-019-runtime-implementation.md). The original report remains
 non-signing evidence; no bot-review signature, queue approval, readiness or merge
 is inferred.
+
+## Human final disposition
+
+Human-001 subsequently instructed "Merge PR" after supplying the second-round
+verification of `b879af3c` (114/1,795 cases, 11 successful CI jobs, all informational
+items closed). This accepts the delivered task_id deadline ordering and supersedes
+the prior draft stop boundary. The reports retain their non-signing attribution;
+no independent evaluator or bot-review signature is asserted.

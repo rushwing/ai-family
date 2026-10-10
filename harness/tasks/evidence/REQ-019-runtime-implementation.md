@@ -139,3 +139,15 @@ fabric sdist SHA-256 is
 `6ae7f867d36e317d5a1968f5c5c3f5409afe0fde0ca7f02d98d00ee7e5ad9edd`.
 External combined review remains pending; REQ/TC acceptance and PR draft
 status are preserved.
+
+## Human final acceptance and merge authorization
+
+Human-001 explicitly instructed "Merge PR" after the supplied second-round
+local verification. At `b879af3c`, CI run 38063421571 passes all 11 selected jobs
+with two unrelated path-filtered skips; GitHub reports MERGEABLE/CLEAN and no
+changes-requested review. Human final acceptance covers AC1–AC8, TC-019-01–06
+and the lexicographic task_id deadline-order clarification. Record TCs passing
+and `pr_draft / human-001` for the authorized merge, subject to final-head CI.
+Earlier pending-review statements are historical; the supplied reports remain
+non-signing and no independent T03/T07/T10/T13 signature is claimed. This
+disposition changes records only; runtime and acceptance-test code are unchanged.
