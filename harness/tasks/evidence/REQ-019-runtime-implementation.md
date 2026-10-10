@@ -92,3 +92,26 @@ both wheel pairs, sdists and interpreter/hash provenance per matrix member.
 
 External combined review of TC text/code and runtime remains pending. The draft
 implementation PR will supply CI traceability; no readiness or merge is authorized.
+
+[Draft PR #39](https://github.com/rushwing/ai-family/pull/39) submits the implementation.
+[CI run 38061425534](https://github.com/rushwing/ai-family/actions/runs/38061425534)
+passes all 11 selected jobs on implementation commit `cd9a4b7`; provider and shared
+matrices each pass Python 3.12/3.13/3.14. Two unrelated jobs are path-filtered out.
+Generator-001 records T12 and hands off `req_impl_review / evaluator-001`.
+
+## Committed source and final local artifact provenance
+
+Tested implementation: `cd9a4b7cab28153cb9e31d98b5998e885fccb58f`.
+Final local CPython 3.12 artifact provenance: `/tmp/req019-final-artifacts312/provenance.json`.
+Earlier Python 3.13/3.14 reports are `/tmp/req019-artifacts313/provenance.json`
+and `/tmp/req019-artifacts314/provenance.json`; their runtime wheel bytes match
+the final report below, while their sdists predate the final gate-test metadata.
+
+| Artifact | SHA-256 |
+|---|---|
+| direct/ai_family_state_schema-0.1.0-py3-none-any.whl | `8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe` |
+| sdist/ai_family_state_schema-0.1.0.tar.gz | `1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc` |
+| direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl | `90e9c095219326ebd9bf3cc387595a50b0b7dc0ff803fb5cfb09dc970f8770d1` |
+| sdist/ai_family_home_device_fabric-0.1.0.tar.gz | `07d608db22bfa80cb7a49eb24022e646433968fe07524e8f84aafe351ab98ea4` |
+| derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl | `90e9c095219326ebd9bf3cc387595a50b0b7dc0ff803fb5cfb09dc970f8770d1` |
+| derived/ai_family_state_schema-0.1.0-py3-none-any.whl | `8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe` |
