@@ -373,8 +373,8 @@ independent evaluator signature is inferred. See
 `state_schema.action_contracts` adds version-1 pure action contracts. It neither
 executes actions nor authenticates a requester. Device capability support,
 authorization/confirmation, durable tasks/idempotency/audit, deadlines and provider
-integration remain separate prerequisites before writes. TC/feature acceptance
-is pending external review; see [REQ-018](../../harness/tasks/features/REQ-018.md).
+integration remain separate prerequisites before writes. REQ-018 is accepted
+under human final disposition and archived done; see [REQ-018](../../harness/tasks/archive/done/features/REQ-018.md).
 
 Use `validate_request(data, *, requester, inventory, catalogue)` or
 `create_task(data, *, requester, task_id, inventory, catalogue)` at the trusted

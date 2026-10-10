@@ -944,16 +944,8 @@
       "title": "Define provider interface and mock provider",
       "parent": "HI-F009",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S025.md",
-      "depends_on": [
-        "HI-S008",
-        "HI-S009",
-        "HI-S010",
-        "HI-S011",
-        "HI-S019"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-019",
       "legacy_refs": [
         "ZW-ST-1302"
       ],
