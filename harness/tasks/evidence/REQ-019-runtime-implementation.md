@@ -115,3 +115,27 @@ the final report below, while their sdists predate the final gate-test metadata.
 | sdist/ai_family_home_device_fabric-0.1.0.tar.gz | `07d608db22bfa80cb7a49eb24022e646433968fe07524e8f84aafe351ab98ea4` |
 | derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl | `90e9c095219326ebd9bf3cc387595a50b0b7dc0ff803fb5cfb09dc970f8770d1` |
 | derived/ai_family_state_schema-0.1.0-py3-none-any.whl | `8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe` |
+
+## Non-signing local pre-review follow-up
+
+The human-supplied report verifies head `d03567ba` on Termux/CPython 3.14.6,
+including 108 provider/1,795 shared cases, installed wheel pairs and passing CI.
+It explicitly supplies no independent T07/T10/T13 signature. See the
+[finding dispositions](REQ-019-local-pre-review.md) for the narrow test/documentation
+amendments submitted in response; all runtime source files remain unchanged.
+
+Local follow-up on Linux aarch64/CPython 3.12.12, 3.13.5 and 3.14.3 passes
+**114 provider cases per interpreter, zero failures/skips**. Per-TC counts are
+35/21/19/15/3/21 for TC-019-01–06. JUnit files are
+`/tmp/req019-followup312.xml`, `/tmp/req019-followup313.xml`, and
+`/tmp/req019-followup314.xml`. Lint/strict mypy and all governance gates
+including 21 planning regressions pass. Prior 1,795 shared-case local results
+remain baseline evidence; CI verifies them again on the updated PR head.
+
+Both direct and sdist-derived wheel pairs pass isolated local 3.12 smoke again.
+`/tmp/req019-followup-artifacts312/provenance.json` records provenance. Runtime
+wheel hashes and the shared sdist hash match the baseline table; the amended
+fabric sdist SHA-256 is
+`6ae7f867d36e317d5a1968f5c5c3f5409afe0fde0ca7f02d98d00ee7e5ad9edd`.
+External combined review remains pending; REQ/TC acceptance and PR draft
+status are preserved.

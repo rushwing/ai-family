@@ -50,3 +50,8 @@ Required-mode tests reject skips; artifact verification builds both wheel/sdist
 pairs, installs them without dependencies into fresh environments and executes
 `python -I` outside the checkout. Artifact hashes and interpreter provenance are
 written to `provenance.json`.
+
+Distribute compatible wheels for both packages together, or publish both to a
+configured private index. The package declarations do not assume either package
+is publicly indexed. For local wheel pairs, supply both wheel paths to pip; the
+artifact smoke uses `--no-index --no-deps` after explicitly selecting both wheels.

@@ -1,5 +1,6 @@
 """REQ-019 TCs assert actual shared-helper integration and provider effects."""
 
+import json
 from copy import deepcopy
 
 import pytest
@@ -521,6 +522,9 @@ def test_explicit_second_attempt_no_automatic_retry():
 # TC-019-06: mutable input/result isolation and deterministic behavior.
 @pytest.mark.tc019_06
 def test_determinism_and_logs_isolated():
+    def strict_json(value):
+        return json.dumps(value, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
     c = config()
     t = task(c)
     convergence_script(c, t)
@@ -532,14 +536,103 @@ def test_determinism_and_logs_isolated():
     t["request"]["arguments"]["is_on"] = True
     a = [i.to_dict() for i in p.advance(100000)]
     b = [i.to_dict() for i in q.advance(100000)]
-    assert a == b and p.dispatch_log == q.dispatch_log and p.delivery_log == q.delivery_log
+    assert strict_json((a, p.dispatch_log, p.delivery_log)) == strict_json(
+        (b, q.dispatch_log, q.delivery_log)
+    )
     log = p.dispatch_log[0]
     log["task_id"] = "changed"
     record = p.delivery_log[0]
     record["time_ms"] = -1
-    assert p.dispatch_log == q.dispatch_log and p.delivery_log == q.delivery_log
+    assert strict_json((p.dispatch_log, p.delivery_log)) == strict_json(
+        (q.dispatch_log, q.delivery_log)
+    )
     a[0]["outcome"]["result"]["trace_id"] = "changed"
-    assert p.delivery_log == q.delivery_log
+    assert strict_json(p.delivery_log) == strict_json(q.delivery_log)
+
+
+@pytest.mark.tc019_06
+def test_task_token_grammar_matches_shared_action_contract():
+    from state_schema import provider_contracts
+
+    assert (provider_contracts._TOKEN.pattern, provider_contracts._TOKEN.flags) == (
+        actions._TOKEN.pattern, actions._TOKEN.flags
+    )
+
+
+@pytest.mark.parametrize("layers,code", [(23, "invalid_configuration"), (24, "invalid_json")])
+@pytest.mark.tc019_01
+def test_provider_json_depth_boundary(layers, code):
+    nested = None
+    for _ in range(layers):
+        nested = [nested]
+    c = config()
+    # Root is depth 0; the extra field's value starts at depth 1. Valid JSON
+    # at depth 24 reaches field validation, while depth 25 fails JSON admission.
+    c["extra"] = nested
+    reject(lambda: provider(c), code)
+
+
+@pytest.mark.tc019_04
+def test_simultaneous_deadlines_use_task_id_order_before_scripted_deliveries():
+    c = config()
+    first = task(c, task_id="task-b")
+    second = task(c, task_id="task-a")
+    deadline = next(
+        d for d in c["catalogue"]["capabilities"] if d["capability_id"] == "home.switchable"
+    )["actions"]["set_on"]["timeout_ms"]
+    script(c, first, [delivery(deadline, input_record())])
+    script(c, second)
+    p = provider(c)
+    p.submit(first, binding=binding(), attempt_id="attempt-1")
+    p.submit(second, binding=binding(), attempt_id="attempt-1")
+    delivered = list(p.advance(deadline))
+    assert [item.outcome.result.task_id for item in delivered if item.outcome] == [
+        "task-a", "task-b"
+    ]
+    assert [item.outcome.result.state for item in delivered if item.outcome] == [
+        "timed_out", "timed_out"
+    ]
+    assert delivered[-1].input is not None
+    assert all(item.time_ms == deadline for item in delivered)
+
+
+@pytest.mark.tc019_04
+def test_timeout_requires_explicit_time_advancement():
+    c = config()
+    t = task(c)
+    script(c, t)
+    p = provider(c)
+    p.submit(t, binding=binding(), attempt_id="attempt-1")
+    for _ in range(3):
+        p.snapshot()
+        p.discover()
+        assert p.now_ms == 0 and p.delivery_log == () and t["state"] == "running"
+    assert list(p.advance(0)) == []
+    delivered = list(p.advance(100000))
+    assert len(delivered) == 1 and delivered[0].outcome.result.state == "timed_out"
+
+
+@pytest.mark.tc019_02
+def test_independent_epoch_one_input_cannot_lower_an_accepted_generation():
+    c = config()
+    accepted = actions.create_task(
+        request(), requester=requester(), task_id="task-1",
+        inventory=c["inventory"], catalogue=c["catalogue"],
+    )
+    t = actions.transition_task(
+        accepted, result(accepted), inventory=c["inventory"], catalogue=c["catalogue"],
+        dispatch_context={"current_epoch": 2, "baseline": {"epoch": 2, "sequence": 1}},
+    )
+    script(c, t, [
+        delivery(1, input_record(value=False, epoch=2, correlated=correlation(t))),
+        delivery(2, input_record(value=True, epoch=1, sequence=100)),
+    ])
+    p = provider(c)
+    p.submit(t, binding=binding(), attempt_id="attempt-1")
+    delivered = list(p.advance(2))
+    assert len(delivered) == 2 and len(p.delivery_log) == 2
+    observation = p.snapshot()[0].to_dict()["reported_state"]["is_on"]
+    assert observation["value"] is False and observation["ordering"]["epoch"] == 2
 
 
 @pytest.mark.parametrize("field", ["schema_version", "provider", "provider_instance_id", "result"])
