@@ -211,5 +211,7 @@ Parent network/process guards apply; pure-call tests also deny files/clocks/envi
 lookup, and a child import audit checks application I/O. The installed-wheel smoke is
 separate and imports real Request/Task/Result helpers under `-I` outside the source tree,
 rejects ACK-as-success and verifies observed false success plus replay classification.
-TCs remain implemented and ACs unchecked until human-arranged external combined review;
-test execution does not supply independent approval.
+REQ-018 is archived done under human final acceptance; TC-018-01–06 are passing
+and AC1–AC8 accepted. Post-merge verification passes 1795 tests with zero failures/skips.
+See [closeout evidence](../../../harness/tasks/evidence/REQ-018-review-acceptance.md).
+Test execution and the supplied non-signing review do not supply independent evaluator signatures.

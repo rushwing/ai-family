@@ -19,7 +19,7 @@ Ruff/strict mypy could not run in the reviewer's Termux environment; the report 
 
 ## Review Boundary
 
-These documentation clarifications do not change source/test artifact `c6e2ce5`, acceptance criteria, TC code or runtime behavior. Keep [REQ-018](../features/REQ-018.md) req_impl_review / evaluator-001, review_round 0, AC1–AC8 unchecked and TC-018-01–06 implemented. Informational clarifications introduce no review return or req_bug. PR #37 stays draft pending human-arranged independent combined review or explicit human final disposition. No readiness, queue approval or merge is authorized by the supplied report.
+These documentation clarifications do not change source/test artifact `c6e2ce5`, acceptance criteria, TC code or runtime behavior. Keep [REQ-018](../archive/done/features/REQ-018.md) req_impl_review / evaluator-001, review_round 0, AC1–AC8 unchecked and TC-018-01–06 implemented. Informational clarifications introduce no review return or req_bug. PR #37 stays draft pending human-arranged independent combined review or explicit human final disposition. No readiness, queue approval or merge is authorized by the supplied report.
 
 ## Author Follow-up Validation
 
