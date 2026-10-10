@@ -40,6 +40,7 @@ jobs:
     outputs:
       goal: ${{ steps.filter.outputs.goal }}
       libs: ${{ steps.filter.outputs.libs }}
+      fabric: ${{ steps.filter.outputs.fabric }}
       home_intelligence: ${{ steps.filter.outputs.home_intelligence }}
       home_requirements: ${{ steps.filter.outputs.home_requirements }}
       mcp: ${{ steps.filter.outputs.mcp }}
@@ -53,6 +54,10 @@ jobs:
               - 'agents/goal/**'
             libs:
               - 'libs/**'
+              - '.github/workflows/ci.yml'
+            fabric:
+              - 'libs/state-schema/**'
+              - 'toolsets/iot/home-device-fabric/**'
               - '.github/workflows/ci.yml'
             home_intelligence:
               - 'apps/home-intelligence-web/**'
@@ -112,6 +117,44 @@ jobs:
         with:
           name: state-schema-tc-results-${{ matrix.python-version }}
           path: /tmp/state-schema-results.xml
+
+  # REQ-019 provider TCs and paired installed-artifact verification.
+  home-device-fabric-tc:
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13", "3.14"]
+    needs: changes
+    if: ${{ needs.changes.outputs.fabric == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install shared contracts and fabric validation tools
+        run: python -m pip install -e 'libs/state-schema[test]' -e 'toolsets/iot/home-device-fabric[test]'
+      - name: Lint provider runtime and tests
+        run: ruff check toolsets/iot/home-device-fabric
+      - name: Type-check provider runtime
+        run: mypy --config-file toolsets/iot/home-device-fabric/pyproject.toml toolsets/iot/home-device-fabric/src
+      - name: Run provider TCs without skips
+        run: >-
+          python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini
+          toolsets/iot/home-device-fabric/tests --require-provider-runtime -q
+          --junitxml=/tmp/provider-results.xml
+      - name: Build and smoke-test direct and sdist-derived wheel pairs
+        run: python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: home-device-fabric-results-${{ matrix.python-version }}
+          path: |
+            /tmp/provider-results.xml
+            /tmp/provider-artifacts/provenance.json
+            /tmp/provider-artifacts/direct/*
+            /tmp/provider-artifacts/sdist/*
+            /tmp/provider-artifacts/derived/*
 
   # —— goal-agent 模块构建（按路径触发；libs 改动触发下游回归）——
   goal-agent:

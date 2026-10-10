@@ -453,3 +453,12 @@ Required acceptance adds `--require-action-runtime` to all five previous require
 options. CI runs the package on Python 3.12/3.13/3.14 plus lint/type and isolated
 installed-wheel Request/Task/Result smoke. Executed tests are author evidence, not
 independent T07/T10/T13 approval.
+
+## Provider records (REQ-019)
+
+`state_schema.provider_contracts` supplies strict detached `MockConfiguration`,
+`DeviceRegistration`, `NormalizedInput`, `ProviderOutcome` and fixed value-free
+`ProviderError` diagnostics. It reuses Inventory, Binding, Capability, State and
+Action validators. The separate [Home Device Fabric](../../toolsets/iot/home-device-fabric/README.md)
+distribution owns the protocol and offline simulator; shared contracts perform
+no dispatch or policy decisions.
