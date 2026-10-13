@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain contract delivery and admission records are updated through merged main `b322d45` and specification admission on 2026-10-10. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain/provider delivery and admission records are updated through merged main `58f3883` and REQ-020 specification admission on 2026-10-13. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -19,7 +19,7 @@ The original runtime inventory below was inspected at `c595649` on 2026-10-07. D
 
 ## Not Implemented in the Inspected Runtime
 
-No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, Home capability executor, Mock Home or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
+No HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, production Home capability executor, three-device Mock Home CLI or Home API was found in the inspected apps/agents/libs/toolsets runtime files. Architectural descriptions and frontend fixture objects are not these implementations.
 
 ## Active Feature
 
@@ -27,7 +27,7 @@ R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived RE
 
 ## Dependency-ready Candidates
 
-HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is admitted through [REQ-019](../../../harness/tasks/features/REQ-019.md), with its provider/interface and deterministic mock specification handed off for requirement review. Its contract prerequisites are delivered; TC design/code and runtime implementation remain pending. HI-S001 still awaits its own scope approval and admission. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
+HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md), with human-accepted typed provider records, protocol and deterministic offline mock. HI-S026 is admitted through [REQ-020](../../../harness/tasks/features/REQ-020.md) for three-device scenarios and an offline CLI specification review; TC design/code and implementation remain pending. HI-S001 still awaits its own scope approval and admission. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
 
 ## Blocked and Pending Stories
 
@@ -51,6 +51,8 @@ HI-S012 — Define six initial capability schemas is delivered through archived 
 
 HI-S019 — Define Action Request, Result and Task contracts is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md). [PR #37](https://github.com/rushwing/ai-family/pull/37) merged as `b322d45`; human-001 accepted AC1–AC8 and TC-018-01–06 under the final merge disposition and authorized archival. Post-merge Linux aarch64 / CPython 3.12.12 verification passes 1795 tests, zero failures/skips with all six required-runtime flags. Pure helpers enforce strict envelopes, trusted context shape/correlation, scoped type-exact replay/conflict, transitions and validated completion evidence. No provider execution, authentication or durable task/deduplication service is delivered. [Closeout evidence](../../../harness/tasks/evidence/REQ-018-review-acceptance.md) preserves provenance.
 
+HI-S025 — Define provider interface and mock provider is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md). PR #39 merged as `58f3883`; human final disposition accepts AC1–AC8 and six passing TCs. Post-merge offline verification passes 114 provider and 1795 shared-contract cases with zero failures/skips. The internal discovery → action → scripted report → completion integration is available; the three-device CLI is specified by REQ-020 and remains pending. [Closeout evidence](../../../harness/tasks/evidence/REQ-019-review-acceptance.md) records provenance. HTTP, durable services and physical-device execution remain future work.
+
 ## Delivery Order
 
-Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → provider/mock HI-S025 (REQ-019; requirement review) → HI-S026/027. Independently: config HI-S001 → REST/socket HI-S002/003 → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → HI-S026 (REQ-020; requirement review) → HI-S027. Independently: config HI-S001 → REST/socket HI-S002/003 → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.

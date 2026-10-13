@@ -20,25 +20,47 @@ def available():
 
 def pytest_addoption(parser):
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
+    parser.addoption("--require-demo-runtime", action="store_true", default=False)
+
+
+def demo_available():
+    try:
+        return all(importlib.util.find_spec("home_device_fabric." + name) is not None
+                   for name in ("scenarios", "caller", "demo"))
+    except ModuleNotFoundError:
+        return False
 
 
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-demo-runtime") and not demo_available():
+        raise pytest.UsageError("REQ-020 demo runtime required but absent")
+    if not demo_available():
+        for item in items:
+            if item.path.name == "test_demo.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-020 demo runtime absent"))
     if not available():
         if config.getoption("--require-provider-runtime"):
             raise pytest.UsageError("REQ-019 provider runtime required but absent")
         for item in items:
-            item.add_marker(pytest.mark.skip(reason="REQ-019 runtime absent; acceptance pending"))
+            # Gate probes use local stubs and must execute even without the runtime.
+            if item.path.name != "test_gate.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-019 runtime absent; acceptance pending"))
 
 
 def pytest_sessionfinish(session, exitstatus):
-    if session.config.getoption("--require-provider-runtime"):
+    if (session.config.getoption("--require-provider-runtime")
+            or session.config.getoption("--require-demo-runtime")):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
             session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
 
 @pytest.fixture(autouse=True)
-def offline(monkeypatch):
+def offline(monkeypatch, request):
+    # This guard covers network/process/clock/random effects, not all file I/O.
+    # test_demo.test_runtime_file_environment_datetime_denial separately denies
+    # file/env/datetime access after explicit fixed catalogue resource loading.
     # Import modules before denying Python's import machinery reads.
     if available():
         import home_device_fabric  # noqa: F401
@@ -58,6 +80,8 @@ def offline(monkeypatch):
             (os, ("getenv", "system", "urandom")),
         ]:
             for name in names:
+                if module is subprocess and request.node.get_closest_marker("cli_boundary"):
+                    continue  # Only explicit CLI subprocess tests cross this boundary.
                 patch.setattr(module, name, deny)
         patch.setattr(socket.socket, "connect", deny)
         patch.setattr(socket.socket, "connect_ex", deny)

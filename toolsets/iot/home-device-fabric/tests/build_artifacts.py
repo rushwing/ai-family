@@ -67,7 +67,12 @@ def main():
                 [str(interpreter), "-I", str(Path(__file__).with_name("artifact_smoke.py"))],
                 check=True, cwd=directory, capture_output=True, text=True,
             )
-            report["smokes"].append({"pair": label, **json.loads(smoke.stdout)})
+            demo = subprocess.run(
+                [str(interpreter), "-I", str(Path(__file__).with_name("demo_artifact_smoke.py"))],
+                check=True, cwd=directory, capture_output=True, text=True,
+            )
+            report["smokes"].append({"pair": label, **json.loads(smoke.stdout),
+                                     "demo": json.loads(demo.stdout)})
     (output / "provenance.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 
