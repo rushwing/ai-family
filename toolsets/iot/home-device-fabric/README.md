@@ -11,6 +11,11 @@ python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini \
 python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts
 ```
 
+Install both packages into the interpreter used for pytest before running the
+suite. CLI subprocess tests use `python -I`, which ignores `PYTHONPATH`; setting
+`PYTHONPATH` alone cannot make the packages available to those subprocesses.
+Use the editable installs above or install both compatible wheels together.
+
 Import `ProviderProtocol`, `MockProvider` and `Delivery` from `home_device_fabric`.
 Import `MockConfiguration`, `DeviceRegistration`, `NormalizedInput`,
 `ProviderOutcome` and `ProviderError` from `state_schema.provider_contracts`.
@@ -193,8 +198,11 @@ if not validate_report(report):
 ```
 
 The factory receives detached validated configuration with explicit scripts
-before constructing its provider. Return a `ConformanceDriver` whose `provider`
-satisfies the full existing `ProviderProtocol`. `advance(now_ms)` delegates to
+before constructing its provider. The factory must return a `ConformanceDriver`
+instance or subclass instance. The wrapped `provider` implements the full
+existing `ProviderProtocol`; returning that provider alone produces
+`setup_failed`. Subclass `ConformanceDriver` to override caller policy while
+keeping the provider wrapped. `advance(now_ms)` delegates to
 that provider's virtual-time method. Custom forwarding providers and driver
 subclasses can be supplied; `dispatch(task, *, binding, attempt_id, verdict)` is
 the caller-policy seam and suppresses replay/conflict/offline/invalid verdicts.
@@ -206,7 +214,14 @@ certify hardware, production authorization or durable deduplication.
 Library failures are reported per case with fixed value-free codes: setup_failed,
 check_failed, identity_mismatch, catalogue_mismatch, invalid_dispatch,
 state_mismatch, completion_mismatch, delivery_mismatch, rejection_mismatch and
-policy_mismatch. The runner continues to account for the remaining inventory.
+policy_mismatch. `setup_failed` identifies factory construction or driver/provider
+type failures. `check_failed` identifies an unexpected exception during a check
+or an evidence sanitization failure. Invalid or non-finite evidence becomes
+`{"diagnostic":"invalid_evidence"}` with `check_failed` and failed status so the
+report remains finite JSON. Diagnostics omit exception messages/chains; ordinary
+evidence still contains the observable fictional values. Detailed fixed-code
+meanings are in the [API contract](../../../harness/tasks/evidence/REQ-021-api-contract.md).
+The runner continues to account for the remaining inventory.
 Initial/sensor observations are caller inputs; action deliveries use the supplied
 provider. Shared validators adjudicate State, Tasks, evidence and replay, while
 independent expected values/times/counts verify their effects. A fixed catalogue
