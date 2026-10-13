@@ -326,8 +326,10 @@ Submitted values and parser exception messages/chains are omitted. Codes: invali
 unknown_field, missing_field, invalid_setting, unsupported_version, out_of_bounds,
 invalid_endpoint, missing_token, invalid_token and invalid_reconnect_order.
 [Proposed exact API/TC contract](../../../harness/tasks/evidence/REQ-022-api-contract.md)
-records meanings and error precedence. This combined delivery awaits external
-review at req_impl; it supplies no independent acceptance or live certification.
+records meanings and error precedence. Human final acceptance and PR #46 merge
+are recorded in [closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md).
+This offline configuration supplies no live HA certification or transport;
+Feature/Stage acceptance remains separate.
 
 Acceptance adds --require-ha-configuration-runtime alongside the existing
 --require-provider-runtime --require-demo-runtime --require-conformance-runtime.

@@ -33,3 +33,10 @@ This correction changes README/API/REQ/evidence text and Python comments only. T
 Correction validation: CPython 3.12.12 passes all 462 fabric cases with all four required flags, zero failures/skips. Ruff passes; strict mypy reports no issues in all nine source files. Governance gates and 21 planning regressions, legacy requirements/public-data validation and git diff --check pass. Runtime AST matches reviewed head 38a7a20a; local Markdown targets resolve and REQ/AC/TC state checks preserve the stop boundary. The full historical shared/three-version/artifact matrix was not rerun for this comment/documentation correction. Final-head CI is checked separately after publication.
 
 REQ remains req_impl / generator-001, eight ACs unchecked, six TCs implemented and PR #46 draft. Neither fix authorization nor technical pre-review authorizes ready/bot/queue/merge or independent acceptance.
+
+
+## Second-round Confirmation and Final Disposition
+
+Human supplied a second-round pre-review of 07d5f06b confirming the runtime AST identical to 38a7a20a, 462 fabric / 1,795 shared passes in the reviewer's installed Termux environment, and closure of all F-1–F-6/information items. The reviewer accepted the unknown-key diagnostic correction and explicitly corrected mutation accounting to nine captured real and three equivalent table entries. The reviewer's token-in-snapshot M4 (17 failures) differs from the adversarial report's token-in-repr M4 (one failure); retain attribution rather than merging those counts. These are supplied reviewer results, not new author executions.
+
+Human then explicitly authorized PR #46 merge and separate housekeeping, superseding the historical stop boundary above. [Closeout evidence](REQ-022-review-acceptance.md) records the acceptance/merge; no evaluator assignment or independent approval is invented.

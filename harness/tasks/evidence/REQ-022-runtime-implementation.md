@@ -1,6 +1,6 @@
 # REQ-022 — Combined Implementation Evidence
 
-[generator-001][2026-10-13] Delivered under [human delegated decisions and combined authorization](../features/REQ-022.md). Specification PR #45 merged at 2026-10-13T08:51:53Z as a82cbb72cde5ac55ed1e7040e7185022e0a6872e from final head 829ee36643eaebd0139a95cb492f0399458c5dd7, after three successful applicable checks and six expected path-filter skips. Implementation [PR #46](https://github.com/rushwing/ai-family/pull/46) stays draft, req_impl / generator-001. All ACs remain unchecked; TC text designer and code author are generator-001 under the human exception. No independent T03/T07/T10/T13 signature or external acceptance is claimed.
+[generator-001][2026-10-13] Delivered under [human delegated decisions and combined authorization](../archive/done/features/REQ-022.md). Specification PR #45 merged at 2026-10-13T08:51:53Z as a82cbb72cde5ac55ed1e7040e7185022e0a6872e from final head 829ee36643eaebd0139a95cb492f0399458c5dd7, after three successful applicable checks and six expected path-filter skips. Implementation [PR #46](https://github.com/rushwing/ai-family/pull/46) stays draft, req_impl / generator-001. All ACs remain unchecked; TC text designer and code author are generator-001 under the human exception. No independent T03/T07/T10/T13 signature or external acceptance is claimed.
 
 ## Tested Source and Scope
 
@@ -51,3 +51,7 @@ Ruff and strict mypy pass for fabric runtime/tests and all nine source modules. 
 Q1–Q6 dispositions remain in REQ-022 and the [proposed API/TC contract](REQ-022-api-contract.md), with README usage. Deepseek should review expectation independence, hostile endpoint/error handling, introspection/serialization limits, mandatory gates, installed optimized validation and compatibility. Stop at req_impl / generator-001, with draft PR #46, eight unchecked ACs and six implemented TCs. Human will arrange external review and later lifecycle disposition; no independent approval or implementation merge is inferred.
 
 Subsequent human-supplied technical pre-review reports for head 38a7a20a are addressed in [PR #46 finding dispositions](REQ-022-pre-review-fixes.md). That follow-up changes documentation and Python comments only; the runtime AST is unchanged. Original source/artifact provenance above remains historical, and follow-up validation is recorded separately. The reports do not supply independent lifecycle signatures.
+
+## Subsequent Human Final Disposition
+
+Human-001 supplied the second-round pre-review of 07d5f06b, confirmed all findings closed, and explicitly authorized merge and a separate ledger/housekeeping PR. [Closeout evidence](REQ-022-review-acceptance.md) records PR #46 merge as b1c4b35 and done archival. This supersedes historical pending-review/req_impl-stop statements above without retagging source/artifact executions or inventing independent signatures.
