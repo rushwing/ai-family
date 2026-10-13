@@ -968,12 +968,8 @@
       "title": "Verify provider contracts with mock devices",
       "parent": "HI-F009",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S027.md",
-      "depends_on": [
-        "HI-S026"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-021",
       "legacy_refs": [
         "ZW-ST-1302"
       ],
