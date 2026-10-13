@@ -32,6 +32,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         sys.stderr.write("demo: scenario verification failed\n")
         return 1
     except Exception:
+        # Keep CLI diagnostics value-free; call run_demo directly for a debugging traceback.
         sys.stderr.write("demo: internal execution failed\n")
         return 1
     sys.stdout.write(output + "\n")

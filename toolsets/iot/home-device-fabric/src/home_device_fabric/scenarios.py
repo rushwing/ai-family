@@ -16,6 +16,7 @@ TIME = "2026-01-01T00:00:00Z"
 
 class _Model:
     device: ClassVar[str]
+    capability_version: ClassVar[int] = 1
     device_id: str
 
     def build(self, scenario: str) -> tuple[DemoCase, ...]:
@@ -51,6 +52,7 @@ class MockTemperatureSensor(_Model):
     device_id: str = "device-temperature"
     capability_id: str = "home.temperature_sensor"
     member: str = "temperature_c"
+    # Deliberately nonexistent action for write-rejected; the sensor has no actions.
     action_id: str = "write_temperature"
     timeout_ms: int = 0
 

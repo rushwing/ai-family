@@ -8,6 +8,7 @@ from pathlib import Path
 import home_device_fabric.caller
 import home_device_fabric.demo
 import home_device_fabric.scenarios
+from state_schema.initial_capabilities import load_initial_capabilities
 
 COMMANDS = (
     ("switch", "success"), ("curtain", "success"), ("temperature", "observe"),
@@ -20,6 +21,13 @@ def check(data, device, scenario):
     assert data["schema_version"] == 1 and data["simulation"] is True
     assert data["device"] == device and data["scenario"] == scenario
     assert len(data["discovery"]) == 3
+    identity = {"switch": "home.switchable", "curtain": "home.positionable",
+                "temperature": "home.temperature_sensor"}[device]
+    assert data["capabilities"] == [
+        d.to_dict() for d in load_initial_capabilities().capabilities
+        if (d.capability_id, d.capability_version) == (identity, 1)
+    ]
+    assert all(d["events"] == {} for d in data["capabilities"])
     cases = data["cases"]
     if scenario == "success":
         member = "is_on" if device == "switch" else "position_percent"

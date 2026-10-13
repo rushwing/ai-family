@@ -42,7 +42,10 @@ def pytest_collection_modifyitems(config, items):
         if config.getoption("--require-provider-runtime"):
             raise pytest.UsageError("REQ-019 provider runtime required but absent")
         for item in items:
-            item.add_marker(pytest.mark.skip(reason="REQ-019 runtime absent; acceptance pending"))
+            # Gate probes use local stubs and must execute even without the runtime.
+            if item.path.name != "test_gate.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-019 runtime absent; acceptance pending"))
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -55,6 +58,9 @@ def pytest_sessionfinish(session, exitstatus):
 
 @pytest.fixture(autouse=True)
 def offline(monkeypatch, request):
+    # This guard covers network/process/clock/random effects, not all file I/O.
+    # test_demo.test_runtime_file_environment_datetime_denial separately denies
+    # file/env/datetime access after explicit fixed catalogue resource loading.
     # Import modules before denying Python's import machinery reads.
     if available():
         import home_device_fabric  # noqa: F401

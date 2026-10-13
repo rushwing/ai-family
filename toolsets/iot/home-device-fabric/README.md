@@ -126,3 +126,30 @@ paired-artifact verifier runs all seven commands, repeat and optimized runs with
 and sdist-derived compatible wheel pairs, and records artifact/interpreter
 provenance. Select both wheel paths and install with `--no-index --no-deps`;
 alternatively publish both distributions to a configured private index.
+
+For action cases the caller constructs a provider for the unknown initial snapshot,
+then constructs its dispatch provider after the complete attempt script is known:
+REQ-019 freezes scripts at construction. Caller State retains the admitted initial
+observations; the dispatch provider's own snapshots start unknown. The CLI's
+`capabilities` list selects the exact supported ID and revision and preserves the
+canonical descriptors, including empty `events`. `write_temperature` is a
+deliberately nonexistent action used only by the sensor write-rejection fixture;
+the temperature capability defines no action.
+
+CLI internal failures use fixed value-free diagnostics. For debugging, call
+`run_demo("switch", "success")` or `execute_case(case)` directly from Python;
+exceptions propagate with their tracebacks through those library APIs.
+`scenarios.py` is the CLI's authoritative fixture source; `tests/fixtures.py`
+serves only REQ-019 provider contract tests. The autouse test guard covers
+network/process/clock/random access. A separate test denies file/environment/
+datetime access after explicitly loading the fixed packaged catalogue. Gate
+self-tests create their own present/absent import stubs and run even when the
+runtime is missing; required acceptance flags still fail missing code or skips.
+
+On platforms such as Termux, use a writable canonical `TMPDIR` (resolve symlink
+aliases) for redirects, temporary directories and `--out-dir`, rather than assuming
+`/tmp` is writable. The build verifier uses `venv` with `ensurepip`; platforms
+without it can use an equivalent `virtualenv`, install both wheel paths with
+`--no-index --no-deps`, then run `python -I` with `tests/demo_artifact_smoke.py`
+outside the checkout. This portability procedure does not replace the documented
+Python 3.12/3.13/3.14 CI build and smoke checks.

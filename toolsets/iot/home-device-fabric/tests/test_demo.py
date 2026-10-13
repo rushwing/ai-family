@@ -8,6 +8,7 @@ from dataclasses import replace
 
 import pytest
 from state_schema import action_contracts as actions
+from state_schema.initial_capabilities import load_initial_capabilities
 from state_schema.provider_contracts import MockConfiguration, NormalizedInput, ProviderError
 
 
@@ -228,6 +229,13 @@ def test_cli_fresh_process_exact_text_and_optimized(device, scenario, tmp_path):
                            "capabilities", "units", "cases", "dispatch_count", "verified"}
     assert data["schema_version"] == 1 and data["simulation"] is True
     assert len(data["discovery"]) == 3
+    identity = {"switch": "home.switchable", "curtain": "home.positionable",
+                "temperature": "home.temperature_sensor"}[device]
+    assert data["capabilities"] == [
+        d.to_dict() for d in load_initial_capabilities().capabilities
+        if (d.capability_id, d.capability_version) == (identity, 1)
+    ]
+    assert all(d["events"] == {} for d in data["capabilities"])
     if scenario == "success":
         assert all(c["task"]["state"] == "succeeded" for c in data["cases"])
     elif scenario == "timeout":
@@ -365,3 +373,66 @@ def test_malformed_switch_argument_shapes_reject(arguments):
                                          expected_rejection="invalid_request"))
     assert output["task"] is None and output["dispatch_count"] == 0
     assert output["rejection"] == {"code": "invalid_request", "source": "action"}
+
+
+@pytest.mark.tc020_01
+@pytest.mark.parametrize("device,scenario,identity", [
+    ("switch", "success", "home.switchable"),
+    ("curtain", "success", "home.positionable"),
+    ("temperature", "observe", "home.temperature_sensor"),
+])
+def test_output_descriptors_match_exact_canonical_revision(device, scenario, identity):
+    output = demo(device, scenario)
+    expected = [d.to_dict() for d in load_initial_capabilities().capabilities
+                if (d.capability_id, d.capability_version) == (identity, 1)]
+    assert len(expected) == 1
+    assert output["capabilities"] == expected
+    assert output["capabilities"][0]["events"] == {}
+
+
+@pytest.mark.tc020_01
+def test_output_selects_exact_revision_when_catalogue_has_multiple(monkeypatch):
+    caller, s = runtime()
+    config = s.configuration()
+    original = next(d for d in config["catalogue"]["capabilities"]
+                    if d["capability_id"] == "home.switchable")
+    other = deepcopy(original)
+    other["capability_version"] = 2
+    config["catalogue"]["capabilities"].append(other)
+    monkeypatch.setattr(caller, "configuration", lambda: deepcopy(config))
+    output = caller.run_demo("switch", "success")
+    assert output["capabilities"] == [original]
+    assert output["discovery"][0]["supported_capabilities"] == [
+        {"capability_id": "home.switchable", "capability_version": 1}]
+
+
+@pytest.mark.tc020_04
+@pytest.mark.parametrize("scenario", ["success", "timeout"])
+def test_caller_rejects_provider_duplicate_delivery_on_readvance(monkeypatch, scenario):
+    caller, s = runtime()
+    actual_provider = caller.MockProvider
+    instances = []
+
+    class ReplayingProvider(actual_provider):
+        def __init__(self, config):
+            super().__init__(config)
+            self.saved = None
+            self.advancements = 0
+            instances.append(self)
+
+        def advance(self, horizon):
+            self.advancements += 1
+            if self.advancements == 2:
+                yield self.saved
+                return
+            for delivery in super().advance(horizon):
+                self.saved = delivery
+                yield delivery
+
+    # Inject the regression at the provider boundary while retaining real first-run
+    # scheduling, shared State/Action validation and terminal settlement.
+    monkeypatch.setattr(caller, "MockProvider", ReplayingProvider)
+    with pytest.raises(s.DemoError, match="^expectation_failed$"):
+        caller.execute_case(s.build_scenario("switch", scenario)[0])
+    assert instances[-1].advancements == 2 and instances[-1].saved is not None
+    assert len(instances[-1].dispatch_log) == 1

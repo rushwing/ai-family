@@ -122,6 +122,8 @@ def execute_case(case: DemoCase, *, configuration_data: object = None,
                     "deliveries": [{"delay_ms": 0, "input": None, "outcome": ack},
                                    *case.deliveries],
                 }]
+                # Rebuild after the complete script is known: REQ-019 freezes scenarios
+                # at construction. Preserve caller State; provider snapshots start unknown.
                 provider = MockProvider(data)
                 binding = next(r.binding.to_dict() for r in provider.discover()
                                if r.device_id == model.device_id)
@@ -176,7 +178,9 @@ def run_demo(device: str, scenario: str) -> Json:
     return {
         "schema_version": 1, "simulation": True, "device": device, "scenario": scenario,
         "discovery": [r.to_dict() for r in provider.discover()],
-        "capabilities": [d for d in descriptors if d["capability_id"] == selected.capability_id],
+        "capabilities": [d for d in descriptors
+                         if (d["capability_id"], d["capability_version"])
+                         == (selected.capability_id, selected.capability_version)],
         "units": ({"temperature_c": "degrees_celsius"} if device == "temperature"
                   else {"position_percent": "percent"} if device == "curtain" else {}),
         "cases": results, "dispatch_count": sum(r["dispatch_count"] for r in results),
