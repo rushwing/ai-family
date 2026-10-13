@@ -48,3 +48,7 @@ Direct and sdist-derived wheel hashes match; all hashes below are identical acro
 ## Deferred External Review
 
 Review proposed TC text, automated TC code and implementation together. Human advancement authorization supplies scheduling only. No independent evaluator signature, ready operation, bot-review request, queue operation, merge or lifecycle advancement beyond req_impl is part of this delivery.
+
+## Follow-up Fix Evidence
+
+The initial e54a637 / 169-case record above is historical. Subsequent fixes for the human-supplied implementation pre-review are recorded separately in [fix evidence](REQ-020-pre-review-fixes.md) and [updated artifact provenance](REQ-020-fix-artifact-provenance.json), including 177 required fabric/demo cases per interpreter and detected output-event/repeat-guard/revision-filter mutations. The shared source is unchanged. Lifecycle and independent-review boundaries remain unchanged.
