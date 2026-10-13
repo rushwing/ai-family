@@ -241,4 +241,6 @@ Compatible direct/sdist-derived wheel pairs are installed together using
 `--no-index --no-deps`; provenance records hashes, interpreters, case counts,
 report hash and installed defect detection. See the
 [proposed API/TC contract](../../../harness/tasks/evidence/REQ-021-api-contract.md).
-This delivery remains req_impl pending external review and acceptance.
+Human final acceptance and PR #43 merge are recorded in the
+[closeout evidence](../../../harness/tasks/evidence/REQ-021-review-acceptance.md).
+Feature/Stage completion and future live-profile acceptance remain separate.

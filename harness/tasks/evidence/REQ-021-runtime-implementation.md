@@ -1,6 +1,6 @@
 # REQ-021 — Combined Implementation Evidence
 
-[generator-001][2026-10-13] Delivery under [human combined authorization](../features/REQ-021.md). Specification PR #42 merged as `4060033`; implementation [draft PR #43](https://github.com/rushwing/ai-family/pull/43) remains req_impl / generator-001. No independent evaluator signature or external text/code/runtime acceptance is claimed. AC1–AC8 remain unchecked; TC-021-01–06 are implemented with actual proposed-text designer and code author generator-001.
+[generator-001][2026-10-13] Delivery under [human combined authorization](../archive/done/features/REQ-021.md). Specification PR #42 merged as `4060033`; implementation [draft PR #43](https://github.com/rushwing/ai-family/pull/43) remains req_impl / generator-001. No independent evaluator signature or external text/code/runtime acceptance is claimed. AC1–AC8 remain unchecked; TC-021-01–06 are implemented with actual proposed-text designer and code author generator-001.
 
 ## Tested Source and Environment
 

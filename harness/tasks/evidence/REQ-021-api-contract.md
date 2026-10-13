@@ -1,6 +1,6 @@
 # REQ-021 — Proposed Combined-delivery API and TC Contract
 
-[generator-001][2026-10-13] Proposed under human-001's explicit combined TC/code/runtime authorization. This freezes implementation/acceptance interfaces for this delivery; it is not an independent T03/T07/T10/T13 signature. Independent external review remains pending after req_impl. Q1–Q6 dispositions are recorded in [REQ-021](../features/REQ-021.md).
+[generator-001][2026-10-13] Proposed under human-001's explicit combined TC/code/runtime authorization. This freezes implementation/acceptance interfaces for this delivery; it is not an independent T03/T07/T10/T13 signature. Independent external review remains pending after req_impl. Q1–Q6 dispositions are recorded in [REQ-021](../archive/done/features/REQ-021.md).
 
 Exports from home_device_fabric.conformance: ConformanceDriver(provider: ProviderProtocol), mock_factory(configuration_data: object) -> ConformanceDriver, run_conformance(factory=mock_factory) -> dict, expected_inventory() -> list[dict], validate_report(report: object) -> bool, canonical_json(value: object) -> str. Factory receives a fresh detached complete validated MockConfiguration JSON containing all explicit stimuli before construction; the returned object must be a ConformanceDriver instance or subclass instance, wrapping a provider that satisfies the full existing ProviderProtocol. Returning a bare provider is a setup_failed result. ConformanceDriver.dispatch(task, *, binding, attempt_id, verdict) delegates to provider.submit only for dispatch and suppresses replay/conflict/offline/invalid. Custom drivers may override that caller policy seam. Provider.advance owns offline virtual time; live support is outside this profile.
 
@@ -249,3 +249,7 @@ These meanings describe the existing implementation; they add no API behavior or
 CLI subprocess acceptance uses python -I and therefore ignores PYTHONPATH. Install both compatible packages into the pytest interpreter (editable installs or paired wheels); PYTHONPATH-only discovery in the parent process does not satisfy isolated child imports.
 
 TC-021-01–06 owner identifies the actual proposed-text designer, generator-001; automated code author is also generator-001 under the explicit combined-delivery exception. A later independent reviewer and disposition are recorded separately and never inferred from that owner field. Inventory hashing remains a drift check against the trusted verifier, not a supply-chain signature or evidence authentication.
+
+## Human Final Disposition
+
+Human-001 explicitly accepted the combined delivery and authorized PR #43 merge. [Closeout evidence](REQ-021-review-acceptance.md) records merge and done archival. This supersedes historical pending-acceptance statements; actual proposed-text/code attribution remains generator-001, without invented independent reviewer signatures.
