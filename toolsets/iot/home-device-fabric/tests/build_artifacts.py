@@ -7,6 +7,7 @@ or dependency downloads; installed smoke environments contain only the two wheel
 import argparse
 import hashlib
 import json
+import shutil
 import subprocess
 import sys
 import tarfile
@@ -41,17 +42,22 @@ def main():
                 archive.extractall(extracted, filter="data")
             roots = list(extracted.iterdir())
             assert len(roots) == 1 and roots[0].is_dir()
-            derived.append(Path(ProjectBuilder(str(roots[0])).build(
-                "wheel", str(output / "derived")
-            )))
+            derived.append(
+                Path(ProjectBuilder(str(roots[0])).build("wheel", str(output / "derived")))
+            )
     derived = sorted((output / "derived").glob("*.whl"))
     assert len(direct) == len(derived) == 2
     artifacts.extend(derived)
     report = {
+        "source_commit": subprocess.run(
+            ["git", "rev-parse", "HEAD"], check=True, cwd=ROOT, capture_output=True, text=True
+        ).stdout.strip(),
         "python": sys.version,
         "executable": sys.executable,
-        "artifacts": {str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
-                      for p in artifacts},
+        "artifacts": {
+            str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in artifacts
+        },
         "smokes": [],
     }
     for label, wheels in (("direct", direct), ("derived", derived)):
@@ -60,19 +66,52 @@ def main():
             venv.EnvBuilder(with_pip=True).create(directory / "env")
             interpreter = directory / "env/bin/python"
             subprocess.run(
-                [str(interpreter), "-m", "pip", "install", "--no-index", "--no-deps",
-                 *map(str, wheels)], check=True, cwd=directory,
+                [
+                    str(interpreter),
+                    "-m",
+                    "pip",
+                    "install",
+                    "--no-index",
+                    "--no-deps",
+                    *map(str, wheels),
+                ],
+                check=True,
+                cwd=directory,
             )
             smoke = subprocess.run(
                 [str(interpreter), "-I", str(Path(__file__).with_name("artifact_smoke.py"))],
-                check=True, cwd=directory, capture_output=True, text=True,
+                check=True,
+                cwd=directory,
+                capture_output=True,
+                text=True,
             )
             demo = subprocess.run(
                 [str(interpreter), "-I", str(Path(__file__).with_name("demo_artifact_smoke.py"))],
-                check=True, cwd=directory, capture_output=True, text=True,
+                check=True,
+                cwd=directory,
+                capture_output=True,
+                text=True,
             )
-            report["smokes"].append({"pair": label, **json.loads(smoke.stdout),
-                                     "demo": json.loads(demo.stdout)})
+            for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py"):
+                shutil.copy2(Path(__file__).with_name(filename), directory / filename)
+            conformance = []
+            for flags in (("-I",), ("-O", "-I")):
+                checked = subprocess.run(
+                    [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
+                    check=True,
+                    cwd=directory,
+                    capture_output=True,
+                    text=True,
+                )
+                conformance.append(json.loads(checked.stdout))
+            report["smokes"].append(
+                {
+                    "pair": label,
+                    **json.loads(smoke.stdout),
+                    "demo": json.loads(demo.stdout),
+                    "conformance": conformance,
+                }
+            )
     (output / "provenance.json").write_text(json.dumps(report, indent=2) + "\n")
     print(json.dumps(report, indent=2))
 
