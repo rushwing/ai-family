@@ -558,10 +558,8 @@
       "title": "Define Home Assistant configuration",
       "parent": "HI-F001",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S001.md",
-      "depends_on": [],
-      "harness_ref": null,
+      "harness_ref": "REQ-022",
       "legacy_refs": [],
       "source_ref": "S001"
     },
