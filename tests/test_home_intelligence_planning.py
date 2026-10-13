@@ -38,6 +38,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/features/REQ-019.md",
             "harness/tasks/features/REQ-020.md",
             "harness/tasks/features/REQ-021.md",
+            "harness/tasks/features/REQ-022.md",
             "harness/tasks/evidence/REQ-021-review-acceptance.md",
             "harness/tasks/evidence/REQ-020-review-acceptance.md",
             "harness/tasks/evidence/REQ-019-review-acceptance.md",
@@ -77,6 +78,10 @@ class PlanningIntegrityTests(unittest.TestCase):
                                              'tasks/features/REQ-021.md'))
         self.index = self.root / PRODUCT / "requirements/index.json"
         self.baseline = json.loads(self.index.read_text(encoding="utf-8"))
+        self.candidate_index = next(
+            i for i, story in enumerate(self.baseline["stories"])
+            if story.get("harness_ref") is None
+        )
 
     def test_published_planning_is_valid(self):
         self.assertEqual(validate(self.root), [])
@@ -215,7 +220,8 @@ class PlanningIntegrityTests(unittest.TestCase):
     def add_valid_story(self, stage="R1", parent="HI-F001"):
         """Add a complete indexed Story, with matching frontmatter and parent list."""
         data = copy.deepcopy(self.baseline)
-        story = copy.deepcopy(data["stories"][0])
+        candidate = self.baseline["stories"][self.candidate_index]
+        story = copy.deepcopy(candidate)
         story.update(
             id="HI-S031", path="stories/HI-S031.md", source_ref="S031", stage=stage, parent=parent
         )
@@ -223,12 +229,12 @@ class PlanningIntegrityTests(unittest.TestCase):
         feature = next(entry for entry in data["features"] if entry["id"] == parent)
         feature["stories"].append(story["id"])
         planning = self.root / PRODUCT / "requirements"
-        text = (planning / self.baseline["stories"][0]["path"]).read_text(encoding="utf-8")
-        text = text.replace("HI-S001", "HI-S031").replace(
-            'source_ref: "S001"', 'source_ref: "S031"'
+        text = (planning / candidate["path"]).read_text(encoding="utf-8")
+        text = text.replace(candidate["id"], "HI-S031").replace(
+            f'source_ref: "{candidate["source_ref"]}"', 'source_ref: "S031"'
         )
         text = text.replace('stage: "R1"', f'stage: "{stage}"')
-        text = text.replace("HI-F001", parent)
+        text = text.replace(candidate["parent"], parent)
         (planning / story["path"]).write_text(text, encoding="utf-8")
         feature_path = planning / feature["path"]
         text = feature_path.read_text(encoding="utf-8")
@@ -359,10 +365,11 @@ class PlanningIntegrityTests(unittest.TestCase):
             ),
             ("parent", lambda d: d["stories"][0].update(parent="HI-F999"), "Invalid Story parent"),
             ("future", lambda d: d["stories"][0].update(stage="R2"), "Future-stage Story"),
-            ("cycle", lambda d: d["stories"][0].update(depends_on=["HI-S002"]), "Dependency cycle"),
+            ("cycle", lambda d: d["stories"][self.candidate_index].update(
+                depends_on=[d["stories"][self.candidate_index]["id"]]), "Dependency cycle"),
             (
                 "dependency",
-                lambda d: d["stories"][0].update(depends_on=["HI-S999"]),
+                lambda d: d["stories"][self.candidate_index].update(depends_on=["HI-S999"]),
                 "Missing stories dependency",
             ),
             (
