@@ -53,6 +53,9 @@ def _fail(code: str, *path: str) -> NoReturn:
 def _endpoint(value: str) -> str | None:
     # Fully enumerate authority/root syntax instead of inheriting URL-parser
     # repairs (empty delimiters, userinfo, alternate IPv4 forms, backslashes).
+    # The ASCII scan and ?/# authority exclusions overlap later host/port/root
+    # checks. Keep these explicit grammar guards; equivalent mutations need not
+    # fail tests when another layer still enforces the same accepted language.
     if not 1 <= len(value) <= 2048 or any(not 33 <= ord(c) <= 126 for c in value):
         return None
     match = re.fullmatch(r"(?i)(https?)://([^/?#@%\\]+)(/?)", value)

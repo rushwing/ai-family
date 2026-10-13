@@ -267,6 +267,10 @@ endpoint = configuration.base_url
 credential = configuration.access_token_for_transport()
 ```
 
+Use `to_redacted_dict()` or `to_redacted_json()` for diagnostics. Trusted
+transport composition uses `base_url` and `access_token_for_transport()`; these
+return the normalized endpoint and original credential, so do not log them.
+
 Settings must be a plain dict with plain string keys. schema_version is strict
 integer 1 and base_url is required. Unknown keys (including access_token inside
 settings), missing fields and primitive/container subclasses reject. Optional
@@ -289,6 +293,11 @@ percent-encoded authority, non-ASCII hosts, whitespace/control characters,
 backslashes and malformed authority reject. No DNS, host classification or
 reverse-proxy prefix support is implied.
 
+Preserving explicit port spelling means equivalent endpoints such as
+`https://h.invalid:443` and `https://h.invalid:00443` have different stored strings.
+The configuration has no endpoint-equivalence comparison or deduplication API;
+future transport code must define its own reviewed comparison policy.
+
 The separate token is a plain str of 1–8192 printable ASCII characters without
 whitespace. No trim, JWT decoding, authenticity inference or fallback. The object
 is immutable and detached from inputs. reconnect_delays_ms() returns a finite
@@ -309,8 +318,11 @@ callers. Slots/private names are not protection against explicit private
 introspection, debugger/process-memory access or caller-source disclosure.
 
 HAConfigurationError (ValueError) carries fixed code and tuple path; its message
-is code + ': ' + dot-joined path. Unknown keys use settings.<unknown>. Submitted
-values and parser exception messages/chains are omitted. Codes: invalid_settings,
+is code + ': ' + dot-joined path. Unknown keys use settings.<unknown>. Key scans
+follow dict insertion order, but all unknown keys produce the same fixed error;
+reordering them does not change the visible diagnostic. Required fields and
+numeric settings are checked in the fixed order documented in the API contract.
+Submitted values and parser exception messages/chains are omitted. Codes: invalid_settings,
 unknown_field, missing_field, invalid_setting, unsupported_version, out_of_bounds,
 invalid_endpoint, missing_token, invalid_token and invalid_reconnect_order.
 [Proposed exact API/TC contract](../../../harness/tasks/evidence/REQ-022-api-contract.md)
