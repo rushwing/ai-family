@@ -1,5 +1,7 @@
 # REQ-019 Runtime Implementation Evidence
 
+Historical implementation/self-check evidence. Human final acceptance, merge and done disposition are recorded in [closeout evidence](REQ-019-review-acceptance.md) and the [archived requirement](../archive/done/features/REQ-019.md). Earlier pending-review statements retain their historical attribution and are superseded by that final disposition.
+
 Human-001 authorized combined TC design/code/runtime delivery after merging PR #38,
 with external review deferred until implementation completion. This is generator-001
 self-check evidence. Independent T03/T07/T10/T13 acceptance remains pending;

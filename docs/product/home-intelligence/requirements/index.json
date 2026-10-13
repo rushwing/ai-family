@@ -956,13 +956,8 @@
       "title": "Add mock switch, curtain and temperature sensor",
       "parent": "HI-F009",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S026.md",
-      "depends_on": [
-        "HI-S012",
-        "HI-S025"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-020",
       "legacy_refs": [
         "ZW-ST-1302"
       ],
