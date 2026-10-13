@@ -1,6 +1,6 @@
 # REQ-020 Combined TC and Runtime Implementation Evidence
 
-Author: generator-001 under [human combined delivery instruction](../features/REQ-020.md). This is local implementation evidence, not independent T03/T07/T10/T13 approval. Status remains req_impl / generator-001; AC1–AC8 and independent acceptance remain pending. PR #40 remains draft.
+Author: generator-001 under [human combined delivery instruction](../archive/done/features/REQ-020.md). This is local implementation evidence, not independent T03/T07/T10/T13 approval. Status remains req_impl / generator-001; AC1–AC8 and independent acceptance remain pending. PR #40 remains draft.
 
 Tested source tree committed as `e54a6379844ca5556c6d22fe9bf9371cf1cbcf93` (the tests/builds ran on the identical working tree immediately before this commit). Base specification head: `443b7d416379b60a151d5ee874fcc47f930cdac2`. Platform: Linux 6.12.62+rpt-rpi-2712 aarch64. No changes to shared validators, capability descriptors or MockProvider runtime.
 
