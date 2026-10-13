@@ -244,3 +244,96 @@ report hash and installed defect detection. See the
 Human final acceptance and PR #43 merge are recorded in the
 [closeout evidence](../../../harness/tasks/evidence/REQ-021-review-acceptance.md).
 Feature/Stage completion and future live-profile acceptance remain separate.
+
+## Offline Home Assistant configuration (REQ-022)
+
+This adapter-local module validates explicit inputs without contacting HA or
+loading environment/files. Validation proves syntax and bounds, not connectivity,
+authentication, TLS policy or endpoint safety. Existing provider/mock contracts
+and top-level exports are unchanged. Credential acquisition is a separately
+reviewed future increment.
+
+```python
+from home_device_fabric.ha_configuration import HAConfiguration
+
+configuration = HAConfiguration(
+    {"schema_version": 1, "base_url": "HTTPS://EXAMPLE.INVALID:443/"},
+    access_token="fictional-example-token",
+)
+print(configuration.to_redacted_json())
+print(configuration.reconnect_delays_ms())
+# Trusted future transport composition only; do not log these connection inputs:
+endpoint = configuration.base_url
+credential = configuration.access_token_for_transport()
+```
+
+Use `to_redacted_dict()` or `to_redacted_json()` for diagnostics. Trusted
+transport composition uses `base_url` and `access_token_for_transport()`; these
+return the normalized endpoint and original credential, so do not log them.
+
+Settings must be a plain dict with plain string keys. schema_version is strict
+integer 1 and base_url is required. Unknown keys (including access_token inside
+settings), missing fields and primitive/container subclasses reject. Optional
+fields default only when omitted; null/bool/float/string never coerce.
+
+| Setting | Inclusive strict integer range | Default (milliseconds except attempts) |
+|---|---|---|
+| request_timeout_ms | 1–120000 | 10000 |
+| reconnect_initial_delay_ms | 1–60000 | 1000 |
+| reconnect_max_delay_ms | 1–300000 and >= initial | 30000 |
+| reconnect_max_attempts | 1–32 | 8 |
+
+base_url is at most 2048 characters: absolute ASCII http/https root, ASCII DNS
+labels (1–63 characters, letters/digits/internal hyphens, total <=253, no trailing
+dot), strict dotted IPv4 or bracketed IPv6 (no zones). Single-label DNS works;
+legacy numeric/hexadecimal IP spellings reject. Ports are 1–65535 decimal digits;
+explicit spellings remain, including :80, :443 and :00443. Scheme/host lowercase;
+one trailing slash is removed. Userinfo, query/fragment even empty, non-root paths,
+percent-encoded authority, non-ASCII hosts, whitespace/control characters,
+backslashes and malformed authority reject. No DNS, host classification or
+reverse-proxy prefix support is implied.
+
+Preserving explicit port spelling means equivalent endpoints such as
+`https://h.invalid:443` and `https://h.invalid:00443` have different stored strings.
+The configuration has no endpoint-equivalence comparison or deduplication API;
+future transport code must define its own reviewed comparison policy.
+
+The separate token is a plain str of 1–8192 printable ASCII characters without
+whitespace. No trim, JWT decoding, authenticity inference or fallback. The object
+is immutable and detached from inputs. reconnect_delays_ms() returns a finite
+immutable tuple: zero-based i uses min(initial*2**i, max), initial connection is
+outside the reconnect budget. Default: (1000, 2000, 4000, 8000, 16000, 30000,
+30000, 30000). attempts=1 returns (initial,). Repeated inspection is stable;
+there is no connection state, retry execution, sleep, jitter or automatic reset.
+
+Exact redacted snapshot fields: schema_version=1, base_url="<redacted-endpoint>",
+access_token="<redacted>", and the four numeric settings above. No endpoint
+scheme/host or credential prefix/suffix/hash/length is included. to_redacted_dict()
+returns a fresh mapping; to_redacted_json() gives sorted compact JSON. repr/str
+and container repr use redacted diagnostics. vars/dataclasses.asdict/default
+json.dumps refuse the non-dataclass slots object; pickle/copy serialization also
+refuses, including direct __getstate__/__reduce__. There is no raw dictionary export. Deliberate base_url and
+access_token_for_transport() expose actual connection inputs to trusted library
+callers. Slots/private names are not protection against explicit private
+introspection, debugger/process-memory access or caller-source disclosure.
+
+HAConfigurationError (ValueError) carries fixed code and tuple path; its message
+is code + ': ' + dot-joined path. Unknown keys use settings.<unknown>. Key scans
+follow dict insertion order, but all unknown keys produce the same fixed error;
+reordering them does not change the visible diagnostic. Required fields and
+numeric settings are checked in the fixed order documented in the API contract.
+Submitted values and parser exception messages/chains are omitted. Codes: invalid_settings,
+unknown_field, missing_field, invalid_setting, unsupported_version, out_of_bounds,
+invalid_endpoint, missing_token, invalid_token and invalid_reconnect_order.
+[Proposed exact API/TC contract](../../../harness/tasks/evidence/REQ-022-api-contract.md)
+records meanings and error precedence. This combined delivery awaits external
+review at req_impl; it supplies no independent acceptance or live certification.
+
+Acceptance adds --require-ha-configuration-runtime alongside the existing
+--require-provider-runtime --require-demo-runtime --require-conformance-runtime.
+Install compatible packages into the pytest interpreter first (editable or wheel
+pairs); python -I subprocesses ignore PYTHONPATH. tests/build_artifacts.py retains
+paired --no-index --no-deps direct and sdist-derived wheel installation and adds
+installed configuration smoke outside the checkout, under -I and -O -I, with
+explicit checks that survive optimization. Provenance records wheel/sdist hashes,
+interpreter and configuration rejection/redaction/schedule results.

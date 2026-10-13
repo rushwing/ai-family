@@ -22,6 +22,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
     parser.addoption("--require-demo-runtime", action="store_true", default=False)
     parser.addoption("--require-conformance-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-configuration-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -51,7 +52,23 @@ def conformance_available():
         return False
 
 
+def ha_configuration_available():
+    try:
+        return all(importlib.util.find_spec(name) is not None for name in (
+            "home_device_fabric.ha_configuration", "state_schema.provider_contracts",
+            "state_schema.action_contracts", "state_schema.canonical_state",
+        ))
+    except ModuleNotFoundError:
+        return False
+
+
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-ha-configuration-runtime") and not ha_configuration_available():
+        raise pytest.UsageError("REQ-022 ha-configuration runtime required but absent")
+    if not ha_configuration_available():
+        for item in items:
+            if item.path.name == "test_ha_configuration.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-022 ha-configuration runtime absent"))
     if config.getoption("--require-conformance-runtime") and not conformance_available():
         raise pytest.UsageError("REQ-021 conformance runtime required but absent")
     if not conformance_available():
@@ -80,6 +97,7 @@ def pytest_sessionfinish(session, exitstatus):
         session.config.getoption("--require-provider-runtime")
         or session.config.getoption("--require-demo-runtime")
         or session.config.getoption("--require-conformance-runtime")
+        or session.config.getoption("--require-ha-configuration-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
@@ -118,7 +136,8 @@ def offline(monkeypatch, request):
             (socket, ("create_connection", "getaddrinfo")),
             (subprocess, ("Popen",)),
             (urllib.request, ("urlopen",)),
-            (time, ("time", "monotonic", "perf_counter", "sleep")),
+            (time, ("time", "time_ns", "monotonic", "monotonic_ns", "perf_counter",
+                    "perf_counter_ns", "process_time", "process_time_ns", "sleep")),
             (random, ("random", "randint", "randrange", "getrandbits")),
             (os, ("getenv", "system", "urandom")),
         ]:

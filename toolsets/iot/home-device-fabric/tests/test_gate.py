@@ -12,7 +12,8 @@ _SLEEP = time.sleep
 
 
 def isolated_hooks(
-    directory, *, provider_present, demo_present, conformance_present=False, shared_present=True
+    directory, *, provider_present, demo_present, conformance_present=False,
+    shared_present=True, ha_configuration_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -26,6 +27,8 @@ def isolated_hooks(
         if conformance_present:
             for name in ("conformance", "conformance_fixtures", "conformance_catalogue"):
                 (package / (name + ".py")).write_text('"""Gate-only stub."""\n')
+        if ha_configuration_present:
+            (package / "ha_configuration.py").write_text('"""Gate-only stub."""\n')
     if shared_present:
         shared = root / "state_schema"
         shared.mkdir(parents=True)
@@ -175,3 +178,36 @@ def test_conformance_required_rejects_each_missing_component(tmp_path, monkeypat
     )
     assert result.returncode == 4
     assert "conformance runtime required but absent" in result.stderr
+
+
+@pytest.mark.tc022_06
+@pytest.mark.parametrize("provider,module,shared,required,skip,expected", [
+    (False, False, True, True, False, 4),
+    (True, False, True, True, False, 4),
+    (True, True, False, True, False, 4),
+    (True, False, True, False, False, 0),
+    (True, True, True, True, True, 1),
+    (True, True, True, True, False, 0),
+])
+def test_ha_configuration_required_gate(tmp_path, monkeypatch, provider, module,
+                                        shared, required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=provider, demo_present=False,
+        ha_configuration_present=module, shared_present=shared))
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    (tmp_path / "test_ha_configuration.py").write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-ha-configuration-runtime")
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    if expected == 4:
+        assert "ha-configuration runtime required but absent" in result.stderr
+    elif skip or not module:
+        assert "1 skipped" in result.stdout
+    else:
+        assert "1 passed" in result.stdout

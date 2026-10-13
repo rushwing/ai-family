@@ -118,7 +118,7 @@ jobs:
           name: state-schema-tc-results-${{ matrix.python-version }}
           path: /tmp/state-schema-results.xml
 
-  # REQ-019/020/021 provider/demo/conformance TCs and paired installed-artifact verification.
+  # REQ-019/020/021/022 provider/demo/conformance/configuration TCs and paired installed-artifact verification.
   home-device-fabric-tc:
     strategy:
       fail-fast: false
@@ -141,7 +141,7 @@ jobs:
       - name: Run provider TCs without skips
         run: >-
           python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini
-          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime -q
+          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime -q
           --junitxml=/tmp/provider-results.xml
       - name: Build and smoke-test direct and sdist-derived wheel pairs
         run: python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts
