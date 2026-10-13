@@ -21,17 +21,43 @@ def available():
 def pytest_addoption(parser):
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
     parser.addoption("--require-demo-runtime", action="store_true", default=False)
+    parser.addoption("--require-conformance-runtime", action="store_true", default=False)
 
 
 def demo_available():
     try:
-        return all(importlib.util.find_spec("home_device_fabric." + name) is not None
-                   for name in ("scenarios", "caller", "demo"))
+        return all(
+            importlib.util.find_spec("home_device_fabric." + name) is not None
+            for name in ("scenarios", "caller", "demo")
+        )
+    except ModuleNotFoundError:
+        return False
+
+
+def conformance_available():
+    try:
+        return all(
+            importlib.util.find_spec(name) is not None
+            for name in (
+                "home_device_fabric.conformance",
+                "home_device_fabric.conformance_fixtures",
+                "home_device_fabric.conformance_catalogue",
+                "state_schema.action_contracts",
+                "state_schema.canonical_state",
+                "state_schema.provider_contracts",
+            )
+        )
     except ModuleNotFoundError:
         return False
 
 
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-conformance-runtime") and not conformance_available():
+        raise pytest.UsageError("REQ-021 conformance runtime required but absent")
+    if not conformance_available():
+        for item in items:
+            if item.path.name == "test_conformance.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-021 conformance runtime absent"))
     if config.getoption("--require-demo-runtime") and not demo_available():
         raise pytest.UsageError("REQ-020 demo runtime required but absent")
     if not demo_available():
@@ -44,15 +70,32 @@ def pytest_collection_modifyitems(config, items):
         for item in items:
             # Gate probes use local stubs and must execute even without the runtime.
             if item.path.name != "test_gate.py":
-                item.add_marker(pytest.mark.skip(
-                    reason="REQ-019 runtime absent; acceptance pending"))
+                item.add_marker(
+                    pytest.mark.skip(reason="REQ-019 runtime absent; acceptance pending")
+                )
 
 
 def pytest_sessionfinish(session, exitstatus):
-    if (session.config.getoption("--require-provider-runtime")
-            or session.config.getoption("--require-demo-runtime")):
+    if (
+        session.config.getoption("--require-provider-runtime")
+        or session.config.getoption("--require-demo-runtime")
+        or session.config.getoption("--require-conformance-runtime")
+    ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
+            session.exitstatus = pytest.ExitCode.TESTS_FAILED
+    if session.config.getoption("--require-conformance-runtime") and exitstatus not in (
+        pytest.ExitCode.USAGE_ERROR,
+        pytest.ExitCode.INTERRUPTED,
+    ):
+        # Mandatory runtime inventory is verified even if pytest selection omits its TCs.
+        try:
+            from home_device_fabric.conformance import run_conformance, validate_report
+
+            complete = validate_report(run_conformance())
+        except Exception:
+            complete = False
+        if not complete:
             session.exitstatus = pytest.ExitCode.TESTS_FAILED
 
 

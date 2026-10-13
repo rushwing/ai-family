@@ -1,0 +1,752 @@
+{
+  "source_commit": "81f023dda990f6affbd98d609d1ec1471b425ac2",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "acceptance_counts": {
+    "312": {
+      "python": "Python 3.12.12",
+      "fabric_total": 259,
+      "shared_total": 1795,
+      "tc_counts": {
+        "tc021_01": {
+          "executed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "313": {
+      "python": "Python 3.13.5",
+      "fabric_total": 259,
+      "shared_total": 1795,
+      "tc_counts": {
+        "tc021_01": {
+          "executed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "314": {
+      "python": "Python 3.14.3",
+      "fabric_total": 259,
+      "shared_total": 1795,
+      "tc_counts": {
+        "tc021_01": {
+          "executed": 1,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "failed": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "failed": 0,
+          "skipped": 0
+        }
+      }
+    }
+  },
+  "artifact_builds": {
+    "312": {
+      "source_commit": "81f023dda990f6affbd98d609d1ec1471b425ac2",
+      "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+      "executable": "/tmp/req019-env/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "ae03392470dca068d7a53b2b6c756bc7ec8492763e639af73dac3327cf140cee",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req021-artifacts312/req019-direct-qzv55f2_/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+            "executable": "/tmp/req021-artifacts312/req019-direct-qzv55f2_/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts312/req019-direct-qzv55f2_/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts312/req019-direct-qzv55f2_/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req021-artifacts312/req019-derived-bb7bczkh/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+            "executable": "/tmp/req021-artifacts312/req019-derived-bb7bczkh/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts312/req019-derived-bb7bczkh/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts312/req019-derived-bb7bczkh/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        }
+      ]
+    },
+    "313": {
+      "source_commit": "81f023dda990f6affbd98d609d1ec1471b425ac2",
+      "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+      "executable": "/tmp/req019-env313/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "ae03392470dca068d7a53b2b6c756bc7ec8492763e639af73dac3327cf140cee",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+          "executable": "/tmp/req021-artifacts313/req019-direct-2snga_i6/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+            "executable": "/tmp/req021-artifacts313/req019-direct-2snga_i6/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req021-artifacts313/req019-direct-2snga_i6/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req021-artifacts313/req019-direct-2snga_i6/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+          "executable": "/tmp/req021-artifacts313/req019-derived-6vuqc1gt/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+            "executable": "/tmp/req021-artifacts313/req019-derived-6vuqc1gt/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req021-artifacts313/req019-derived-6vuqc1gt/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req021-artifacts313/req019-derived-6vuqc1gt/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        }
+      ]
+    },
+    "314": {
+      "source_commit": "81f023dda990f6affbd98d609d1ec1471b425ac2",
+      "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+      "executable": "/tmp/req019-env314/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "ae03392470dca068d7a53b2b6c756bc7ec8492763e639af73dac3327cf140cee",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "f244a4cc1fc339613fa2546a83d59ba58549eb7241c18288124df3c4174d93b9",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+          "executable": "/tmp/req021-artifacts314/req019-direct-fhdrikgb/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+            "executable": "/tmp/req021-artifacts314/req019-direct-fhdrikgb/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts314/req019-direct-fhdrikgb/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts314/req019-direct-fhdrikgb/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+          "executable": "/tmp/req021-artifacts314/req019-derived-7bt7894x/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+            "executable": "/tmp/req021-artifacts314/req019-derived-7bt7894x/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts314/req019-derived-7bt7894x/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req021-artifacts314/req019-derived-7bt7894x/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

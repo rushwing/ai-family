@@ -7,9 +7,14 @@ live in `ai-family-state-schema`; this distribution depends on that package.
 ```bash
 python -m pip install -e 'libs/state-schema[test]' -e 'toolsets/iot/home-device-fabric[test]'
 python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini \
-  toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime -q
+  toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime -q
 python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts
 ```
+
+Install both packages into the interpreter used for pytest before running the
+suite. CLI subprocess tests use `python -I`, which ignores `PYTHONPATH`; setting
+`PYTHONPATH` alone cannot make the packages available to those subprocesses.
+Use the editable installs above or install both compatible wheels together.
 
 Import `ProviderProtocol`, `MockProvider` and `Delivery` from `home_device_fabric`.
 Import `MockConfiguration`, `DeviceRegistration`, `NormalizedInput`,
@@ -153,3 +158,87 @@ without it can use an equivalent `virtualenv`, install both wheel paths with
 `--no-index --no-deps`, then run `python -I` with `tests/demo_artifact_smoke.py`
 outside the checkout. This portability procedure does not replace the documented
 Python 3.12/3.13/3.14 CI build and smoke checks.
+
+
+## Reusable offline conformance
+
+```bash
+python -I -m home_device_fabric.conformance > conformance.json
+python -c 'import json; from home_device_fabric.conformance import validate_report; raise SystemExit(0 if validate_report(json.load(open("conformance.json"))) else 1)'
+```
+
+The conformance runner executes 51 fixed checks of the fictional offline profile,
+with independently declared observations and expected values. It does not import
+`demo.py` or `caller.py`, and never treats the demo's verdict as an oracle. The
+human-oriented demo shows a selected scenario; conformance checks cover the full
+reviewed inventory and can observe a supplied provider through public contracts.
+
+Each command emits one sorted compact version-1 JSON report plus newline. Exit 0
+means every mandatory check passed, including expected device timeout/rejection
+cases; 1 means a check, setup or inventory failed; 2 means invalid arguments, with
+fixed `invalid_arguments` stderr. `--help` displays usage. Checks survive `-O`.
+The report contains `profile`, `inventory_version`, `inventory_sha256`, the complete
+`expected_cases`, per-case `executed/status/evidence/error`, strict counts and
+`passed`. Inspect actual evidence, not only the overall verdict. `validate_report`
+checks the trusted ordered inventory, report structure/counts and finite JSON;
+it returns true only for complete passing reports. The pinned hash detects
+inventory drift/truncation against this trusted package. It is not a signature
+and does not authenticate evidence or protect against replacing the verifier.
+
+```python
+from home_device_fabric import MockProvider
+from home_device_fabric.conformance import ConformanceDriver, run_conformance, validate_report
+
+def provider_factory(configuration_data):
+    return ConformanceDriver(MockProvider(configuration_data))
+
+report = run_conformance(provider_factory)
+if not validate_report(report):
+    raise RuntimeError("offline conformance failed")
+```
+
+The factory receives detached validated configuration with explicit scripts
+before constructing its provider. The factory must return a `ConformanceDriver`
+instance or subclass instance. The wrapped `provider` implements the full
+existing `ProviderProtocol`; returning that provider alone produces
+`setup_failed`. Subclass `ConformanceDriver` to override caller policy while
+keeping the provider wrapped. `advance(now_ms)` delegates to
+that provider's virtual-time method. Custom forwarding providers and driver
+subclasses can be supplied; `dispatch(task, *, binding, attempt_id, verdict)` is
+the caller-policy seam and suppresses replay/conflict/offline/invalid verdicts.
+Provider-negative submissions bypass caller policy deliberately. Factories must
+create fresh context and expose detached public records. Future live adapters
+need separate reviewed drivers/applicability mappings; these checks do not
+certify hardware, production authorization or durable deduplication.
+
+Library failures are reported per case with fixed value-free codes: setup_failed,
+check_failed, identity_mismatch, catalogue_mismatch, invalid_dispatch,
+state_mismatch, completion_mismatch, delivery_mismatch, rejection_mismatch and
+policy_mismatch. `setup_failed` identifies factory construction or driver/provider
+type failures. `check_failed` identifies an unexpected exception during a check
+or an evidence sanitization failure. Invalid or non-finite evidence becomes
+`{"diagnostic":"invalid_evidence"}` with `check_failed` and failed status so the
+report remains finite JSON. Diagnostics omit exception messages/chains; ordinary
+evidence still contains the observable fictional values. Detailed fixed-code
+meanings are in the [API contract](../../../harness/tasks/evidence/REQ-021-api-contract.md).
+The runner continues to account for the remaining inventory.
+Initial/sensor observations are caller inputs; action deliveries use the supplied
+provider. Shared validators adjudicate State, Tasks, evidence and replay, while
+independent expected values/times/counts verify their effects. A fixed catalogue
+expectation snapshot is version-controlled; it is never obtained from the live
+catalogue as its own oracle. The only runtime file loading is the declared shared
+packaged initial catalogue; no ambient configuration or wall clock is used.
+
+`--require-conformance-runtime` rejects absent conformance/shared components,
+mandatory runtime inventory failures and skipped acceptance. The session gate
+executes and validates the full packaged inventory even when pytest selection
+omits conformance TCs. Required acceptance still includes the complete suite.
+Hermetic probes block ambient-install fallback. Independent wrappers exercise
+identity/support, fake ACK/mismatched report, timeout-tie, duplicate-delivery and
+caller replay defects. Installed smoke additionally runs a forwarding wrapper
+and detects a defective identity wrapper outside the checkout with `-I` and `-O`.
+Compatible direct/sdist-derived wheel pairs are installed together using
+`--no-index --no-deps`; provenance records hashes, interpreters, case counts,
+report hash and installed defect detection. See the
+[proposed API/TC contract](../../../harness/tasks/evidence/REQ-021-api-contract.md).
+This delivery remains req_impl pending external review and acceptance.
