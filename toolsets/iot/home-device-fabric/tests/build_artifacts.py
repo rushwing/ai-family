@@ -92,9 +92,11 @@ def main():
                 capture_output=True,
                 text=True,
             )
-            for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py"):
+            for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py",
+                             "ha_configuration_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
+            ha_configuration = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -104,12 +106,19 @@ def main():
                     text=True,
                 )
                 conformance.append(json.loads(checked.stdout))
+                checked_configuration = subprocess.run(
+                    [str(interpreter), *flags,
+                     str(directory / "ha_configuration_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                ha_configuration.append(json.loads(checked_configuration.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
                     **json.loads(smoke.stdout),
                     "demo": json.loads(demo.stdout),
                     "conformance": conformance,
+                    "ha_configuration": ha_configuration,
                 }
             )
     (output / "provenance.json").write_text(json.dumps(report, indent=2) + "\n")
