@@ -269,30 +269,37 @@ def test_ha_rest_required_gate(tmp_path, monkeypatch, provider, module, dependen
     (True, True, False, False, False, 0),
     (True, "broken", True, True, False, 4),
     (True, "broken", True, False, False, 0),
+    (True, "broken-attribute", True, True, False, 4),
+    (True, "broken-attribute", True, False, False, 0),
 ])
 def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dependency,
                                     required, skip, expected):
     (tmp_path / "conftest.py").write_text(isolated_hooks(
         tmp_path, provider_present=provider, demo_present=False,
         ha_websocket_present=module, websockets_present=dependency))
-    if module == "broken":
+    exception_type = {"broken": "RuntimeError", "broken-attribute": "AttributeError"}.get(module)
+    if exception_type:
         (tmp_path / "runtime/home_device_fabric/ha_websocket.py").write_text(
-            "raise RuntimeError('controlled import failure')\n")
+            f"raise {exception_type}('controlled import failure')\n")
     text = "import pytest\n"
     if skip:
         text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
     text += "def test_probe(): pass\n"
     (tmp_path / "test_ha_websocket.py").write_text(text)
-    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q",
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
                "--confcutdir", str(tmp_path)]
     if required:
         command.append("--require-ha-websocket-runtime")
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == expected, result.stdout + result.stderr
+    diagnosis = "broken" if exception_type else "absent"
+    assert "controlled import failure" not in result.stdout + result.stderr
     if expected == 4:
-        assert "ha-websocket runtime required but absent" in result.stderr
-    elif skip or not module or not dependency or module == "broken":
+        assert "ha-websocket runtime required but " + diagnosis in result.stderr
+    elif skip or not module or not dependency or exception_type:
         assert "1 skipped" in result.stdout
+        if not skip:
+            assert "ha-websocket runtime " + diagnosis in result.stdout
     else:
         assert "1 passed" in result.stdout
 

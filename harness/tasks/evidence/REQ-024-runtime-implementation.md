@@ -1,5 +1,14 @@
 # REQ-024 implementation evidence
 
+**Windows 3.13.2 scope:** the reviewed environment has four pre-existing full-suite failures
+(three REST timing/socket cases and one inventory os.geteuid case). The supplied
+re-review reproduced them at base f2e201b. Linux suite totals and targeted Windows
+WebSocket passes do not claim a green full Windows regression suite.
+
+**Optimization scope:** pytest counts are unoptimized acceptance runs. Pytest
+under python -O strips assertions and is not evidence of behavioral correctness.
+Only explicit-require() installed smoke programs supply -O -I coverage.
+
 ## Source and authority
 
 Runtime, proposed tests, CI and artifact-builder source:

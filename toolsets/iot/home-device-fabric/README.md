@@ -440,6 +440,12 @@ in an owned task; it stays active through connections and finite retries, then
 returns on terminal failure or shutdown. Inspect `health().to_dict()` for
 `state`, `reason`, `reconnect_attempt` and monotonic transition `sequence`.
 
+The reviewed Windows CPython 3.13.2 environment has four pre-existing full-suite
+failures (three REST
+timing/socket tests and one inventory os.geteuid test); Linux required-suite
+totals and targeted Windows WebSocket passes do not certify those suites
+as passing on Windows. See the REQ-024 evidence for the platform-specific scope.
+
 ```python
 import asyncio
 from home_device_fabric.ha_websocket import HAWebSocketClient
@@ -468,6 +474,9 @@ is safe; cancelling a close waiter does not cancel owned cleanup. Cancelling
 a separate 1000 ms cleanup guard with transport abort on failure/expiry. Closed
 health retains the last known reason and attempt ordinal. Worker BaseExceptions
 propagate through run; repeated close calls do not replay an earlier failure.
+On closed snapshots, reason is the last observed lifecycle cause, not a close
+failure. A clean post-exhaustion shutdown can carry reconnect_exhausted. Close
+deliberately consumes worker/drain failures; it is not a cleanup-result API.
 
 Proxies, redirects, compression and dependency logs are disabled. WSS checks
 hostname/certificate using the explicit certifi CA bundle without ambient TLS overrides.
@@ -495,9 +504,17 @@ complete fabric acceptance command and all six required-runtime flags. Mutation
 tests remove each flag and replace/remove the command/job to verify rejection.
 Ordinary import-time runtime failures produce the required-mode UsageError rather
 than an internal pytest error. Optional missing/broken runtimes are explicit skips.
+Diagnostics distinguish absent (ImportError, including a missing dependency)
+from broken (other ordinary import failures), in required errors and optional
+skip reasons, without exposing dependency exception text.
 
 WSS depends on `certifi>=2024.8.30,<2027`; renew the reviewed upper window before
 adopting a 2027 release. Installed lifecycle outputs include the actual certifi
 version and CA bundle SHA256. Build provenance records platform, machine and
 interpreter identity. Source TLS tests and retained REST artifact smokes require
 `openssl` on PATH; the REQ-024 installed ws:// lifecycle profile itself does not.
+
+Pytest acceptance counts are from unoptimized interpreters. Running pytest with
+`python -O` strips test assertions and is not acceptance evidence. Optimization
+coverage comes solely from installed smoke programs that use explicit require()
+checks under both -I and -O -I.

@@ -1,5 +1,14 @@
 # REQ-024 user-supplied static review disposition
 
+**Windows 3.13.2 scope:** the reviewed environment has four pre-existing full-suite failures
+(three REST timing/socket cases and one inventory os.geteuid case). The supplied
+re-review reproduced them at base f2e201b. Linux suite totals and targeted Windows
+WebSocket passes do not claim a green full Windows regression suite.
+
+**Optimization scope:** pytest counts are unoptimized acceptance runs. Pytest
+under python -O strips assertions and is not evidence of behavioral correctness.
+Only explicit-require() installed smoke programs supply -O -I coverage.
+
 ## Authority and source
 
 On 2026-10-15 human-001 supplied a static review of PR #51 head 3567b42.

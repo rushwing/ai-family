@@ -42,7 +42,11 @@ _WIRE_LOGGER.propagate = False
 
 @dataclass(frozen=True, slots=True)
 class HAConnectionHealth:
-    """Immutable current lifecycle snapshot; never a device availability claim."""
+    """Immutable lifecycle snapshot, never a device availability claim.
+
+    On closed, reason is the last observed lifecycle cause, not a close failure.
+    A clean close after exhausted retries therefore retains reconnect_exhausted.
+    """
 
     state: str = "disconnected"
     reason: str | None = None
@@ -216,6 +220,11 @@ class HAWebSocketClient:
                 raise
 
     async def aclose(self) -> None:
+        """Join cleanup without replaying worker failures; run owns those errors.
+
+        Closed health retains the last observed reason, not a cleanup result.
+        Cancellation of this waiter propagates while the owned drain continues.
+        """
         self._bind()
         if self._closer is None:
             self._closed = True
@@ -227,6 +236,7 @@ class HAWebSocketClient:
         await asyncio.shield(self._closer)
 
     async def _finish_close(self) -> None:
+        """Consume worker/drain failures; worker finally owns guarded close/abort."""
         try:
             if self._worker is not None:
                 await _drain(self._worker)

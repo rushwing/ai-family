@@ -78,15 +78,18 @@ def ha_rest_available():
 def pytest_collection_modifyitems(config, items):
     try:
         importlib.import_module("home_device_fabric.ha_websocket")
-        websocket = True
+        websocket_error = None
+    except ImportError:
+        websocket_error = "absent"
     except Exception:
-        websocket = False
-    if config.getoption("--require-ha-websocket-runtime") and not websocket:
-        raise pytest.UsageError("REQ-024 ha-websocket runtime required but absent")
-    if not websocket:
+        websocket_error = "broken"
+    if config.getoption("--require-ha-websocket-runtime") and websocket_error:
+        raise pytest.UsageError("REQ-024 ha-websocket runtime required but " + websocket_error)
+    if websocket_error:
         for item in items:
             if item.path.name == "test_ha_websocket.py":
-                item.add_marker(pytest.mark.skip(reason="REQ-024 ha-websocket runtime absent"))
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-024 ha-websocket runtime " + websocket_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
