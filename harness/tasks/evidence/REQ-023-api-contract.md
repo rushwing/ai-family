@@ -1,6 +1,6 @@
 # REQ-023 proposed API and TC contract
 
-Frozen by generator-001 before runtime implementation, under human combined-delivery authorization recorded in [REQ-023](../features/REQ-023.md). This is proposed test authorship, not independent acceptance.
+Frozen by generator-001 before runtime implementation, under human combined-delivery authorization recorded in [REQ-023](../archive/done/features/REQ-023.md). This is proposed test authorship, not independent acceptance.
 
 Module: home_device_fabric.ha_rest. __all__ exactly HARestClient, HARuntimeInfo, HARestError. Client takes only HAConfiguration; async runtime_info(*, correlation_id: str), aclose and context-manager methods. Missing ID is signature TypeError; exact-string ASCII 1–64 [A-Za-z0-9][A-Za-z0-9._-]* IDs reject complete token/endpoint substrings, invalid IDs yield invalid_correlation_id with None. Client/result repr is constant; immutable version-only result exports a fresh {version: string}. Errors expose code/correlation_id/http_status only; args/str code only; cause/context None. Status is 401 for auth_failed; http_error includes the actual integer status only within 100–599 (excluding 200/401), otherwise None. Client raw serialization/copy is refused. HARuntimeInfo and HARestError pickle/copy/deepcopy round trips reconstruct validated projections only, dropping exception traceback/cause/context/notes. Re-entering a closed async context raises fixed RuntimeError("client_closed"); runtime_info on a closed client raises HARestError("client_closed") with its per-call ID.
 

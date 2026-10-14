@@ -397,8 +397,9 @@ exercise actual wire headers, timeout, TLS rejection and draining close.
 
 [Proposed API/TC contract](../../../harness/tasks/evidence/REQ-023-api-contract.md)
 and [implementation evidence](../../../harness/tasks/evidence/REQ-023-runtime-implementation.md)
-record the review scope. REQ-023 stops at `req_impl`; external review and live
-installation acceptance remain pending.
+record the review scope. Human final acceptance and PR #49 merge are recorded
+in [closeout evidence](../../../harness/tasks/evidence/REQ-023-review-acceptance.md).
+The bounded read-only increment is delivered; live installation acceptance remains separate.
 
 
 ### REST pre-review clarifications
