@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain/provider/demo/conformance/configuration delivery records are updated through merged main `b1c4b35` and REQ-022 done closeout on 2026-10-13. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain/provider/demo/conformance/configuration delivery records are updated through merged main `b1c4b35` and REQ-022 done closeout on 2026-10-13. HI-S002 is admitted through REQ-023 on 2026-10-14; its specification is not runtime delivery. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -59,7 +59,11 @@ HI-S027 —Verify provider contracts with mock devices is delivered through arch
 
 ## Home Assistant Configuration Delivery
 
-HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002/003 are candidates only after explicit engineering admission; this delivery does not implement HA connectivity or complete HI-F001/R1.
+HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002 is now admitted through [REQ-023](../../../harness/tasks/features/REQ-023.md); HI-S003 remains a candidate requiring explicit engineering admission. Configuration delivery does not implement HA connectivity or complete HI-F001/R1.
+
+## Home Assistant REST Admission
+
+[HI-S002](requirements/stories/HI-S002.md) is admitted to [REQ-023](../../../harness/tasks/features/REQ-023.md) under human-001's 2026-10-14 instruction. Read scope, acceptance and current engineering state from Harness. The increment proposes authenticated read-only runtime metadata with bounded requests and redacted failures; mandatory verification uses a fake server and requires no HA account, private token or physical device. Specification admission does not certify REST delivery, live HA or HI-F001/R1 completion.
 
 ## Delivery Order
 
