@@ -339,13 +339,17 @@ class HARestClient:
                 # Discard library exceptions *before* constructing the public
                 # error. Suppressing traceback display alone retains context.
                 code = "transport_failed"
-            cleanup = asyncio.create_task(operation.cleanup())
-            while not cleanup.done():
-                try:
-                    await asyncio.shield(cleanup)
-                except asyncio.CancelledError:
-                    cancelled = True
-            cleanup_code = cleanup.result()
+            finally:
+                # Also release owned resources when process-control exceptions
+                # bypass the ordinary failure classification. Let them propagate
+                # unchanged after this same bounded, cancellation-safe cleanup.
+                cleanup = asyncio.create_task(operation.cleanup())
+                while not cleanup.done():
+                    try:
+                        await asyncio.shield(cleanup)
+                    except asyncio.CancelledError:
+                        cancelled = True
+                cleanup_code = cleanup.result()
             if cleanup_code == "timeout" or (
                 cleanup_code is not None and code is None and value is None
             ):

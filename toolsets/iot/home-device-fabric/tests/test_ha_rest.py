@@ -764,3 +764,57 @@ def test_transport_failure_and_cancel_survive_transport_close_error(monkeypatch)
         await client.aclose()
     run(exercise(False))
     run(exercise(True))
+
+
+@pytest.mark.tc023_04
+@pytest.mark.parametrize("exception_type", [KeyboardInterrupt, SystemExit, GeneratorExit])
+@pytest.mark.parametrize("phase", ["send", "body"])
+@pytest.mark.parametrize("cleanup_failure", [None, "exception", "timeout"])
+def test_base_exception_closes_owned_resources_and_propagates(
+        monkeypatch, exception_type, phase, cleanup_failure):
+    import httpx
+
+    async def exercise():
+        monkeypatch.setattr(runtime(), "_CLEANUP_SECONDS", 0.02)
+        original = exception_type("process-control-fixture")
+        closed = []
+
+        class Stream(httpx.AsyncByteStream):
+            async def __aiter__(self):
+                raise original
+                yield b"unreachable"
+
+            async def aclose(self):
+                closed.append("stream")
+                if cleanup_failure == "exception":
+                    raise OSError(TOKEN + URL)
+                if cleanup_failure == "timeout":
+                    await asyncio.sleep(10)
+
+        class Client:
+            async def send(self, request):
+                if phase == "send":
+                    raise original
+                return httpx.Response(200, headers={"Content-Type": "application/json"},
+                                      stream=Stream(), request=request)
+
+            async def aclose(self):
+                closed.append("transport")
+                if cleanup_failure == "exception":
+                    raise OSError(TOKEN + URL)
+                if cleanup_failure == "timeout":
+                    await asyncio.sleep(10)
+
+        monkeypatch.setattr(runtime(), "_make_client", Client)
+        client = runtime().HARestClient(config())
+        # Catch within the coroutine: asyncio treats an uncaught KeyboardInterrupt
+        # or SystemExit crossing a Task boundary as event-loop termination.
+        with pytest.raises(exception_type) as caught:
+            await client.runtime_info(correlation_id="call-1")
+        assert caught.value is original
+        assert sorted(closed) == (["stream", "transport"] if phase == "body" else ["transport"])
+        state = fake(monkeypatch)
+        assert (await client.runtime_info(correlation_id="recovered")).version == "2025.1.0"
+        assert len(state.requests) == 1
+        await client.aclose()
+    run(exercise())
