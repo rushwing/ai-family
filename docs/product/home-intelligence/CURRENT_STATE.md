@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain/provider/demo/conformance/configuration/REST delivery records are updated through merged main `bbe348f` and REQ-023 done closeout on 2026-10-14. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Domain/provider/demo/conformance/configuration/REST/WebSocket lifecycle delivery records are updated through merged main `2d986a7` and REQ-024 human final acceptance on 2026-10-15. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -19,7 +19,7 @@ The original runtime inventory below was inspected at `c595649` on 2026-10-07. D
 
 ## Not Implemented in the Inspected Runtime
 
-The original `c595649` inspection found no HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, production Home capability executor, three-device Mock Home CLI or Home API. Subsequent PR #40 delivers the packaged three-device offline CLI; PR #49 subsequently delivers bounded authenticated read-only REST runtime metadata; WebSocket, registry mapping, state store, capability execution and Home API remain integration gaps. Architectural descriptions and frontend fixture objects are not these implementations.
+The original `c595649` inspection found no HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, production Home capability executor, three-device Mock Home CLI or Home API. Subsequent PR #40 delivers the packaged three-device offline CLI; PR #49 subsequently delivers bounded authenticated read-only REST runtime metadata; PR #51 delivers bounded authenticated WebSocket lifecycle. Subscriptions, registry mapping, state store, capability execution and Home API remain integration gaps. Architectural descriptions and frontend fixture objects are not these implementations.
 
 ## Active Feature
 
@@ -27,7 +27,7 @@ R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived RE
 
 ## Dependency-ready Candidates
 
-HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md), with human-accepted typed provider records, protocol and deterministic offline mock. HI-S026 is delivered through archived [REQ-020](../../../harness/tasks/archive/done/features/REQ-020.md), with human-accepted packaged mock switch/curtain/temperature models and offline CLI. HI-S027 conformance is delivered through archived [REQ-021](../../../harness/tasks/archive/done/features/REQ-021.md), with a packaged 51-check offline runner and independent driver/defect probes. Human final acceptance and PR #43 merge are recorded in Harness; read current owner/status there. HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md), with human-accepted immutable offline configuration, strict endpoints/limits, redacted diagnostics and finite reconnect inspection merged in PR #46. Read acceptance and evidence from Harness; HI-S002 bounded REST is delivered through archived REQ-023; WebSocket transport remains separate. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
+HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md), with human-accepted typed provider records, protocol and deterministic offline mock. HI-S026 is delivered through archived [REQ-020](../../../harness/tasks/archive/done/features/REQ-020.md), with human-accepted packaged mock switch/curtain/temperature models and offline CLI. HI-S027 conformance is delivered through archived [REQ-021](../../../harness/tasks/archive/done/features/REQ-021.md), with a packaged 51-check offline runner and independent driver/defect probes. Human final acceptance and PR #43 merge are recorded in Harness; read current owner/status there. HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md), with human-accepted immutable offline configuration, strict endpoints/limits, redacted diagnostics and finite reconnect inspection merged in PR #46. Read acceptance and evidence from Harness; HI-S002 bounded REST is delivered through archived REQ-023; HI-S003 WebSocket lifecycle is delivered through archived REQ-024. HI-S004 combined health and HI-S005 subscriptions have their transport prerequisite; other prerequisites and explicit admission still apply. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
 
 ## Blocked and Pending Stories
 
@@ -59,22 +59,28 @@ HI-S027 —Verify provider contracts with mock devices is delivered through arch
 
 ## Home Assistant Configuration Delivery
 
-HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002 bounded REST is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md); HI-S003 is admitted as REQ-024, with combined specification/TC/runtime preparation authorized through req_impl pending external review. Configuration delivery does not implement HA connectivity or complete HI-F001/R1.
+HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002 bounded REST is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md); HI-S003 lifecycle is delivered through archived REQ-024 under human final acceptance and PR #51 merge. Configuration delivery does not implement HA connectivity or complete HI-F001/R1.
 
 ## Home Assistant REST Delivery
 
-[HI-S002](requirements/stories/HI-S002.md) is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md). Human-001 accepted AC1–AC8 and TC-023-01–06 and authorized PR #49 merge as `bbe348f` on 2026-10-14. The packaged async client sends one authenticated GET /api/config per admitted call, projects immutable version metadata and uses finite redacted errors, bounded streaming/deadlines and guarded cleanup. Historical final-source evidence records 630 fabric and 1795 shared passes on each of Python 3.12/3.13/3.14, plus twelve installed REST smokes; post-merge -I/-O smoke passes separately. [Closeout evidence](../../../harness/tasks/evidence/REQ-023-review-acceptance.md) records actual attribution and provenance. Verification uses fake servers and requires no HA account, private token or physical device. Live HA certification, WebSocket transport and HI-F001/R1 completion remain separate. Read engineering scope/status from Harness.
+[HI-S002](requirements/stories/HI-S002.md) is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md). Human-001 accepted AC1–AC8 and TC-023-01–06 and authorized PR #49 merge as `bbe348f` on 2026-10-14. The packaged async client sends one authenticated GET /api/config per admitted call, projects immutable version metadata and uses finite redacted errors, bounded streaming/deadlines and guarded cleanup. Historical final-source evidence records 630 fabric and 1795 shared passes on each of Python 3.12/3.13/3.14, plus twelve installed REST smokes; post-merge -I/-O smoke passes separately. [Closeout evidence](../../../harness/tasks/evidence/REQ-023-review-acceptance.md) records actual attribution and provenance. Verification uses fake servers and requires no HA account, private token or physical device. Live HA certification, subscriptions and HI-F001/R1 completion remain separate; WebSocket lifecycle is delivered through REQ-024. Read engineering scope/status from Harness.
 
 ## Delivery Order
 
-Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / admitted WebSocket HI-S003 (REQ-024, req_impl pending external review) → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / delivered WebSocket lifecycle HI-S003 (archived REQ-024) → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
 
 
-## Home Assistant WebSocket work in progress
+## Home Assistant WebSocket Lifecycle Delivery
 
-[HI-S003](requirements/stories/HI-S003.md) is admitted through
-[REQ-024](../../../harness/tasks/features/REQ-024.md). Human-001 authorized
-combined specification, proposed TC text/code and lifecycle runtime through
-req_impl, then external review. Read scope, status, owner, proposed acceptance
-and validation evidence from Harness. This increment does not establish accepted
-WebSocket delivery, live HA certification, subscriptions or Feature/Stage completion.
+[HI-S003](requirements/stories/HI-S003.md) is delivered through archived
+[REQ-024](../../../harness/tasks/archive/done/features/REQ-024.md).
+Human-001 accepted AC1–AC8 and TC-024-01–06 after the converged third-pass review
+and authorized [PR #51](https://github.com/rushwing/ai-family/pull/51) merge as
+`2d986a7` on 2026-10-15. The packaged lifecycle authenticates in order, exposes
+finite redacted health, bounds lifetime reconnect attempts and drains shutdown.
+[Closeout evidence](../../../harness/tasks/evidence/REQ-024-review-acceptance.md)
+records source CI (697 required fabric passes), targeted checks, post-merge
+isolated smoke and actual review attribution. Full Windows required suites have
+four pre-existing portability failures tracked in
+[BUG-033](../../../harness/tasks/bugs/BUG-033.md). No live HA certification,
+subscriptions, combined health or Feature/Stage completion is claimed.
