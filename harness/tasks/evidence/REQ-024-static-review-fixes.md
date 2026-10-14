@@ -39,3 +39,31 @@ REQ-023 hashes do not match wheel or sdist digests. A new successful execution
 cannot certify the original dependency bytes. BUG-032 remains an explicitly
 open historical-evidence follow-up; no root cause, original reproduction,
 production incident or unrelated runtime remediation is invented.
+
+## Executed follow-up validation
+
+Runtime/test/CI/artifact source:
+`6b032cc49afbf9f4125d7e924522c8094db0cedd`.
+[Fresh provenance](REQ-024-review-artifact-provenance.json) is a new execution
+record, not retroactively attached platform metadata for the initial run.
+The initial REQ-024 and the three historical REQ-023 provenance records remain
+unchanged; all follow-up delivery metadata is documentation only.
+
+| Execution | Result |
+|---|---|
+| WSL Linux x86_64 / CPython 3.12.12, all six fabric required flags | 695 passed, zero failures/errors/skips |
+| Windows AMD64 / CPython 3.13.2, all WebSocket tests | 55 passed, zero failures/errors/skips; actual version/executable/platform and command recorded |
+| Proposed TC groups 01/02/03/04/05/06 | 7 / 2 / 20 / 16 / 10 / 10 executed, all passing |
+| Direct/sdist-derived installed pairs | all retained smokes plus four REQ-024 -I/-O -I smokes passed |
+| CA evidence | actual certifi version and CA bundle SHA256 in every installed lifecycle smoke |
+| Linux lint and strict typing | Ruff passed; mypy passed on all 11 fabric source modules |
+| Planning regression | 21 passed |
+| Exact-source CI | [Run 38639505884](https://github.com/rushwing/ai-family/actions/runs/38639505884): 11 applicable jobs passed, two unrelated jobs path-filtered |
+
+The CI matrices execute fabric/shared tests and installed verification on Python
+3.12/3.13/3.14; the new always-running CI-wiring guard also passes. Shared source
+is unchanged. No live HA, private endpoint/credential or physical device is used.
+Earlier Windows full-suite platform limitations remain documented in the
+initial implementation evidence; this follow-up does not claim a full Windows
+regression pass. The remaining BUG-032 audit needs the original historical
+wheelhouse/logs or an explicit unverified-evidence disposition.
