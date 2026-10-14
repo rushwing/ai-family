@@ -26,6 +26,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-conformance-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-configuration-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-rest-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-websocket-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -75,6 +76,17 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    try:
+        importlib.import_module("home_device_fabric.ha_websocket")
+        websocket = True
+    except (ImportError, ValueError):
+        websocket = False
+    if config.getoption("--require-ha-websocket-runtime") and not websocket:
+        raise pytest.UsageError("REQ-024 ha-websocket runtime required but absent")
+    if not websocket:
+        for item in items:
+            if item.path.name == "test_ha_websocket.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-024 ha-websocket runtime absent"))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -118,6 +130,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-conformance-runtime")
         or session.config.getoption("--require-ha-configuration-runtime")
         or session.config.getoption("--require-ha-rest-runtime")
+        or session.config.getoption("--require-ha-websocket-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
@@ -146,7 +159,8 @@ def offline(monkeypatch, request):
     if available():
         import home_device_fabric  # noqa: F401
     attempts = []
-    if request.node.get_closest_marker("ha_rest_boundary"):
+    if (request.node.get_closest_marker("ha_rest_boundary")
+            or request.node.get_closest_marker("ha_websocket_boundary")):
         # Explicit REST boundary: live event-loop clocks/TLS entropy and numeric
         # loopback sockets only. Accepted pure tests retain the original guard.
         connect = socket.socket.connect

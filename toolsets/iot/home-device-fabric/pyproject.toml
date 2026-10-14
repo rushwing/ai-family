@@ -3,7 +3,7 @@ name = "ai-family-home-device-fabric"
 version = "0.1.0"
 description = "Typed provider boundary, deterministic mock devices and offline CLI"
 requires-python = ">=3.12"
-dependencies = ["ai-family-state-schema>=0.1.0,<0.2", "httpx>=0.28.1,<0.29"]
+dependencies = ["ai-family-state-schema>=0.1.0,<0.2", "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16"]
 
 [project.optional-dependencies]
 test = ["pytest>=8", "ruff", "mypy", "build", "hatchling"]

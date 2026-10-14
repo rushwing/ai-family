@@ -59,7 +59,7 @@ HI-S027 —Verify provider contracts with mock devices is delivered through arch
 
 ## Home Assistant Configuration Delivery
 
-HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002 bounded REST is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md); HI-S003 remains a candidate requiring explicit engineering admission. Configuration delivery does not implement HA connectivity or complete HI-F001/R1.
+HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md). [PR #46](https://github.com/rushwing/ai-family/pull/46) merged as `b1c4b35` under human final acceptance of AC1–AC8 and TC-022-01–06. The packaged configuration validates explicit settings and a separate credential, preserves frozen endpoint spelling, redacts ordinary diagnostics, refuses raw serialization and returns a pure finite reconnect tuple. Historical source/artifact evidence records 462 fabric / 1,795 shared cases per tested interpreter; final CI passed all applicable jobs. Post-merge -I/-O smoke verifies configuration rejection/redaction/serialization and schedule behavior. [Closeout evidence](../../../harness/tasks/evidence/REQ-022-review-acceptance.md) records actual provenance. HI-S002 bounded REST is delivered through archived [REQ-023](../../../harness/tasks/archive/done/features/REQ-023.md); HI-S003 is admitted as REQ-024, with combined specification/TC/runtime preparation authorized through req_impl pending external review. Configuration delivery does not implement HA connectivity or complete HI-F001/R1.
 
 ## Home Assistant REST Delivery
 
@@ -68,3 +68,13 @@ HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/d
 ## Delivery Order
 
 Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / candidate WebSocket HI-S003 → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+
+
+## Home Assistant WebSocket work in progress
+
+[HI-S003](requirements/stories/HI-S003.md) is admitted through
+[REQ-024](../../../harness/tasks/features/REQ-024.md). Human-001 authorized
+combined specification, proposed TC text/code and lifecycle runtime through
+req_impl, then external review. Read scope, status, owner, proposed acceptance
+and validation evidence from Harness. This increment does not establish accepted
+WebSocket delivery, live HA certification, subscriptions or Feature/Stage completion.

@@ -8,6 +8,7 @@ package pair and that recorded closure offline into fresh smoke environments.
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -33,7 +34,7 @@ def main():
     dependencies.mkdir(exist_ok=True)
     subprocess.run(
         [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
-         "--dest", str(dependencies), "httpx>=0.28.1,<0.29"], check=True,
+         "--dest", str(dependencies), "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16"], check=True,
     )
     artifacts = []
     direct = []
@@ -75,7 +76,9 @@ def main():
         with tempfile.TemporaryDirectory(prefix=f"req019-{label}-", dir=output) as temporary:
             directory = Path(temporary)
             venv.EnvBuilder(with_pip=True).create(directory / "env")
-            interpreter = directory / "env/bin/python"
+            interpreter = directory / (
+                "env/Scripts/python.exe" if os.name == "nt" else "env/bin/python"
+            )
             subprocess.run(
                 [
                     str(interpreter),
@@ -91,7 +94,8 @@ def main():
             )
             subprocess.run(
                 [str(interpreter), "-m", "pip", "install", "--no-index",
-                 "--find-links", str(dependencies), "httpx>=0.28.1,<0.29"],
+                 "--find-links", str(dependencies), "httpx>=0.28.1,<0.29",
+                 "websockets>=15.0.1,<16"],
                 check=True, cwd=directory,
             )
             subprocess.run([str(interpreter), "-m", "pip", "check"], check=True,
@@ -115,11 +119,13 @@ def main():
                 text=True,
             )
             for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py",
-                             "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py"):
+                             "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py",
+                             "ha_websocket_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
             ha_rest = []
+            ha_websocket = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -140,6 +146,11 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 ha_rest.append(json.loads(checked_rest.stdout))
+                checked_websocket = subprocess.run(
+                    [str(interpreter), *flags, str(directory / "ha_websocket_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                ha_websocket.append(json.loads(checked_websocket.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -148,6 +159,7 @@ def main():
                     "conformance": conformance,
                     "ha_configuration": ha_configuration,
                     "ha_rest": ha_rest,
+                    "ha_websocket": ha_websocket,
                     "installed_distributions": json.loads(installed.stdout),
                 }
             )

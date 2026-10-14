@@ -430,3 +430,53 @@ full artifact builder/matrix ran. Record platform and setup method with results.
 External reviewers must independently derive TC expectations for T07/T10 and
 explicitly assess post-cleanup deadline priority. The local pre-review and its
 fixes do not supply independent approval or trigger T12/T13, readiness or merge.
+
+## WebSocket lifecycle (REQ-024, pending external review)
+
+`home_device_fabric.ha_websocket` exposes `HAWebSocketClient` and immutable
+`HAConnectionHealth`. It uses the explicit `HAConfiguration` and
+`websockets>=15.0.1,<16`. Constructing a client performs no I/O. Await `run()`
+in an owned task; it stays active through connections and finite retries, then
+returns on terminal failure or shutdown. Inspect `health().to_dict()` for
+`state`, `reason`, `reconnect_attempt` and monotonic transition `sequence`.
+
+```python
+import asyncio
+from home_device_fabric.ha_websocket import HAWebSocketClient
+
+async def observe_connection(configuration):
+    client = HAWebSocketClient(configuration)
+    running = asyncio.create_task(client.run())
+    try:
+        await running  # terminal failure; an owning application may close earlier
+        return client.health().to_dict()
+    finally:
+        await client.aclose()
+```
+
+The client upgrades `/api/websocket`, waits for `auth_required`, sends the
+explicit token and publishes connected only after `auth_ok`. Authentication
+rejection and invalid protocol stop immediately. Transient loss uses the exact
+configured finite reconnect tuple; successful reconnect does not reset this
+lifetime budget. The current snapshot is transport health only. Subscriptions,
+combined REST/WS health and device state/actions remain later increments.
+
+One client starts once on one asyncio loop. `aclose()` closes admission, cancels
+connect/auth/backoff/idle receive and drains cleanup. Concurrent/repeated close
+is safe; cancelling a close waiter does not cancel owned cleanup. Cancelling
+`run()` drains the worker and propagates caller cancellation. Socket close has
+a separate 1000 ms cleanup guard with transport abort on failure/expiry.
+
+Proxies, redirects, compression and dependency logs are disabled. WSS checks
+hostname/certificate using platform trust roots without ambient TLS overrides.
+The auth exchange shares `request_timeout_ms`; keepalive ping/pong use 20s/20s,
+incoming messages are bounded to 64 KiB and four queued frames. No public raw
+send or device-write method exists. Health and client repr contain no raw peer
+text/credentials/endpoint; raw client serialization refuses. Private introspection
+and explicitly instrumented process/wire tracing are outside this boundary.
+
+Add `--require-ha-websocket-runtime` to the five existing required fabric flags.
+The [requirement](../../../harness/tasks/features/REQ-024.md) holds unchecked ACs
+and implemented TCs pending external review. The artifact builder executes the
+installed lifecycle smoke under `-I` and `-O -I` for direct/sdist-derived package
+pairs and records the WebSocket dependency closure. No live HA is required.
