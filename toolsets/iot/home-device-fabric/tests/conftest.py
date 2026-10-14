@@ -1,6 +1,8 @@
 """Counted ambient-effect denial and explicit missing-runtime acceptance gate."""
 
+import importlib
 import importlib.util
+import ipaddress
 import os
 import random
 import socket
@@ -23,6 +25,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-demo-runtime", action="store_true", default=False)
     parser.addoption("--require-conformance-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-configuration-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-rest-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -62,7 +65,23 @@ def ha_configuration_available():
         return False
 
 
+def ha_rest_available():
+    try:
+        for name in ("home_device_fabric.ha_rest", "httpx"):
+            importlib.import_module(name)
+        return True
+    except (ImportError, ValueError):
+        return False
+
+
 def pytest_collection_modifyitems(config, items):
+    rest = ha_rest_available()
+    if config.getoption("--require-ha-rest-runtime") and not rest:
+        raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
+    if not rest:
+        for item in items:
+            if item.path.name == "test_ha_rest.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-023 ha-rest runtime absent"))
     if config.getoption("--require-ha-configuration-runtime") and not ha_configuration_available():
         raise pytest.UsageError("REQ-022 ha-configuration runtime required but absent")
     if not ha_configuration_available():
@@ -98,6 +117,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-demo-runtime")
         or session.config.getoption("--require-conformance-runtime")
         or session.config.getoption("--require-ha-configuration-runtime")
+        or session.config.getoption("--require-ha-rest-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
@@ -126,6 +146,44 @@ def offline(monkeypatch, request):
     if available():
         import home_device_fabric  # noqa: F401
     attempts = []
+    if request.node.get_closest_marker("ha_rest_boundary"):
+        # Explicit REST boundary: live event-loop clocks/TLS entropy and numeric
+        # loopback sockets only. Accepted pure tests retain the original guard.
+        connect = socket.socket.connect
+        connect_ex = socket.socket.connect_ex
+        resolve = socket.getaddrinfo
+
+        def loopback(address):
+            try:
+                return ipaddress.ip_address(address[0]).is_loopback
+            except (ValueError, TypeError, IndexError):
+                return False
+
+        def guarded_connect(sock, address):
+            if not loopback(address):
+                attempts.append(address)
+                raise AssertionError("non-loopback network denied")
+            return connect(sock, address)
+
+        def guarded_connect_ex(sock, address):
+            if not loopback(address):
+                attempts.append(address)
+                raise AssertionError("non-loopback network denied")
+            return connect_ex(sock, address)
+
+        def guarded_resolve(host, *args, **kwargs):
+            if not loopback((host,)):
+                attempts.append(host)
+                raise AssertionError("non-loopback DNS denied")
+            return resolve(host, *args, **kwargs)
+
+        with monkeypatch.context() as patch:
+            patch.setattr(socket.socket, "connect", guarded_connect)
+            patch.setattr(socket.socket, "connect_ex", guarded_connect_ex)
+            patch.setattr(socket, "getaddrinfo", guarded_resolve)
+            yield attempts
+        assert not attempts, "forbidden network attempted even if swallowed"
+        return
 
     def deny(*args, **kwargs):
         attempts.append(1)

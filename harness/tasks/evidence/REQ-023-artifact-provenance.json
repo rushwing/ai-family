@@ -1,0 +1,1238 @@
+{
+  "source_commit": "bcc459740c739ce5b37d012017de806e0861b5e0",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "source_acceptance": {
+    "312": {
+      "tests": {
+        "tests": 569,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc023_06": 6,
+        "tc023_01": 1,
+        "tc023_02": 55,
+        "tc023_03": 33,
+        "tc023_04": 8,
+        "tc023_05": 4
+      },
+      "shared": {
+        "tests": 1795,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "313": {
+      "tests": {
+        "tests": 569,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc023_06": 6,
+        "tc023_01": 1,
+        "tc023_02": 55,
+        "tc023_03": 33,
+        "tc023_04": 8,
+        "tc023_05": 4
+      },
+      "shared": {
+        "tests": 1795,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    },
+    "314": {
+      "tests": {
+        "tests": 569,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc023_06": 6,
+        "tc023_01": 1,
+        "tc023_02": 55,
+        "tc023_03": 33,
+        "tc023_04": 8,
+        "tc023_05": 4
+      },
+      "shared": {
+        "tests": 1795,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "artifact_runs": [
+    {
+      "source_commit": "bcc459740c739ce5b37d012017de806e0861b5e0",
+      "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+      "executable": "/tmp/req019-env/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "93bcd2d6f6564c351159300a7410b144f261332b4e562eb1af75ee90f3ba9531",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "dependency_wheels": {
+        "anyio-4.15.1-py3-none-any.whl": "3775a368d99ae82868850dfecbf23bebe253eb4b534211b62209e53ff0e5dceb",
+        "certifi-2026.7.22-py3-none-any.whl": "9de65d0980dfad0fe9dcf13df12e8109d6f4a746b526bfb206d00126648c6c0f",
+        "h11-0.16.0-py3-none-any.whl": "9e54505b012527625f54dcc591e3e253276327e8a9c86f55bdb9012e9000e462",
+        "httpcore-1.0.9-py3-none-any.whl": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+        "httpx-0.28.1-py3-none-any.whl": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+        "idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+        "typing_extensions-4.16.0-py3-none-any.whl": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req023-artifacts312/req019-direct-vyybdqss/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+            "executable": "/tmp/req023-artifacts312/req019-direct-vyybdqss/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts312/req019-direct-vyybdqss/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts312/req019-direct-vyybdqss/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.0.1"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req023-artifacts312/req019-derived-b_z7i94d/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+            "executable": "/tmp/req023-artifacts312/req019-derived-b_z7i94d/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts312/req019-derived-b_z7i94d/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts312/req019-derived-b_z7i94d/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.0.1"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source_commit": "bcc459740c739ce5b37d012017de806e0861b5e0",
+      "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+      "executable": "/tmp/req019-env313/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "93bcd2d6f6564c351159300a7410b144f261332b4e562eb1af75ee90f3ba9531",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "dependency_wheels": {
+        "anyio-4.15.1-py3-none-any.whl": "3775a368d99ae82868850dfecbf23bebe253eb4b534211b62209e53ff0e5dceb",
+        "certifi-2026.7.22-py3-none-any.whl": "9de65d0980dfad0fe9dcf13df12e8109d6f4a746b526bfb206d00126648c6c0f",
+        "h11-0.16.0-py3-none-any.whl": "9e54505b012527625f54dcc591e3e253276327e8a9c86f55bdb9012e9000e462",
+        "httpcore-1.0.9-py3-none-any.whl": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+        "httpx-0.28.1-py3-none-any.whl": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+        "idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+        "typing_extensions-4.16.0-py3-none-any.whl": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+          "executable": "/tmp/req023-artifacts313/req019-direct-jp275szx/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+            "executable": "/tmp/req023-artifacts313/req019-direct-jp275szx/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req023-artifacts313/req019-direct-jp275szx/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req023-artifacts313/req019-direct-jp275szx/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.1.1"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+          "executable": "/tmp/req023-artifacts313/req019-derived-85zt6j9r/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+            "executable": "/tmp/req023-artifacts313/req019-derived-85zt6j9r/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req023-artifacts313/req019-derived-85zt6j9r/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "executable": "/tmp/req023-artifacts313/req019-derived-85zt6j9r/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.1.1"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "source_commit": "bcc459740c739ce5b37d012017de806e0861b5e0",
+      "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+      "executable": "/tmp/req019-env314/bin/python",
+      "artifacts": {
+        "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+        "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+        "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "93bcd2d6f6564c351159300a7410b144f261332b4e562eb1af75ee90f3ba9531",
+        "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "06f37b242cdb11da51de4441e259053624eb1e6127d1744820d03ba471a3c35c",
+        "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "dependency_wheels": {
+        "anyio-4.15.1-py3-none-any.whl": "3775a368d99ae82868850dfecbf23bebe253eb4b534211b62209e53ff0e5dceb",
+        "certifi-2026.7.22-py3-none-any.whl": "9de65d0980dfad0fe9dcf13df12e8109d6f4a746b526bfb206d00126648c6c0f",
+        "h11-0.16.0-py3-none-any.whl": "9e54505b012527625f54dcc591e3e253276327e8a9c86f55bdb9012e9000e462",
+        "httpcore-1.0.9-py3-none-any.whl": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+        "httpx-0.28.1-py3-none-any.whl": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+        "idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+        "typing_extensions-4.16.0-py3-none-any.whl": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8"
+      },
+      "smokes": [
+        {
+          "pair": "direct",
+          "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+          "executable": "/tmp/req023-artifacts314/req019-direct-uld7p4ib/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+            "executable": "/tmp/req023-artifacts314/req019-direct-uld7p4ib/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts314/req019-direct-uld7p4ib/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts314/req019-direct-uld7p4ib/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.3"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        },
+        {
+          "pair": "derived",
+          "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+          "executable": "/tmp/req023-artifacts314/req019-derived-1anxl2d0/env/bin/python",
+          "smoke": "passed",
+          "demo": {
+            "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+            "executable": "/tmp/req023-artifacts314/req019-derived-1anxl2d0/env/bin/python",
+            "demo_smoke": "passed",
+            "runs": [
+              {
+                "device": "switch",
+                "scenario": "success",
+                "cases": 2,
+                "dispatch_count": 2,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "success",
+                "cases": 3,
+                "dispatch_count": 3,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "observe",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "timeout",
+                "cases": 1,
+                "dispatch_count": 1,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "switch",
+                "scenario": "offline",
+                "cases": 2,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "curtain",
+                "scenario": "invalid-position",
+                "cases": 4,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              },
+              {
+                "device": "temperature",
+                "scenario": "write-rejected",
+                "cases": 1,
+                "dispatch_count": 0,
+                "repeat_and_optimized": "passed"
+              }
+            ]
+          },
+          "conformance": [
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts314/req019-derived-1anxl2d0/env/bin/python",
+              "optimized": false,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            },
+            {
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "executable": "/tmp/req023-artifacts314/req019-derived-1anxl2d0/env/bin/python",
+              "optimized": true,
+              "conformance_smoke": "passed",
+              "counts": {
+                "executed": 51,
+                "failed": 0,
+                "passed": 51,
+                "skipped": 0,
+                "total": 51
+              },
+              "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+              "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+              "wrapper": "passed",
+              "defect_detected": "discovery"
+            }
+          ],
+          "ha_configuration": [
+            {
+              "optimized": false,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            },
+            {
+              "optimized": true,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "redaction": true,
+              "refused_exports": 6,
+              "rejected": 4,
+              "schedule_count": 8
+            }
+          ],
+          "ha_rest": [
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": false,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            },
+            {
+              "draining_close": true,
+              "httpx": "0.28.1",
+              "optimized": true,
+              "python": "3.14.3 (main, Feb 12 2026, 00:45:04) [Clang 21.1.4 ]",
+              "rest_smoke": "passed",
+              "runtime_sha256": "6b09bb0b440de47fa384265c3dd9466500daca67765d4f06b0fecdcce4e70319",
+              "timeout": true,
+              "tls_verification": true,
+              "wire": true
+            }
+          ],
+          "installed_distributions": [
+            {
+              "name": "ai-family-home-device-fabric",
+              "version": "0.1.0"
+            },
+            {
+              "name": "ai-family-state-schema",
+              "version": "0.1.0"
+            },
+            {
+              "name": "anyio",
+              "version": "4.15.1"
+            },
+            {
+              "name": "certifi",
+              "version": "2026.7.22"
+            },
+            {
+              "name": "h11",
+              "version": "0.16.0"
+            },
+            {
+              "name": "httpcore",
+              "version": "1.0.9"
+            },
+            {
+              "name": "httpx",
+              "version": "0.28.1"
+            },
+            {
+              "name": "idna",
+              "version": "3.20"
+            },
+            {
+              "name": "pip",
+              "version": "25.3"
+            },
+            {
+              "name": "typing_extensions",
+              "version": "4.16.0"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
