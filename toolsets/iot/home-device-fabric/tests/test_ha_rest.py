@@ -442,10 +442,11 @@ def test_external_cancellation_repeated_during_cleanup(monkeypatch):
 
 
 @pytest.mark.tc023_04
-def test_cleanup_guard_cannot_extend_success(monkeypatch):
+@pytest.mark.parametrize("status", [200, 401])
+def test_cleanup_guard_cannot_extend_success(monkeypatch, status):
     async def blocked_close():
         await asyncio.sleep(10)
-    state = fake(monkeypatch, close=blocked_close)
+    state = fake(monkeypatch, status=status, close=blocked_close)
     monkeypatch.setattr(runtime(), "_CLEANUP_SECONDS", 0.02)
     started = time.monotonic()
     with pytest.raises(runtime().HARestError) as caught:
@@ -535,3 +536,231 @@ def test_real_overall_deadline_headers_and_trickle(trickle):
         assert_error(caught.value, "timeout")
         assert time.monotonic() - started < 0.8  # Explicit scheduler tolerance.
         assert len(requests) == 1
+
+
+@pytest.mark.tc023_03
+@pytest.mark.parametrize("status,diagnostic", [(600, None), (999, None), (599, 599)])
+def test_real_nonstandard_status_is_finite_error(status, diagnostic):
+    with server(status=status, body=TOKEN.encode()) as (url, requests):
+        with pytest.raises(runtime().HARestError) as caught:
+            run(runtime().HARestClient(config(url)).runtime_info(correlation_id="call-1"))
+        assert_error(caught.value, "http_error", status=diagnostic)
+        assert len(requests) == 1
+
+
+@pytest.mark.tc023_05
+def test_failed_connection_has_exactly_one_tcp_attempt(monkeypatch):
+    original = socket.socket.connect
+    attempts = []
+    def counted(sock, address):
+        attempts.append(address)
+        return original(sock, address)
+    monkeypatch.setattr(socket.socket, "connect", counted)
+    with socket.socket() as sock:
+        sock.bind(("127.0.0.1", 0))
+        port = sock.getsockname()[1]
+        with pytest.raises(runtime().HARestError) as caught:
+            run(runtime().HARestClient(config(f"http://127.0.0.1:{port}"))
+                .runtime_info(correlation_id="call-1"))
+    assert_error(caught.value, "transport_failed")
+    assert attempts == [("127.0.0.1", port)]
+
+
+@pytest.mark.tc023_04
+def test_transport_phase_timeouts_use_remaining_budget(monkeypatch):
+    async def exercise():
+        base = asyncio.get_running_loop().time()
+        ticks = iter([base, base + 0.25, base + 0.5])
+        monkeypatch.setattr(runtime(), "_clock", lambda: next(ticks))
+        state = fake(monkeypatch)
+        info = await runtime().HARestClient(config(timeout=1000)).runtime_info(
+            correlation_id="call-1")
+        assert info.version == "2025.1.0"
+        assert state.requests[0].extensions["timeout"] == {
+            "connect": 0.75, "read": 0.75, "write": 0.75, "pool": 0.75}
+    run(exercise())
+
+
+@pytest.mark.tc023_04
+def test_expired_setup_budget_dispatches_nothing(monkeypatch):
+    async def exercise():
+        base = asyncio.get_running_loop().time()
+        ticks = iter([base, base + 1, base + 1])
+        monkeypatch.setattr(runtime(), "_clock", lambda: next(ticks))
+        state = fake(monkeypatch)
+        with pytest.raises(runtime().HARestError) as caught:
+            await runtime().HARestClient(config(timeout=1000)).runtime_info(correlation_id="call-1")
+        assert_error(caught.value, "timeout")
+        assert not state.requests and state.clients[0].closed == 1
+    run(exercise())
+
+
+@pytest.mark.tc023_04
+@pytest.mark.parametrize("status,body,code", [
+    (200, b'{"version":"2025.1.0"}', None),
+    (401, b'invalid', "auth_failed"), (404, b'invalid', "http_error"),
+    (200, b'invalid', "invalid_response"),
+])
+def test_cleanup_exception_preserves_outcome_and_drains(monkeypatch, status, body, code):
+    async def broken_close():
+        raise OSError(TOKEN + URL)
+    state = fake(monkeypatch, status=status, body=body, close=broken_close)
+    async def exercise():
+        client = runtime().HARestClient(config())
+        if code is None:
+            assert (await client.runtime_info(correlation_id="call-1")).version == "2025.1.0"
+        else:
+            with pytest.raises(runtime().HARestError) as caught:
+                await client.runtime_info(correlation_id="call-1")
+            assert_error(caught.value, code, status=status if status != 200 else None)
+        assert state.streams[0].closed == state.clients[0].closed == 1
+        fake(monkeypatch)
+        assert (await client.runtime_info(correlation_id="recovered")).version == "2025.1.0"
+        await client.aclose()
+    run(exercise())
+
+
+@pytest.mark.tc023_04
+def test_cleanup_observed_deadline_overrides_auth_failure(monkeypatch):
+    async def exercise():
+        base = asyncio.get_running_loop().time()
+        clock = [base]
+        monkeypatch.setattr(runtime(), "_clock", lambda: clock[0])
+        async def close():
+            clock[0] = base + 1
+        fake(monkeypatch, status=401, close=close)
+        with pytest.raises(runtime().HARestError) as caught:
+            await runtime().HARestClient(config(timeout=1000)).runtime_info(correlation_id="call-1")
+        assert_error(caught.value, "timeout")
+    run(exercise())
+
+
+@pytest.mark.tc023_02
+def test_sync_response_stream_rejects_without_reading(monkeypatch):
+    import httpx
+    class Stream(httpx.SyncByteStream):
+        def __iter__(self):
+            raise AssertionError("sync stream must not be consumed")
+        def close(self):
+            pass
+    class Client:
+        closed = 0
+        async def send(self, request):
+            return httpx.Response(200, headers={"Content-Type": "application/json"},
+                                  stream=Stream())
+        async def aclose(self):
+            self.closed += 1
+    client = Client()
+    monkeypatch.setattr(runtime(), "_make_client", lambda: client)
+    with pytest.raises(runtime().HARestError) as caught:
+        run(runtime().HARestClient(config()).runtime_info(correlation_id="call-1"))
+    assert_error(caught.value, "invalid_response")
+    assert client.closed == 1
+
+
+@pytest.mark.tc023_03
+@pytest.mark.parametrize("code,identity,status", [
+    ("unknown", "call-1", None), (1, "call-1", None),
+    ("timeout", None, None), ("timeout", True, None), ("timeout", "bad/id", None),
+    ("invalid_correlation_id", "call-1", None),
+    ("auth_failed", "call-1", None), ("auth_failed", "call-1", 403),
+    ("auth_failed", "call-1", True),
+    ("http_error", "call-1", True), ("http_error", "call-1", "404"),
+    ("http_error", "call-1", 99), ("http_error", "call-1", 600),
+    ("http_error", "call-1", 200), ("http_error", "call-1", 401),
+    ("timeout", "call-1", 404),
+])
+def test_error_constructor_rejects_invalid_diagnostics(code, identity, status):
+    with pytest.raises(ValueError, match="^invalid_diagnostic$"):
+        runtime().HARestError(code, correlation_id=identity, http_status=status)
+
+
+@pytest.mark.tc023_01
+@pytest.mark.parametrize("export", [lambda x: pickle.loads(pickle.dumps(x)),
+                                   copy.copy, copy.deepcopy])
+def test_safe_result_and_error_roundtrip(export):
+    api = runtime()
+    info = export(api.HARuntimeInfo("2025.1.0"))
+    assert type(info) is api.HARuntimeInfo and info.to_dict() == {"version": "2025.1.0"}
+    for code, identity, status in [("http_error", "call-1", None),
+            ("http_error", "call-1", 599), ("auth_failed", "call-1", 401),
+            ("invalid_correlation_id", None, None), ("timeout", "call-1", None)]:
+        err = api.HARestError(code, correlation_id=identity, http_status=status)
+        err.__cause__ = OSError(TOKEN + URL)
+        err.__context__ = OSError(TOKEN + URL)
+        err.add_note(TOKEN + URL)
+        restored = export(err)
+        assert_error(restored, code, identity, status)
+        assert not getattr(restored, "__notes__", [])
+        assert TOKEN.encode() not in pickle.dumps(err)
+
+
+@pytest.mark.tc023_01
+def test_immutability_reinitialization_deletion_and_exception_bookkeeping():
+    api = runtime()
+    info = api.HARuntimeInfo("2025.1.0")
+    err = api.HARestError("timeout", correlation_id="call-1")
+    client = api.HARestClient(config())
+    for obj, field, value, diagnostic in [
+        (info, "_HARuntimeInfo__version", "changed", "immutable_runtime_info"),
+        (err, "_HARestError__code", "changed", "immutable_rest_error"),
+        (err, "correlation_id", "changed", "immutable_rest_error"),
+        (err, "http_status", 404, "immutable_rest_error"),
+        (err, "args", ("changed",), "immutable_rest_error"),
+        (client, "_HARestClient__closed", False, "immutable_rest_client"),
+    ]:
+        with pytest.raises(AttributeError, match=diagnostic):
+            setattr(obj, field, value)
+        with pytest.raises(AttributeError, match=diagnostic):
+            delattr(obj, field)
+    with pytest.raises(AttributeError, match="immutable_runtime_info"):
+        info.__init__("changed")
+    with pytest.raises(AttributeError, match="immutable_rest_error"):
+        err.__init__("timeout", correlation_id="new")
+    with pytest.raises(AttributeError, match="immutable_rest_client"):
+        client.__init__(config())
+    for name, value in [("__traceback__", None), ("__cause__", None),
+                        ("__context__", None), ("__suppress_context__", True),
+                        ("__notes__", ["safe-note"])]:
+        setattr(err, name, value)
+        assert getattr(err, name) == value
+        with pytest.raises(AttributeError, match="immutable_rest_error"):
+            delattr(err, name)
+
+
+@pytest.mark.tc023_03
+@pytest.mark.parametrize("code,status", [("timeout", None), ("transport_failed", None),
+    ("invalid_response", None), ("client_closed", None), ("client_busy", None),
+    ("auth_failed", 401), ("http_error", 100), ("http_error", 599), ("http_error", None)])
+def test_error_constructor_accepts_literal_finite_categories(code, status):
+    assert_error(runtime().HARestError(code, correlation_id="call-1", http_status=status),
+                 code, status=status)
+
+
+@pytest.mark.tc023_04
+def test_transport_failure_and_cancel_survive_transport_close_error(monkeypatch):
+    import httpx
+    async def exercise(cancelled):
+        class Client:
+            closed = 0
+            async def send(self, request):
+                if cancelled:
+                    raise asyncio.CancelledError()
+                raise httpx.ConnectError(TOKEN + URL, request=request)
+            async def aclose(self):
+                self.closed += 1
+                raise OSError(TOKEN + URL)
+        owned = Client()
+        monkeypatch.setattr(runtime(), "_make_client", lambda: owned)
+        client = runtime().HARestClient(config())
+        if cancelled:
+            with pytest.raises(asyncio.CancelledError):
+                await client.runtime_info(correlation_id="call-1")
+        else:
+            with pytest.raises(runtime().HARestError) as caught:
+                await client.runtime_info(correlation_id="call-1")
+            assert_error(caught.value, "transport_failed")
+        assert owned.closed == 1
+        await client.aclose()
+    run(exercise(False))
+    run(exercise(True))

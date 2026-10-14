@@ -10,7 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from typing import NoReturn, SupportsIndex
+from typing import NoReturn, SupportsIndex, cast
 
 import httpx
 
@@ -57,6 +57,9 @@ class HARuntimeInfo:
     def __repr__(self) -> str:
         return "HARuntimeInfo(<redacted>)"
 
+    def __reduce__(self) -> tuple[type[HARuntimeInfo], tuple[str]]:
+        return HARuntimeInfo, (self.__version,)
+
     def __setattr__(self, name: str, value: object) -> NoReturn:
         raise AttributeError("immutable_runtime_info")
 
@@ -79,8 +82,9 @@ class HARestError(Exception):
             or (code == "invalid_correlation_id" and correlation_id is not None)
             or (code != "invalid_correlation_id" and not _valid_id(correlation_id))
             or (code == "auth_failed" and (type(http_status) is not int or http_status != 401))
-            or (code == "http_error" and (type(http_status) is not int
-                or not 100 <= http_status <= 599 or http_status in (200, 401)))
+            or (code == "http_error" and http_status is not None
+                and (type(http_status) is not int
+                     or not 100 <= http_status <= 599 or http_status in (200, 401)))
             or (code not in ("auth_failed", "http_error") and http_status is not None)
         ):
             raise ValueError("invalid_diagnostic")
@@ -110,6 +114,10 @@ class HARestError(Exception):
     def __repr__(self) -> str:
         return f"HARestError({self.to_dict()!r})"
 
+    def __reduce__(self) -> tuple[object, tuple[str, str | None, int | None]]:
+        # Serialize only the validated projection, never exception bookkeeping.
+        return _restore_error, (self.__code, self.__correlation_id, self.__http_status)
+
     def __setattr__(self, name: str, value: object) -> None:
         # Python and traceback tools may attach exception bookkeeping. The
         # transport never assigns raw exceptions to any of these surfaces.
@@ -121,6 +129,10 @@ class HARestError(Exception):
 
     def __delattr__(self, name: str) -> NoReturn:
         raise AttributeError("immutable_rest_error")
+
+
+def _restore_error(code: str, correlation_id: str | None, http_status: int | None) -> HARestError:
+    return HARestError(code, correlation_id=correlation_id, http_status=http_status)
 
 
 def _clock() -> float:
@@ -172,8 +184,9 @@ def _version(body: bytes, configuration: HAConfiguration) -> str | None:
     if type(parsed) is not dict:
         return None
     value: object = parsed.get("version")
-    if not _valid_version(value) or not isinstance(value, str):
+    if not _valid_version(value):
         return None
+    value = cast(str, value)
     if configuration.access_token_for_transport() in value or configuration.base_url in value:
         return None
     return value
@@ -213,7 +226,8 @@ class _Operation:
         if status == 401:
             return "auth_failed", 401, None
         if status != 200:
-            return "http_error", status, None
+            diagnostic_status = status if type(status) is int and 100 <= status <= 599 else None
+            return "http_error", diagnostic_status, None
         if not _media_valid(self.response):
             return "invalid_response", None, None
         body = bytearray()
@@ -241,6 +255,9 @@ class _Operation:
                 failed = any(isinstance(result, BaseException) for result in results)
         except TimeoutError:
             return "timeout"
+        finally:
+            self.response = None
+            self.client = None
         return "transport_failed" if failed else None
 
 
@@ -329,7 +346,9 @@ class HARestClient:
                 except asyncio.CancelledError:
                     cancelled = True
             cleanup_code = cleanup.result()
-            if cleanup_code is not None:
+            if cleanup_code == "timeout" or (
+                cleanup_code is not None and code is None and value is None
+            ):
                 code, status = cleanup_code, None
             if _clock() >= deadline:
                 code, status = "timeout", None
