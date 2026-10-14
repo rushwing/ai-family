@@ -39,6 +39,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/features/REQ-020.md",
             "harness/tasks/features/REQ-021.md",
             "harness/tasks/features/REQ-022.md",
+            "harness/tasks/features/REQ-023.md",
             "harness/tasks/evidence/REQ-022-review-acceptance.md",
             "harness/tasks/evidence/REQ-021-review-acceptance.md",
             "harness/tasks/evidence/REQ-020-review-acceptance.md",

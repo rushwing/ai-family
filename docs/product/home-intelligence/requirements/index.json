@@ -568,12 +568,8 @@
       "title": "Add authenticated Home Assistant REST client",
       "parent": "HI-F001",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S002.md",
-      "depends_on": [
-        "HI-S001"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-023",
       "legacy_refs": [],
       "source_ref": "S002"
     },
