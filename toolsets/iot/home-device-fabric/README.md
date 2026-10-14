@@ -339,3 +339,63 @@ paired --no-index --no-deps direct and sdist-derived wheel installation and adds
 installed configuration smoke outside the checkout, under -I and -O -I, with
 explicit checks that survive optimization. Provenance records wheel/sdist hashes,
 interpreter and configuration rejection/redaction/schedule results.
+
+## Authenticated runtime information (REQ-023)
+
+`home_device_fabric.ha_rest` supplies `HARestClient`, `HARuntimeInfo` and
+`HARestError`. Install the fabric package with its HTTPX dependency
+(`>=0.28.1,<0.29`). Reuse explicitly supplied `HAConfiguration`; no environment
+or file credential lookup takes place. No HA account or physical device is
+required for the fake-server acceptance suite.
+
+```python
+from home_device_fabric.ha_rest import HARestClient, HARestError
+
+async def read_runtime(configuration):
+    async with HARestClient(configuration) as client:
+        try:
+            info = await client.runtime_info(correlation_id="runtime-check-1")
+            return info.to_dict()  # exactly {"version": "..."}
+        except HARestError as error:
+            return error.to_dict()  # code, correlation_id, http_status only
+```
+
+Each call owns one fresh transport and sends one authenticated GET to
+`base_url + /api/config`. Only the validated version is returned. Redirects
+(including HTTP-to-HTTPS), compressed responses, invalid JSON/media and bodies
+over 256 KiB reject. Configure the final endpoint directly. TLS verification is
+enabled; ambient proxies/trust overrides, retries and cookie reuse are disabled.
+There are no generic request or device-write methods.
+
+IDs are exact ASCII strings of 1–64 characters, starting with a letter/digit and
+continuing with letters/digits/period/underscore/hyphen. Complete credential or
+endpoint echoes reject. Error codes: `auth_failed` (401), `http_error` (other
+non-200), `timeout`, `transport_failed`, `invalid_response`, `client_closed`,
+`client_busy`, `invalid_correlation_id`. Arguments/messages contain only the
+code; dependency exception causes/contexts are discarded. Client/result repr
+is constant and client pickle/copy/raw-state exports refuse. Deliberate private
+introspection, traceback-frame locals and HTTP-core DEBUG/wire tracing are
+outside this diagnostic boundary; do not enable sensitive transport tracing.
+
+The asyncio wrapper admits one active call on one event loop; a second fails
+immediately. Close marks it closed and waits for the admitted operation without
+cancelling it or changing its outcome. Cancellation of a close waiter does not
+cancel that operation. The monotonic request budget includes transport setup,
+headers and body; expiry wins over ordinary results/errors. One separate 1000 ms
+cleanup guard covers both owned resource closes, with external cancellation
+propagated after cleanup. Synchronous work/event-loop scheduling and resolver
+workers cannot be forcibly preempted, so these are bounded asynchronous waits,
+not hard real-time termination guarantees.
+
+Add `--require-ha-rest-runtime` to the four existing fabric required flags.
+REST tests permit numeric loopback sockets, event-loop clocks and TLS fixture
+entropy explicitly; existing pure-runtime effect-denial remains active. Artifact
+validation resolves a dependency wheelhouse once, records SHA256 hashes, then
+installs each direct/sdist-derived compatible package pair and the HTTPX closure
+offline into fresh environments. Independent `-I` and `-O -I` smoke scripts
+exercise actual wire headers, timeout, TLS rejection and draining close.
+
+[Proposed API/TC contract](../../../harness/tasks/evidence/REQ-023-api-contract.md)
+and [implementation evidence](../../../harness/tasks/evidence/REQ-023-runtime-implementation.md)
+record the review scope. REQ-023 stops at `req_impl`; external review and live
+installation acceptance remain pending.

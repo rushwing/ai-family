@@ -1,7 +1,8 @@
 """Build both distributions and verify isolated direct/sdist-derived wheel pairs.
 
-Run in an environment with build and hatchling installed. Builds use no isolation
-or dependency downloads; installed smoke environments contain only the two wheels.
+Run in an environment with build, hatchling and pip installed. Builds use no
+isolation. Resolve HTTPX's dependency wheels once, then install each compatible
+package pair and that recorded closure offline into fresh smoke environments.
 """
 
 import argparse
@@ -28,6 +29,12 @@ def main():
     output = args.out_dir.resolve()
     assert not output.is_relative_to(ROOT), "Artifacts and smoke must run outside the checkout"
     output.mkdir(parents=True, exist_ok=True)
+    dependencies = output / "dependencies"
+    dependencies.mkdir(exist_ok=True)
+    subprocess.run(
+        [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
+         "--dest", str(dependencies), "httpx>=0.28.1,<0.29"], check=True,
+    )
     artifacts = []
     direct = []
     derived = []
@@ -58,6 +65,10 @@ def main():
             str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in artifacts
         },
+        "dependency_wheels": {
+            p.name: hashlib.sha256(p.read_bytes()).hexdigest()
+            for p in sorted(dependencies.glob("*.whl"))
+        },
         "smokes": [],
     }
     for label, wheels in (("direct", direct), ("derived", derived)):
@@ -78,6 +89,17 @@ def main():
                 check=True,
                 cwd=directory,
             )
+            subprocess.run(
+                [str(interpreter), "-m", "pip", "install", "--no-index",
+                 "--find-links", str(dependencies), "httpx>=0.28.1,<0.29"],
+                check=True, cwd=directory,
+            )
+            subprocess.run([str(interpreter), "-m", "pip", "check"], check=True,
+                           cwd=directory)
+            installed = subprocess.run(
+                [str(interpreter), "-m", "pip", "list", "--format=json"],
+                check=True, cwd=directory, capture_output=True, text=True,
+            )
             smoke = subprocess.run(
                 [str(interpreter), "-I", str(Path(__file__).with_name("artifact_smoke.py"))],
                 check=True,
@@ -93,10 +115,11 @@ def main():
                 text=True,
             )
             for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py",
-                             "ha_configuration_artifact_smoke.py"):
+                             "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
+            ha_rest = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -112,6 +135,11 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 ha_configuration.append(json.loads(checked_configuration.stdout))
+                checked_rest = subprocess.run(
+                    [str(interpreter), *flags, str(directory / "ha_rest_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                ha_rest.append(json.loads(checked_rest.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -119,6 +147,8 @@ def main():
                     "demo": json.loads(demo.stdout),
                     "conformance": conformance,
                     "ha_configuration": ha_configuration,
+                    "ha_rest": ha_rest,
+                    "installed_distributions": json.loads(installed.stdout),
                 }
             )
     (output / "provenance.json").write_text(json.dumps(report, indent=2) + "\n")
