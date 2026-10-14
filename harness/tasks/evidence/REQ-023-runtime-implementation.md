@@ -1,7 +1,7 @@
 # REQ-023 — Implementation Delivery Evidence
 
 [generator-001][2026-10-14] Delivered under the human combined TC/runtime
-authorization in [REQ-023](../features/REQ-023.md), reaffirmed by “Create a PR for
+authorization in [REQ-023](../archive/done/features/REQ-023.md), reaffirmed by “Create a PR for
 the implementation (till req_impl step) and I will ask for external review.”
 Specification PR #48 was merged from final head
 818e2ad72db120b4a76541f029a4c3ee14e40d66 as 0bad1e7. This delivery stops at
