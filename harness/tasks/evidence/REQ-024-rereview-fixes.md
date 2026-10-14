@@ -54,3 +54,22 @@ by tests/test_ha_websocket.py and tests/test_gate.py from that module, with
 --require-ha-websocket-runtime -q --tb=short (Linux); Windows runs the WebSocket
 file with the same interpreter flags. No Python -O flag is present in either
 pytest run. Historical full-Windows limitations remain as stated at the top.
+
+## Verified source and CI delivery
+
+Diagnostic/test and docstring source is
+`a006c9753c8a09c75b7c457a5bbab182f208b01a`. Subsequent delivery metadata is
+documentation only. [CI run 38643556484](https://github.com/rushwing/ai-family/actions/runs/38643556484)
+passes all 11 applicable jobs, with two unrelated path-filtered skips. Both
+shared/fabric matrices pass on Python 3.12/3.13/3.14, including installed artifact
+verification. The [Python 3.12 fabric job](https://github.com/rushwing/ai-family/actions/runs/38643556484/job/116124836572)
+reports **697 passed**, with all six required-runtime flags and no required
+skips/failures/errors. The same job separately passes all four installed
+REQ-024 lifecycle smoke executions across direct/sdist-derived pairs and
+-I/-O -I, using explicit require() checks. The 697 pytest count is unoptimized;
+it is not an optimized-pytest claim.
+
+No acceptance, merge or lifecycle advancement is inferred from the re-review
+or these checks. Remain req_impl / generator-001, eight unchecked ACs, six
+implemented TCs, draft and unmerged pending external review. BUG-032 remains
+the separate historical-evidence follow-up; its original records are unchanged.
