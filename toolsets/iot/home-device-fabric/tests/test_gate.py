@@ -1,5 +1,6 @@
 """Exercise real pytest hooks against hermetic present/absent runtime stubs."""
 
+import runpy
 import subprocess
 import sys
 import time
@@ -265,12 +266,18 @@ def test_ha_rest_required_gate(tmp_path, monkeypatch, provider, module, dependen
     (True, False, True, False, False, 0),
     (True, True, True, True, True, 1),
     (True, True, True, True, False, 0),
+    (True, True, False, False, False, 0),
+    (True, "broken", True, True, False, 4),
+    (True, "broken", True, False, False, 0),
 ])
 def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dependency,
                                     required, skip, expected):
     (tmp_path / "conftest.py").write_text(isolated_hooks(
         tmp_path, provider_present=provider, demo_present=False,
         ha_websocket_present=module, websockets_present=dependency))
+    if module == "broken":
+        (tmp_path / "runtime/home_device_fabric/ha_websocket.py").write_text(
+            "raise RuntimeError('controlled import failure')\n")
     text = "import pytest\n"
     if skip:
         text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
@@ -284,7 +291,21 @@ def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dep
     assert result.returncode == expected, result.stdout + result.stderr
     if expected == 4:
         assert "ha-websocket runtime required but absent" in result.stderr
-    elif skip or not module:
+    elif skip or not module or not dependency or module == "broken":
         assert "1 skipped" in result.stdout
     else:
         assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc024_06
+def test_ci_requires_complete_fabric_acceptance():
+    root = Path(__file__).resolve().parents[4]
+    validate = runpy.run_path(str(root / "tools/check_fabric_ci.py"))["validate"]
+    workflow = (root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert validate(workflow) == []
+    for flag in ("--require-provider-runtime", "--require-demo-runtime",
+                 "--require-conformance-runtime", "--require-ha-configuration-runtime",
+                 "--require-ha-rest-runtime", "--require-ha-websocket-runtime"):
+        assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
+    assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
+    assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))

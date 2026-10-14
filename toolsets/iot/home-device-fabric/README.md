@@ -465,7 +465,9 @@ One client starts once on one asyncio loop. `aclose()` closes admission, cancels
 connect/auth/backoff/idle receive and drains cleanup. Concurrent/repeated close
 is safe; cancelling a close waiter does not cancel owned cleanup. Cancelling
 `run()` drains the worker and propagates caller cancellation. Socket close has
-a separate 1000 ms cleanup guard with transport abort on failure/expiry.
+a separate 1000 ms cleanup guard with transport abort on failure/expiry. Closed
+health retains the last known reason and attempt ordinal. Worker BaseExceptions
+propagate through run; repeated close calls do not replay an earlier failure.
 
 Proxies, redirects, compression and dependency logs are disabled. WSS checks
 hostname/certificate using the explicit certifi CA bundle without ambient TLS overrides.
@@ -480,3 +482,22 @@ The [requirement](../../../harness/tasks/features/REQ-024.md) holds unchecked AC
 and implemented TCs pending external review. The artifact builder executes the
 installed lifecycle smoke under `-I` and `-O -I` for direct/sdist-derived package
 pairs and records the WebSocket dependency closure. No live HA is required.
+
+
+REQ-024 fake async tests permit only a loop monotonic clock and self-pipe setup.
+Real wire tests individually allow numeric-loopback networking, WebSocket frame
+entropy and log timestamps; only the TLS fixture allows an openssl subprocess.
+A separate synchronous constructor test denies ambient effects and file/environment
+reads. The historical REQ-023 test boundary remains separately documented.
+
+The always-running CI governance guard (`tools/check_fabric_ci.py`) pins the
+complete fabric acceptance command and all six required-runtime flags. Mutation
+tests remove each flag and replace/remove the command/job to verify rejection.
+Ordinary import-time runtime failures produce the required-mode UsageError rather
+than an internal pytest error. Optional missing/broken runtimes are explicit skips.
+
+WSS depends on `certifi>=2024.8.30,<2027`; renew the reviewed upper window before
+adopting a 2027 release. Installed lifecycle outputs include the actual certifi
+version and CA bundle SHA256. Build provenance records platform, machine and
+interpreter identity. Source TLS tests and retained REST artifact smokes require
+`openssl` on PATH; the REQ-024 installed ws:// lifecycle profile itself does not.

@@ -1,9 +1,12 @@
 """Installed lifecycle checks with explicit assertions that survive python -O."""
 
 import asyncio
+import hashlib
 import importlib.metadata
 import json
+from pathlib import Path
 
+import certifi
 from home_device_fabric.ha_configuration import HAConfiguration
 from home_device_fabric.ha_websocket import HAWebSocketClient
 from websockets.asyncio.server import serve
@@ -65,6 +68,8 @@ async def main():
         require(rejected.health().reconnect_attempt == 0)
         require(TOKEN not in repr(rejected) + repr(rejected.health()))
         await rejected.aclose()
+        require(rejected.health().state == "closed")
+        require(rejected.health().reason == "auth_failed")
 
         mode = "disconnect"
         disconnected = client()
@@ -74,10 +79,16 @@ async def main():
         require(disconnected.health().reconnect_attempt == 1)
         require(len(auth) == 4)
         await disconnected.aclose()
+        require(disconnected.health().state == "closed")
+        require(disconnected.health().reason == "reconnect_exhausted")
+        await disconnected.aclose()
 
     print(json.dumps({"profile": "req024-installed-lifecycle-v1", "wire_auths": len(auth),
                       "checks": ["authenticated", "shutdown", "auth_rejected", "finite_retry"],
-                      "websockets": importlib.metadata.version("websockets")}))
+                      "websockets": importlib.metadata.version("websockets"),
+                      "certifi": importlib.metadata.version("certifi"),
+                      "ca_bundle_sha256": hashlib.sha256(
+                          Path(certifi.where()).read_bytes()).hexdigest()}))
 
 
 if __name__ == "__main__":

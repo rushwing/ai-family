@@ -67,7 +67,7 @@ HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/d
 
 ## Delivery Order
 
-Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / candidate WebSocket HI-S003 → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / admitted WebSocket HI-S003 (REQ-024, req_impl pending external review) → events HI-S005. Mapping HI-S013/014/015 and state HI-S016/017/018 then converge at reconnect HI-S007. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
 
 
 ## Home Assistant WebSocket work in progress

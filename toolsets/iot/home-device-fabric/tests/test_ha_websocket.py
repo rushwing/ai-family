@@ -1,19 +1,24 @@
 """Proposed REQ-024 tests; literal wire/state expectations, no live HA."""
 
 import asyncio
+import builtins
 import copy
 import importlib
+import inspect
+import io
 import json
 import logging
+import os
 import pickle
 import ssl
 import subprocess
 from dataclasses import FrozenInstanceError
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
-pytestmark = pytest.mark.ha_websocket_boundary
+pytestmark = pytest.mark.ha_websocket_async
 TOKEN = "fictional-websocket-credential-7249"
 URL = "http://fixture.invalid:8123"
 
@@ -114,8 +119,8 @@ def test_api_and_authentication(monkeypatch):
         assert [h["state"] for h in state.transitions] == [
             "connecting", "authenticating", "connected"]
         assert initial.state == "disconnected" and not run.done()
-        for name in ("send", "request", "subscribe", "execute"):
-            assert not hasattr(client, name)
+        assert {name for name, member in inspect.getmembers(mod.HAWebSocketClient)
+                if not name.startswith("_") and callable(member)} == {"run", "aclose", "health"}
         with pytest.raises(RuntimeError, match="^client_started$"):
             await client.run()
         await client.aclose()
@@ -133,6 +138,29 @@ def test_invalid_configuration(invalid):
         runtime().HAWebSocketClient(invalid)
 
 
+@pytest.mark.tc024_01
+@pytest.mark.ha_websocket_pure
+def test_construction_has_no_ambient_io(monkeypatch, offline):
+    mod, config = runtime(), configuration()
+    calls = []
+
+    def denied(*args, **kwargs):
+        calls.append(1)
+        raise AssertionError("construction attempted I/O")
+
+    class Environment(dict):
+        __getitem__ = get = __iter__ = denied
+
+    with monkeypatch.context() as patch:
+        for owner, name in ((builtins, "open"), (io, "open"), (os, "open"),
+                            (Path, "open"), (asyncio, "new_event_loop")):
+            patch.setattr(owner, name, denied)
+        patch.setattr(os, "environ", Environment())
+        client = mod.HAWebSocketClient(config)
+        assert client.health().state == "disconnected"
+    assert calls == [] and offline == []
+
+
 @pytest.mark.parametrize("flap", [False, True])
 @pytest.mark.tc024_02
 def test_finite_backoff_and_flapping(monkeypatch, flap):
@@ -143,9 +171,11 @@ def test_finite_backoff_and_flapping(monkeypatch, flap):
         client = runtime().HAWebSocketClient(configuration())
         await client.run()
         assert state.attempts == 4 and state.delays == [0.01, 0.02, 0.025]
-        assert client.health().to_dict() == {
-            "state": "failed", "reason": "reconnect_exhausted",
-            "reconnect_attempt": 3, "sequence": 20 if flap else 12}
+        assert client.health().state == "failed"
+        assert client.health().reason == "reconnect_exhausted"
+        assert client.health().reconnect_attempt == 3
+        sequences = [h["sequence"] for h in state.transitions]
+        assert all(new > previous for previous, new in zip([0, *sequences], sequences))
         assert [x["reconnect_attempt"] for x in state.transitions
                 if x["state"] == "connecting"] == [0, 1, 2, 3]
         assert all(s.closed == 1 for s in sockets)
@@ -153,6 +183,8 @@ def test_finite_backoff_and_flapping(monkeypatch, flap):
         with pytest.raises(RuntimeError, match="client_started"):
             await client.run()
         await client.aclose()
+        assert client.health().state == "closed"
+        assert client.health().reason == "reconnect_exhausted"
     asyncio.run(scenario())
 
 
@@ -350,7 +382,10 @@ def test_auth_budget_is_bounded(monkeypatch, phase):
         assert client.health().reason == "reconnect_exhausted"
         assert state.attempts == 2 and state.delays == [0.01]
         assert any(t["reason"] == "timeout" for t in state.transitions)
-        assert all(s.closed == 1 for s in sockets) if phase == "auth" else True
+        if phase == "auth":
+            assert all(s.closed == 1 for s in sockets)
+        else:
+            assert all(s.closed == 0 and not s.sent for s in sockets)
     asyncio.run(scenario())
 
 
@@ -391,7 +426,18 @@ def test_health_and_diagnostic_privacy():
 
 
 @pytest.mark.tc024_05
+@pytest.mark.ha_websocket_wire
 def test_loopback_wire_and_remote_close(monkeypatch, caplog):
+    captured = []
+    class Sink(logging.Handler):
+        def emit(self, record):
+            captured.append(record.getMessage())
+
+    sink = Sink()
+    logger = runtime()._WIRE_LOGGER
+    original_level = logger.level
+    logger.addHandler(sink)
+    logger.setLevel(logging.DEBUG)
     async def scenario():
         from websockets.asyncio.server import serve
         requests, auths = [], []
@@ -420,16 +466,27 @@ def test_loopback_wire_and_remote_close(monkeypatch, caplog):
                        and "Sec-WebSocket-Extensions" not in r.headers for r in requests)
             await client.aclose()
         # Server owns its own logger; check only the client logger boundary.
-        assert not [r for r in caplog.records
-                    if r.name in ("websockets.client", "home_device_fabric.private_socket")]
-    with caplog.at_level(logging.DEBUG):
-        asyncio.run(scenario())
+        assert not [r for r in caplog.records if r.name == "websockets.client"]
+        assert captured == []
+    try:
+        with caplog.at_level(logging.DEBUG):
+            asyncio.run(scenario())
+        # Sensitivity probe on the actual isolated logger, without any token:
+        # prove the direct handler would catch a regression enabling DEBUG.
+        logger.disabled = False
+        logger.debug("logging-probe")
+        assert captured == ["logging-probe"]
+    finally:
+        logger.disabled = True
+        logger.setLevel(original_level)
+        logger.removeHandler(sink)
 
 
 @pytest.mark.parametrize("status,reason", [(301, "protocol_error"), (302, "protocol_error"),
                                            (401, "auth_failed"), (403, "auth_failed"),
                                            (500, "protocol_error")])
 @pytest.mark.tc024_05
+@pytest.mark.ha_websocket_wire
 def test_loopback_http_rejection_and_redirect(monkeypatch, status, reason):
     async def scenario():
         from websockets.asyncio.server import serve
@@ -482,6 +539,8 @@ def test_transport_options_and_scheme(monkeypatch):
 
 
 @pytest.mark.tc024_05
+@pytest.mark.ha_websocket_wire
+@pytest.mark.ha_websocket_tls_fixture
 def test_real_tls_rejects_untrusted_even_with_ambient_override(tmp_path, monkeypatch):
     key, cert = tmp_path / "key.pem", tmp_path / "cert.pem"
     subprocess.run(["openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes",
@@ -515,6 +574,7 @@ def test_real_tls_rejects_untrusted_even_with_ambient_override(tmp_path, monkeyp
 
 
 @pytest.mark.tc024_05
+@pytest.mark.ha_websocket_wire
 def test_real_stalled_handshake_times_out(monkeypatch):
     async def scenario():
         requests, handlers = [], set()
@@ -563,22 +623,33 @@ def test_deadline_check_before_connected(monkeypatch):
     asyncio.run(scenario())
 
 
-@pytest.mark.parametrize("phase", ["recv", "send"])
+@pytest.mark.parametrize("phase", ["recv", "send", "close"])
 @pytest.mark.tc024_04
 def test_baseexception_still_closes_owned_socket(monkeypatch, phase):
     class ControlledExit(BaseException):
         pass
 
     async def scenario():
-        socket = Socket([ControlledExit()] if phase == "recv" else ['{"type":"auth_required"}'])
+        socket = Socket([ControlledExit()] if phase == "recv" else [
+            '{"type":"auth_required"}', '{"type":"unexpected"}'])
         if phase == "send":
             async def send(text):
                 raise ControlledExit()
             socket.send = send
+        if phase == "close":
+            async def close():
+                raise ControlledExit()
+            socket.close_hook = close
         fake(monkeypatch, [socket])
         client = runtime().HAWebSocketClient(configuration())
         with pytest.raises(ControlledExit):
             await client.run()
+        assert socket.closed == 1
+        assert client.health().reason == "internal_error"
+        await asyncio.gather(client.aclose(), client.aclose(), client.aclose())
+        await client.aclose()
+        assert client.health().state == "closed"
+        assert client.health().reason == "internal_error"
         assert socket.closed == 1
     asyncio.run(scenario())
 

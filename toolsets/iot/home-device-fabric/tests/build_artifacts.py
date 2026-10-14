@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import platform
 import shutil
 import subprocess
 import sys
@@ -35,7 +36,7 @@ def main():
     subprocess.run(
         [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
          "--dest", str(dependencies), "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16",
-         "certifi>=2024.8.30"], check=True,
+         "certifi>=2024.8.30,<2027"], check=True,
     )
     artifacts = []
     direct = []
@@ -63,6 +64,10 @@ def main():
         ).stdout.strip(),
         "python": sys.version,
         "executable": sys.executable,
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "system": platform.system(),
+        "implementation": platform.python_implementation(),
         "artifacts": {
             str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in artifacts
@@ -96,7 +101,7 @@ def main():
             subprocess.run(
                 [str(interpreter), "-m", "pip", "install", "--no-index",
                  "--find-links", str(dependencies), "httpx>=0.28.1,<0.29",
-                 "websockets>=15.0.1,<16", "certifi>=2024.8.30"],
+                 "websockets>=15.0.1,<16", "certifi>=2024.8.30,<2027"],
                 check=True, cwd=directory,
             )
             subprocess.run([str(interpreter), "-m", "pip", "check"], check=True,

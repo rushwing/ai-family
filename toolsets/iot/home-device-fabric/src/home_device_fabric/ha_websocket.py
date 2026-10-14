@@ -219,7 +219,7 @@ class HAWebSocketClient:
         self._bind()
         if self._closer is None:
             self._closed = True
-            self._publish("closed")
+            self._publish("closed", self._health.reason)
             if self._worker is not None and not self._worker.done():
                 self._worker.cancel()
             self._closer = asyncio.create_task(self._finish_close(), name="ha-websocket-close")
@@ -227,8 +227,15 @@ class HAWebSocketClient:
         await asyncio.shield(self._closer)
 
     async def _finish_close(self) -> None:
-        if self._worker is not None:
-            await _drain(self._worker)
+        try:
+            if self._worker is not None:
+                await _drain(self._worker)
+        except BaseException:
+            # The worker owns finally-cleanup before it completes. Its original
+            # failure belongs to run's waiter, never to subsequent close calls.
+            pass
+        finally:
+            self._worker = None
 
     async def _attempt(self) -> str:
         socket: ClientConnection | None = None
@@ -308,6 +315,9 @@ class HAWebSocketClient:
                 await _sleep(delay / 1000)
         except asyncio.CancelledError:
             self._publish("disconnected", "cancelled")
+            raise
+        except BaseException:
+            self._publish("failed", "internal_error")
             raise
         finally:
             if self._closed and self._health.state != "closed":
