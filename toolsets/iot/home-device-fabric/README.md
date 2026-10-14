@@ -431,7 +431,7 @@ External reviewers must independently derive TC expectations for T07/T10 and
 explicitly assess post-cleanup deadline priority. The local pre-review and its
 fixes do not supply independent approval or trigger T12/T13, readiness or merge.
 
-## WebSocket lifecycle (REQ-024, pending external review)
+## WebSocket lifecycle (REQ-024, accepted delivery)
 
 `home_device_fabric.ha_websocket` exposes `HAWebSocketClient` and immutable
 `HAConnectionHealth`. It uses the explicit `HAConfiguration` and
@@ -487,8 +487,8 @@ text/credentials/endpoint; raw client serialization refuses. Private introspecti
 and explicitly instrumented process/wire tracing are outside this boundary.
 
 Add `--require-ha-websocket-runtime` to the five existing required fabric flags.
-The [requirement](../../../harness/tasks/features/REQ-024.md) holds unchecked ACs
-and implemented TCs pending external review. The artifact builder executes the
+The [requirement](../../../harness/tasks/archive/done/features/REQ-024.md) records eight human-accepted ACs
+and six passing TCs after PR #51 merge. The [closeout evidence](../../../harness/tasks/evidence/REQ-024-review-acceptance.md) preserves acceptance and verification limits. The artifact builder executes the
 installed lifecycle smoke under `-I` and `-O -I` for direct/sdist-derived package
 pairs and records the WebSocket dependency closure. No live HA is required.
 

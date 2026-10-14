@@ -17,7 +17,7 @@ Runtime, proposed tests, CI and artifact-builder source:
 Draft [PR #51](https://github.com/rushwing/ai-family/pull/51) targets main.
 Later delivery metadata does not alter this runtime/test source.
 
-[REQ-024](../features/REQ-024.md) records human-001's combined-delivery authority
+[REQ-024](../archive/done/features/REQ-024.md) records human-001's combined-delivery authority
 and external-review stop. This session acted as generator-001; all eight ACs
 remain unchecked and all six TCs implemented. Local execution and CI are
 execution evidence, not independent acceptance or authorization to advance
