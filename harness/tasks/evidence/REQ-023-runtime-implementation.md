@@ -121,3 +121,8 @@ privacy, request/cleanup deadline precedence, cancellation and draining-close
 ordering, production transport policy, required-mode probes and installed
 optimized checks. The user will arrange external review. This session does not
 send reviewer messages, advance lifecycle, mark ready or merge this PR.
+
+
+The later [F10 cleanup follow-up](REQ-023-f10-fixes.md) records the next runtime
+revision and current validation. The counts/hashes in this document remain
+historical evidence of the preceding delivery.

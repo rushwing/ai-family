@@ -72,3 +72,8 @@ local Markdown targets and git diff --check passed. The runtime/test commit is
 immutable; README clarification was present during builds and its hash is
 recorded separately, with documentation/evidence committed afterward. No live HA
 or Android/Termux builder run is claimed. Published-head CI is checked separately.
+
+
+The later [F10 cleanup follow-up](REQ-023-f10-fixes.md) records the next runtime
+revision and current validation. The counts/hashes in this document remain
+historical evidence of the preceding delivery.

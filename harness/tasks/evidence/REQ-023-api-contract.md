@@ -15,3 +15,16 @@ TC-023-01–06 own literal positive/negative/race/wire expectations as declared 
 ## Human-authorized local pre-review follow-up
 
 The user supplied a non-independent pre-review of b427167b and instructed “Fix all findings”. This contract revision records the proposed fixes; it supplies no independent signature. T07/T10 review must independently derive expectations rather than reuse this author’s predicates/assertions. T12/T13, readiness and merge remain explicit later decisions; retain req_impl / generator-001 and draft PR #49.
+
+
+## BaseException cleanup follow-up
+
+Operation-owned cleanup runs in finally for admitted reads, including
+KeyboardInterrupt, SystemExit and GeneratorExit escaping send/body processing.
+These process-control exceptions are propagated unchanged after the same bounded,
+cancellation-safe cleanup, rather than converted to HARestError. Ordinary close
+exceptions or guard expiry do not replace the escaping process-control exception.
+The operation completion event is released so draining close and subsequent
+admission cannot remain blocked. This does not promise continued execution after
+an external hard process kill, interpreter shutdown, or a dependency's synchronous
+cleanup blocking the event loop.
