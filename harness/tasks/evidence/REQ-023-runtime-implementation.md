@@ -5,7 +5,7 @@ authorization in [REQ-023](../features/REQ-023.md), reaffirmed by “Create a PR
 the implementation (till req_impl step) and I will ask for external review.”
 Specification PR #48 was merged from final head
 818e2ad72db120b4a76541f029a4c3ee14e40d66 as 0bad1e7. This delivery stops at
-req_impl / generator-001, with a draft implementation PR, eight unchecked ACs
+req_impl / generator-001, with draft [PR #49](https://github.com/rushwing/ai-family/pull/49), eight unchecked ACs
 and six implemented TCs. The generator authored the proposed TC text and code
 under the human exception; no independent T03/T07/T10/T13 approval is claimed.
 
