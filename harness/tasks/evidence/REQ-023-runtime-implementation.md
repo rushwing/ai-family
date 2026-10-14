@@ -11,9 +11,12 @@ under the human exception; no independent T03/T07/T10/T13 approval is claimed.
 
 ## Tested source and behavior
 
-Runtime, tests, CI and artifact source:
-`bcc459740c739ce5b37d012017de806e0861b5e0`. Later evidence and PR-number changes
-are documentation only. Linux aarch64; CPython 3.12.12, 3.13.5 and 3.14.3.
+Original delivery runtime, tests, CI and artifact source:
+`bcc459740c739ce5b37d012017de806e0861b5e0`. The initial evidence and PR-number commits
+were documentation only. The subsequent human-authorized pre-review follow-up
+changes runtime/tests; this section and its numbers describe the original build.
+See [fix disposition](REQ-023-pre-review-fixes.md) and
+[revised provenance](REQ-023-fix-provenance.json) for current validation. Linux aarch64; CPython 3.12.12, 3.13.5 and 3.14.3.
 Existing shared-contract and provider/mock/caller/demo/scenarios/conformance
 runtime modules and top-level exports are unchanged.
 

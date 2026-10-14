@@ -399,3 +399,33 @@ exercise actual wire headers, timeout, TLS rejection and draining close.
 and [implementation evidence](../../../harness/tasks/evidence/REQ-023-runtime-implementation.md)
 record the review scope. REQ-023 stops at `req_impl`; external review and live
 installation acceptance remain pending.
+
+
+### REST pre-review clarifications
+
+Nonstandard HTTP statuses (for example 600/999) produce `http_error` with
+`http_status=None`; standard non-success statuses retain only their 100–599
+integer. Ordinary resource-close exceptions preserve a classified success or
+failure. Cleanup guard expiry and the post-cleanup request deadline check still
+produce `timeout`, even if the response arrived within the network budget.
+Re-entering a closed async context raises `RuntimeError("client_closed")`;
+`runtime_info` instead raises the correlated `HARestError("client_closed")`.
+Validated runtime-info/error projections support pickle and copy round trips;
+restored errors discard traceback, cause, context and notes. Client exports
+remain refused.
+
+Environment proxies are excluded structurally by constructing the transport
+without proxy configuration. The observable `trust_env=False` effect is ignoring
+ambient TLS trust overrides (`SSL_CERT_FILE` / `SSL_CERT_DIR`). A real failed
+connection test counts one TCP connect attempt to verify zero implicit retries.
+
+The artifact builder requires CPython's `venv` and working `ensurepip` to create
+fresh pip-enabled environments. This path is validated on Linux CPython
+3.12/3.13/3.14; Android/Termux builds without `ensurepip` cannot run it unchanged.
+A manually created `virtualenv` can run the installed smoke scripts with the same
+compatible wheel pair and dependency closure, but does not establish that the
+full artifact builder/matrix ran. Record platform and setup method with results.
+
+External reviewers must independently derive TC expectations for T07/T10 and
+explicitly assess post-cleanup deadline priority. The local pre-review and its
+fixes do not supply independent approval or trigger T12/T13, readiness or merge.
