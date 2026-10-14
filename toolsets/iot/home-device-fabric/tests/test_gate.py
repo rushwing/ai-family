@@ -1,5 +1,6 @@
 """Exercise real pytest hooks against hermetic present/absent runtime stubs."""
 
+import runpy
 import subprocess
 import sys
 import time
@@ -14,7 +15,7 @@ _SLEEP = time.sleep
 def isolated_hooks(
     directory, *, provider_present, demo_present, conformance_present=False,
     shared_present=True, ha_configuration_present=False, ha_rest_present=False,
-    httpx_present=False
+    httpx_present=False, ha_websocket_present=False, websockets_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -32,6 +33,8 @@ def isolated_hooks(
             (package / "ha_configuration.py").write_text('"""Gate-only stub."""\n')
         if ha_rest_present:
             (package / "ha_rest.py").write_text("import httpx\n")
+        if ha_websocket_present:
+            (package / "ha_websocket.py").write_text("import websockets\n")
     if httpx_present:
         root.mkdir(parents=True, exist_ok=True)
         (root / "httpx.py").write_text('"""Gate-only dependency stub."""\n')
@@ -40,6 +43,9 @@ def isolated_hooks(
         shared.mkdir(parents=True)
         for name in ("__init__", "action_contracts", "canonical_state", "provider_contracts"):
             (shared / (name + ".py")).write_text('"""Gate-only stub."""\n')
+    if websockets_present:
+        root.mkdir(parents=True, exist_ok=True)
+        (root / "websockets.py").write_text('"""Gate-only dependency stub."""\n')
     bootstrap = """import importlib.abc
 import importlib.util
 import sys
@@ -48,7 +54,7 @@ from pathlib import Path
 class GateRuntimeFinder(importlib.abc.MetaPathFinder):
     def find_spec(self, fullname, path=None, target=None):
         if not any(fullname == p or fullname.startswith(p + ".")
-                   for p in ("home_device_fabric", "state_schema", "httpx")):
+                   for p in ("home_device_fabric", "state_schema", "httpx", "websockets")):
             return None
         stub = Path(__file__).parent / "runtime" / Path(*fullname.split("."))
         if stub.is_dir():
@@ -59,7 +65,7 @@ class GateRuntimeFinder(importlib.abc.MetaPathFinder):
 
 for loaded_name in tuple(sys.modules):
     if any(loaded_name == p or loaded_name.startswith(p + ".")
-           for p in ("home_device_fabric", "state_schema", "httpx")):
+           for p in ("home_device_fabric", "state_schema", "httpx", "websockets")):
         del sys.modules[loaded_name]
 sys.meta_path.insert(0, GateRuntimeFinder())
 """
@@ -250,3 +256,63 @@ def test_ha_rest_required_gate(tmp_path, monkeypatch, provider, module, dependen
         assert "1 skipped" in result.stdout
     else:
         assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc024_06
+@pytest.mark.parametrize("provider,module,dependency,required,skip,expected", [
+    (False, False, False, True, False, 4),
+    (True, False, True, True, False, 4),
+    (True, True, False, True, False, 4),
+    (True, False, True, False, False, 0),
+    (True, True, True, True, True, 1),
+    (True, True, True, True, False, 0),
+    (True, True, False, False, False, 0),
+    (True, "broken", True, True, False, 4),
+    (True, "broken", True, False, False, 0),
+    (True, "broken-attribute", True, True, False, 4),
+    (True, "broken-attribute", True, False, False, 0),
+])
+def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dependency,
+                                    required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=provider, demo_present=False,
+        ha_websocket_present=module, websockets_present=dependency))
+    exception_type = {"broken": "RuntimeError", "broken-attribute": "AttributeError"}.get(module)
+    if exception_type:
+        (tmp_path / "runtime/home_device_fabric/ha_websocket.py").write_text(
+            f"raise {exception_type}('controlled import failure')\n")
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    (tmp_path / "test_ha_websocket.py").write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-ha-websocket-runtime")
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    diagnosis = "broken" if exception_type else "absent"
+    assert "controlled import failure" not in result.stdout + result.stderr
+    if expected == 4:
+        assert "ha-websocket runtime required but " + diagnosis in result.stderr
+    elif skip or not module or not dependency or exception_type:
+        assert "1 skipped" in result.stdout
+        if not skip:
+            assert "ha-websocket runtime " + diagnosis in result.stdout
+    else:
+        assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc024_06
+def test_ci_requires_complete_fabric_acceptance():
+    root = Path(__file__).resolve().parents[4]
+    validate = runpy.run_path(str(root / "tools/check_fabric_ci.py"))["validate"]
+    workflow = (root / ".github/workflows/ci.yml").read_text(encoding="utf-8")
+    assert validate(workflow) == []
+    for flag in ("--require-provider-runtime", "--require-demo-runtime",
+                 "--require-conformance-runtime", "--require-ha-configuration-runtime",
+                 "--require-ha-rest-runtime", "--require-ha-websocket-runtime"):
+        assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
+    assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
+    assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))

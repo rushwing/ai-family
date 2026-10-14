@@ -26,6 +26,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-conformance-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-configuration-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-rest-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-websocket-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -75,6 +76,20 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    try:
+        importlib.import_module("home_device_fabric.ha_websocket")
+        websocket_error = None
+    except ImportError:
+        websocket_error = "absent"
+    except Exception:
+        websocket_error = "broken"
+    if config.getoption("--require-ha-websocket-runtime") and websocket_error:
+        raise pytest.UsageError("REQ-024 ha-websocket runtime required but " + websocket_error)
+    if websocket_error:
+        for item in items:
+            if item.path.name == "test_ha_websocket.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-024 ha-websocket runtime " + websocket_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -118,6 +133,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-conformance-runtime")
         or session.config.getoption("--require-ha-configuration-runtime")
         or session.config.getoption("--require-ha-rest-runtime")
+        or session.config.getoption("--require-ha-websocket-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
@@ -146,9 +162,80 @@ def offline(monkeypatch, request):
     if available():
         import home_device_fabric  # noqa: F401
     attempts = []
+    if (request.node.get_closest_marker("ha_websocket_async")
+            and not request.node.get_closest_marker("ha_websocket_pure")):
+        # Fake async tests permit only the loop's monotonic clock and creation
+        # of its self-pipe. Wire cases additionally permit numeric-loopback
+        # networking, frame entropy and log timestamps. Only the explicit TLS
+        # fixture may spawn openssl. No case may use getenv/system/urllib.
+        wire = request.node.get_closest_marker("ha_websocket_wire")
+        tls = request.node.get_closest_marker("ha_websocket_tls_fixture")
+        connect, connect_ex = socket.socket.connect, socket.socket.connect_ex
+        resolve, pair = socket.getaddrinfo, socket.socketpair
+
+        def denied(*args, **kwargs):
+            attempts.append("ambient")
+            raise AssertionError("ambient effect denied")
+
+        def numeric_loopback(address):
+            try:
+                return ipaddress.ip_address(address[0]).is_loopback
+            except (ValueError, TypeError, IndexError):
+                return False
+
+        def guarded_connect(sock, address):
+            if not wire or not numeric_loopback(address):
+                return denied()
+            return connect(sock, address)
+
+        def guarded_connect_ex(sock, address):
+            if not wire or not numeric_loopback(address):
+                return denied()
+            return connect_ex(sock, address)
+
+        def guarded_resolve(host, *args, **kwargs):
+            if not wire or not numeric_loopback((host,)):
+                return denied()
+            return resolve(host, *args, **kwargs)
+
+        def infrastructure_pair(*args, **kwargs):
+            # Windows implements socketpair with a local TCP connect. This
+            # allowance exists only while creating that pair, before user code.
+            with monkeypatch.context() as setup:
+                setup.setattr(socket.socket, "connect", connect)
+                setup.setattr(socket.socket, "connect_ex", connect_ex)
+                return pair(*args, **kwargs)
+
+        with monkeypatch.context() as patch:
+            for module, names in [
+                (time, ("time", "time_ns", "monotonic_ns", "perf_counter",
+                        "perf_counter_ns", "process_time", "process_time_ns", "sleep")),
+                (random, ("random", "randint", "randrange", "getrandbits")),
+                (os, ("getenv", "system", "urandom")),
+                (subprocess, ("Popen",)),
+                (urllib.request, ("urlopen",)),
+                (socket, ("create_connection",)),
+            ]:
+                for name in names:
+                    if wire and (module, name) in (
+                        (time, "time"), (time, "time_ns"), (random, "getrandbits"),
+                        (os, "urandom"), (socket, "create_connection"),
+                    ):
+                        continue
+                    if tls and module is subprocess:
+                        continue
+                    patch.setattr(module, name, denied)
+            patch.setattr(socket.socket, "connect", guarded_connect)
+            patch.setattr(socket.socket, "connect_ex", guarded_connect_ex)
+            patch.setattr(socket, "getaddrinfo", guarded_resolve)
+            patch.setattr(socket, "socketpair", infrastructure_pair)
+            yield attempts
+        assert not attempts, "forbidden effects attempted even if swallowed"
+        return
+
     if request.node.get_closest_marker("ha_rest_boundary"):
-        # Explicit REST boundary: live event-loop clocks/TLS entropy and numeric
-        # loopback sockets only. Accepted pure tests retain the original guard.
+        # Historical REQ-023 boundary permits ambient effects beyond loopback
+        # restrictions; the more precise REQ-024 guard above is separate.
         connect = socket.socket.connect
         connect_ex = socket.socket.connect_ex
         resolve = socket.getaddrinfo

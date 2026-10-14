@@ -29,6 +29,8 @@ jobs:
         run: |
           python tools/check_home_intelligence_planning.py
           python -m unittest discover -s tests -p test_home_intelligence_planning.py
+      - name: Fabric required-runtime CI wiring (REQ-024)
+        run: python tools/check_fabric_ci.py
       - name: Home Intelligence 公共数据脱敏 gate
         run: python tools/check_home_intelligence_public_data.py
       - name: 迁移 RLS 扫描 gate（TC-002-05 / BUG-002：新表须 RLS、禁 SECURITY DEFINER）
@@ -141,7 +143,7 @@ jobs:
       - name: Run provider TCs without skips
         run: >-
           python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini
-          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime -q
+          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime --require-ha-websocket-runtime -q
           --junitxml=/tmp/provider-results.xml
       - name: Build and smoke-test direct and sdist-derived wheel pairs
         run: python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts
