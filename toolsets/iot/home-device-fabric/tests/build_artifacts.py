@@ -34,7 +34,8 @@ def main():
     dependencies.mkdir(exist_ok=True)
     subprocess.run(
         [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
-         "--dest", str(dependencies), "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16"], check=True,
+         "--dest", str(dependencies), "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16",
+         "certifi>=2024.8.30"], check=True,
     )
     artifacts = []
     direct = []
@@ -95,7 +96,7 @@ def main():
             subprocess.run(
                 [str(interpreter), "-m", "pip", "install", "--no-index",
                  "--find-links", str(dependencies), "httpx>=0.28.1,<0.29",
-                 "websockets>=15.0.1,<16"],
+                 "websockets>=15.0.1,<16", "certifi>=2024.8.30"],
                 check=True, cwd=directory,
             )
             subprocess.run([str(interpreter), "-m", "pip", "check"], check=True,

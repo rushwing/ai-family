@@ -14,6 +14,7 @@ import ssl
 from dataclasses import dataclass
 from typing import NoReturn
 
+import certifi
 from websockets.asyncio.client import ClientConnection, connect
 from websockets.exceptions import (
     ConnectionClosed,
@@ -68,22 +69,10 @@ class _NoRedirectConnect(connect):
 
 
 def _tls_context() -> ssl.SSLContext:
-    # Use compiled OpenSSL root paths, not environment-selected cafile/capath.
+    # Match HTTPX's explicit Mozilla bundle. Standalone Python builds may have
+    # nonexistent compiled OpenSSL paths; never load environment-selected roots.
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-    if hasattr(ssl, "enum_certificates"):
-        # Windows trust stores are loaded explicitly without set_default_verify_paths
-        # (which also honors SSL_CERT_FILE/SSL_CERT_DIR).
-        for store in ("CA", "ROOT"):
-            for certificate, encoding, trust in ssl.enum_certificates(store):
-                if encoding == "x509_asn" and (
-                    trust is True or (isinstance(trust, set)
-                                      and ssl.Purpose.SERVER_AUTH.oid in trust)
-                ):
-                    context.load_verify_locations(cadata=certificate)
-    else:
-        defaults = ssl.get_default_verify_paths()
-        context.load_verify_locations(cafile=defaults.openssl_cafile,
-                                     capath=defaults.openssl_capath)
+    context.load_verify_locations(cafile=certifi.where())
     return context
 
 

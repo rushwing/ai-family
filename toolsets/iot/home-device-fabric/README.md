@@ -468,7 +468,7 @@ is safe; cancelling a close waiter does not cancel owned cleanup. Cancelling
 a separate 1000 ms cleanup guard with transport abort on failure/expiry.
 
 Proxies, redirects, compression and dependency logs are disabled. WSS checks
-hostname/certificate using platform trust roots without ambient TLS overrides.
+hostname/certificate using the explicit certifi CA bundle without ambient TLS overrides.
 The auth exchange shares `request_timeout_ms`; keepalive ping/pong use 20s/20s,
 incoming messages are bounded to 64 KiB and four queued frames. No public raw
 send or device-write method exists. Health and client repr contain no raw peer
