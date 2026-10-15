@@ -76,6 +76,11 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    for item in items:
+        groups = sorted({mark.name for mark in item.iter_markers()
+                         if mark.name.startswith("tc") and "_" in mark.name})
+        if groups:
+            item.user_properties.append(("tc_groups", ",".join(groups)))
     try:
         importlib.import_module("home_device_fabric.ha_websocket")
         websocket_error = None

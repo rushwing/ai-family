@@ -518,3 +518,30 @@ Pytest acceptance counts are from unoptimized interpreters. Running pytest with
 `python -O` strips test assertions and is not acceptance evidence. Optimization
 coverage comes solely from installed smoke programs that use explicit require()
 checks under both -I and -O -I.
+
+## Post-merge assurance (REQ-025)
+
+The follow-up regression suite checks that the actual client TLS context contains
+trust roots, and gates authentication cancellation to assert that closed health
+and its sequence never change. The deadline regression has its own finite wait;
+a missing expiry check fails the test rather than hanging the suite. Installed
+-I/-O -I smoke uses explicit require() against the actual loaded CA count.
+
+Artifact builds use a fresh wheelhouse, explicit https://pypi.org/simple, no
+pip configuration files or PIP_* option overrides, and no download cache. Before
+installation, each wheel's exact filename and SHA256 must match its official
+PyPI release JSON entry; unavailable metadata and mismatches fail the build.
+Provenance records official file/metadata URLs and hashes, the effective index,
+pip version/configuration policy, ignored environment key names and download-log
+hashes. Raw pip logs and environment values are withheld to avoid credential
+exposure; the verified file records provide the sanitized acquisition log.
+This binds newly downloaded bytes to the official release metadata observed at
+build time; it does not reconstruct missing historical dependency bytes.
+
+Pass --test-results PATH (repeatable) to build_artifacts.py to attach JUnit totals
+and per-TC counts. CI passes its fabric report automatically. A test may belong
+to multiple TC groups; group counts overlap and must not be summed as the suite
+total. Build reports include source commit, dirty-state flag and runtime SHA256.
+[REQ-025](../../../harness/tasks/features/REQ-025.md) tracks the increment; archived
+REQ-024 and its previous provenance remain unchanged. BUG-032's historical
+identity discrepancy and BUG-033's Windows limitations retain their own scope.
