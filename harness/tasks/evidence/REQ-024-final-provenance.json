@@ -898,7 +898,7 @@
   "platform_limits": [
     "Only Linux aarch64 CPython 3.12.12 executed locally.",
     "Windows BUG-033 is not re-executed or resolved.",
-    "Historical BUG-032 dependency identities remain unverified.",
+    "Historical BUG-032 archive-origin recovery is recorded separately in REQ-023-recovered-wheel-audit.json; no historical runtime rerun or signed custody is claimed.",
     "Python 3.13/3.14 follow-up verification belongs to source-specific CI."
   ]
 }

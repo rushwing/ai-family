@@ -13,7 +13,7 @@ all prior provenance files remain unchanged.
 | F1 | Source regression inspects the actual client TLS context and requires nonempty trusted roots. Installed smoke uses explicit require(), including -O -I, and records loaded_ca_count=121 rather than relying only on a hash of certifi.where(). Removing CA loading fails the source test and optimized smoke. | This inexpensive positive-root assertion does not claim a live production WSS handshake. Existing self-signed/ambient-override rejection remains effective. |
 | F2 | Event-gated auth recv exposes cancellation after aclose sets closed. Releasing cancellation must leave the exact immutable snapshot and sequence unchanged; every observed post-close snapshot equals the first closed snapshot. Removing the publish guard fails by assertion. | Polling health remains a current snapshot, not a new historical-event API. |
 | Deadline mutation | Add a one-second wait_for and finally-close to the existing expiry regression. Removing the explicit deadline check now fails in about 1.7 seconds with pytest TimeoutError, not an outer process timeout. | This is a bounded test falsifier, not a production timing SLO. |
-| F3 / BUG-032 | Fresh wheelhouse, official explicit index, disabled pip config/PIP_* option overrides/cache; verify every dependency wheel against exact-filename official release SHA256 before any installation. Store verified URLs/digests and sanitized acquisition policy/log identities. Hermetic failure tests reject tampering, missing/duplicate/sdist entries, bad digest/mirror URL, extra/empty files and unavailable/malformed/redirected/oversized metadata. | The original REQ-023 bytes are unavailable. BUG-032 stays open; historical identities remain unverified and no root cause is invented. |
+| F3 / BUG-032 | Fresh wheelhouse, official explicit index, disabled pip config/PIP_* option overrides/cache; verify every dependency wheel against exact-filename official release SHA256 before any installation. Store verified URLs/digests and sanitized acquisition policy/log identities. Hermetic failure tests reject tampering, missing/duplicate/sdist entries, bad digest/mirror URL, extra/empty files and unavailable/malformed/redirected/oversized metadata. | Retained historical archives/logs were subsequently recovered. All three match the recorded digests and current piwheels downloads; the recovery audit identifies mixed-index packaging as the cause. BUG-032 is resolved with original records preserved; no signed custody or historical runtime rerun is claimed. |
 | F4 | New REQ-024-final-provenance.json records a clean fresh source commit, actual runtime/file/artifact/dependency digests, official metadata response digests, JUnit totals/per-TC counts and direct/sdist-derived installed checks. Runtime byte identity is checked against accepted merged main and both newly built fabric wheels. | This is new execution at e363505, not retroactive artifact provenance for a006c975. Existing prose/CI evidence for that historical execution remains historical. |
 | F5 | PR #51 now states merged 2d986a7 and human final acceptance, with the prior stop superseded. PR #52 now states merged 02c6e3a. Both saved descriptions were read back and verified. | No independent Harness signature is introduced. |
 | F6 | Preserve prominent Windows limitations and BUG-033. | No Windows execution or portability fix is claimed by this follow-up. |
@@ -90,3 +90,20 @@ human's additional PyPI/sdist/PEP-658 comparisons are attributed in BUG-032.
 [REQ-025](../features/REQ-025.md) owns this proposed increment; no product Story
 is re-admitted and no historical acceptance is revoked. The follow-up PR remains
 draft and unmerged pending review and explicit human acceptance.
+
+## Subsequent historical recovery
+
+[Recovery audit](REQ-023-recovered-wheel-audit.json) supersedes the earlier
+unrecovered-bytes assumption: nine retained download logs identify piwheels;
+three historical hashes match both retained archives and read-only fresh
+piwheels downloads. anyio/certifi have identical member bytes, with ZIP timestamps
+differing. h11 differs only in WHEEL generator metadata, its RECORD and ZIP
+timestamps; all Python payloads match the official PyPI wheel. BUG-032 is resolved
+as an archive-origin discrepancy caused by mixed-index acquisition. Retained
+logs are corroborating evidence, not signed custody. No old provenance or
+archived acceptance is changed, and no historical execution is re-certified.
+
+Final source-equivalent CI run 38672365534 at delivery head 20f986c passed all
+11 applicable jobs, including Python 3.12/3.13/3.14 fabric/shared/artifact matrices;
+two unrelated product jobs were path-filtered. This later recovery append changes
+evidence and bug disposition only, not the tested implementation.
