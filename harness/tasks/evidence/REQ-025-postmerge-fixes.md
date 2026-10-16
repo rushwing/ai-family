@@ -87,7 +87,7 @@ documents that PIP_CONFIG_FILE=os.devnull disables configuration files. These
 support the new acquisition policy, not recovery of historical bytes. The
 human's additional PyPI/sdist/PEP-658 comparisons are attributed in BUG-032.
 
-[REQ-025](../features/REQ-025.md) owns this proposed increment; no product Story
+[REQ-025](../archive/done/features/REQ-025.md) owns this proposed increment; no product Story
 is re-admitted and no historical acceptance is revoked. The follow-up PR remains
 draft and unmerged pending review and explicit human acceptance.
 

@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 REQUIRED = frozenset((
     "--require-provider-runtime", "--require-demo-runtime", "--require-conformance-runtime",
     "--require-ha-configuration-runtime", "--require-ha-rest-runtime",
-    "--require-ha-websocket-runtime",
+    "--require-ha-websocket-runtime", "--require-ha-health-runtime",
 ))
 
 
@@ -40,7 +40,7 @@ def main() -> int:
     for error in errors:
         print(error)
     if not errors:
-        print("Fabric CI wiring passed: complete suite and all six required-runtime flags.")
+        print("Fabric CI wiring passed: complete suite and all seven required-runtime flags.")
     return int(bool(errors))
 
 

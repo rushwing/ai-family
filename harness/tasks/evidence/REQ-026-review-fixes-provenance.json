@@ -1,0 +1,1971 @@
+{
+  "req_id": "REQ-026",
+  "source_commit": "a068330ca58d0c4fe8b5ee871a973861c2a20c27",
+  "health_runtime_sha256": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+  "local_environment": {
+    "python": "3.13.5 (main, Jun 25 2025, 18:55:22) [GCC 14.2.0]",
+    "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41"
+  },
+  "test_results": [
+    {
+      "filename": "req026-fixes-fabric.xml",
+      "expected_executed": 797,
+      "sha256": "582582f5ca6dbecac115b1771fc53fc18e0f7e58441e6c7e3eea8a8eabd09676",
+      "totals": {
+        "executed": 797,
+        "passed": 797,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc025_02": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_03": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_01": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_02": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_03": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_04": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_05": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_06": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_06": {
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_06": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_05": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_01": {
+          "executed": 24,
+          "passed": 24,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_02": {
+          "executed": 75,
+          "passed": 75,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_03": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_04": {
+          "executed": 72,
+          "passed": 72,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_05": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_01": {
+          "executed": 38,
+          "passed": 38,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_02": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_03": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_02": {
+          "executed": 56,
+          "passed": 56,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_03": {
+          "executed": 61,
+          "passed": 61,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_04": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_05": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_01": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_02": {
+          "executed": 2,
+          "passed": 2,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_03": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_04": {
+          "executed": 17,
+          "passed": 17,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_05": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_01": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_01": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_02": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_04": {
+          "executed": 15,
+          "passed": 15,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_05": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "filename": "req026-fixes-shared.xml",
+      "expected_executed": 1795,
+      "sha256": "dee2c50aa55f44eb75d86645462edfa11b9c112241e72d1965f8d6af43fdc48a",
+      "totals": {
+        "executed": 1795,
+        "passed": 1795,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {}
+    }
+  ],
+  "mutations": [
+    {
+      "mutation": "combined_rest_readiness",
+      "node": "test_literal_state_priority",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "if self.rest_state == \"reachable\" and self.websocket.state == \"connected\":",
+      "new": "if self.websocket.state == \"connected\":",
+      "output_sha256": "4b67455f9b03b3a7e27cba3f36833fba7e454f9870e32f44ddd0c870c2cb61a4"
+    },
+    {
+      "mutation": "stale_success_expiry",
+      "node": "test_independent_failure_recovery_sampling_and_stale_success",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "and _clock() >= self._last_success + self._interval",
+      "new": "and False",
+      "output_sha256": "87a5c372e6e0a8555222a4a490954e29aec721205b7b8700380ccff94d9013d0"
+    },
+    {
+      "mutation": "closed_readiness",
+      "node": "test_literal_state_priority",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "return not self.closed and self.websocket.state == \"connected\"",
+      "new": "return self.websocket.state == \"connected\"",
+      "output_sha256": "95fd5421fded476e5e3cf8e1fc770357395579c91639031dd73b7f18e7a8e924"
+    },
+    {
+      "mutation": "prestart_client_cleanup",
+      "node": "test_close_before_supervisor_first_instruction_drains_unused_clients",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "        finally:\n            # A task cancelled before its first instruction never enters finally.\n            await self._close_clients()\n",
+      "new": "",
+      "output_sha256": "a9a45688f8f287e74c40dad0dafe75013d965a2be305aade4e2475aa0fce670b"
+    },
+    {
+      "mutation": "short_token_correlation",
+      "node": "test_internal_correlation_never_contains_credential",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "\"1\" if configuration.access_token_for_transport() == \"0\" else \"0\"",
+      "new": "\"0\"",
+      "output_sha256": "ecc7587dcb285781bcfbff151e41ca9f4c64fa83833bfe1eb38e802f9e1fe194"
+    },
+    {
+      "mutation": "closed_publish_guard",
+      "node": "test_closed_defense_in_depth_boundaries[publish]",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "        if self._closed and not closed:\n            return\n",
+      "new": "",
+      "output_sha256": "823a3e1bf1780331c04385c27bf582c5ba8df8634ffebc8eeec5115681b48566"
+    },
+    {
+      "mutation": "closed_sample_guard",
+      "node": "test_closed_defense_in_depth_boundaries[sample]",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "    def _sample(self) -> None:\n        # Preserve internal diagnostics too, rather than relying on _publish.\n        if self._closed:\n            return\n",
+      "new": "    def _sample(self) -> None:\n",
+      "output_sha256": "5224c2c531ef31c80c4b5cc840a96ffc60ee59debc1915d5a58cd16a753f950c"
+    },
+    {
+      "mutation": "closed_probe_guard",
+      "node": "test_gated_late_result_cannot_change_closed_snapshot",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "            if self._closed:\n                return\n",
+      "new": "",
+      "output_sha256": "f50e7c60190a8c2f12983de76dabad7fc401c8f1b031de171db6671848d507c0"
+    },
+    {
+      "mutation": "sync_loop_error",
+      "node": "test_running_health_requires_owning_loop_even_from_sync_context",
+      "pytest_exit": 1,
+      "detected": true,
+      "old": "            try:\n                loop = asyncio.get_running_loop()\n            except RuntimeError:\n                loop = None\n",
+      "new": "            loop = asyncio.get_running_loop()\n",
+      "output_sha256": "4d95f08194c71c1272b0106274af5c3b847d095ca9a585f08992b3317296c71e"
+    }
+  ],
+  "mutation_method": "Separate processes replace one source fragment in memory and execute the named pytest regression. All nine exit 1; none reaches its 15-second outer timeout. Both closed_probe_guard cases fail the finite settle assertion, not the three-second scenario deadline.",
+  "local_builder": {
+    "completed": false,
+    "exit_code": 130,
+    "reason": "Interrupted after prolonged direct PyPI metadata socket connect; no local fresh-venv success claimed.",
+    "log_sha256": "ebf3ec3f79944ab4692835c8727ab24185849a176350a569d6413916a549b44a"
+  },
+  "ci": {
+    "run_url": "https://github.com/rushwing/ai-family/actions/runs/38861623356",
+    "head_sha": "a068330ca58d0c4fe8b5ee871a973861c2a20c27",
+    "checkout_policy": "pull_request synthetic merge checkout; parents separately verified",
+    "reports": [
+      {
+        "python_matrix": "3.12",
+        "source_commit": "21412a260a8a66cde8eac3622a91731dde6ef3d0",
+        "source_dirty": false,
+        "provenance_sha256": "27c6078b7c987d000b695b9bff7321c41b07d0b92a0a4e9fe4884979c176914d",
+        "health_runtime_sha256": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+        "installed_payload_check": {
+          "direct": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+          "derived": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce"
+        },
+        "test_results": [
+          {
+            "filename": "provider-results.xml",
+            "expected_executed": 797,
+            "sha256": "136cd91915f9d3dd32bdd541c49c091555b43bdee0f8f0fceb8a28ea41e94e8e",
+            "totals": {
+              "executed": 797,
+              "passed": 797,
+              "failed": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "per_tc": {
+              "tc025_02": {
+                "executed": 31,
+                "passed": 31,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_03": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_01": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_02": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_04": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_05": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_06": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_02": {
+                "executed": 4,
+                "passed": 4,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_03": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_04": {
+                "executed": 14,
+                "passed": 14,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_05": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_06": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_06": {
+                "executed": 29,
+                "passed": 29,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_06": {
+                "executed": 12,
+                "passed": 12,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_05": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_01": {
+                "executed": 24,
+                "passed": 24,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_02": {
+                "executed": 75,
+                "passed": 75,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_03": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_04": {
+                "executed": 72,
+                "passed": 72,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_05": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_01": {
+                "executed": 38,
+                "passed": 38,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_02": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_03": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_04": {
+                "executed": 10,
+                "passed": 10,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_02": {
+                "executed": 56,
+                "passed": 56,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_03": {
+                "executed": 61,
+                "passed": 61,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_04": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_05": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_01": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_02": {
+                "executed": 2,
+                "passed": 2,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_03": {
+                "executed": 20,
+                "passed": 20,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_04": {
+                "executed": 17,
+                "passed": 17,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_05": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_01": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_01": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_02": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_04": {
+                "executed": 15,
+                "passed": 15,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_05": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              }
+            }
+          }
+        ],
+        "dependency_verification": [
+          {
+            "filename": "anyio-4.15.1-py3-none-any.whl",
+            "name": "anyio",
+            "version": "4.15.1",
+            "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "official_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "release_json_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+            "release_json_sha256": "e2ee22fad2fab3e66be503cba9b41945607d3076c9b7aa49b6e2f95ac323efab",
+            "official_file_url": "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
+          },
+          {
+            "filename": "certifi-2026.7.22-py3-none-any.whl",
+            "name": "certifi",
+            "version": "2026.7.22",
+            "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "official_sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "release_json_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+            "release_json_sha256": "c6fe912677e373608eab51e324946005998faeb0fa999e6ddada24676e3556d3",
+            "official_file_url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl"
+          },
+          {
+            "filename": "h11-0.16.0-py3-none-any.whl",
+            "name": "h11",
+            "version": "0.16.0",
+            "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "official_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "release_json_url": "https://pypi.org/pypi/h11/0.16.0/json",
+            "release_json_sha256": "97f4efb9cc00826f0408076983adc1a1e48e8f2cabf403aaf250f724e081440d",
+            "official_file_url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "httpcore-1.0.9-py3-none-any.whl",
+            "name": "httpcore",
+            "version": "1.0.9",
+            "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "official_sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "release_json_url": "https://pypi.org/pypi/httpcore/1.0.9/json",
+            "release_json_sha256": "e26eca5c3d288fe9e6446af9bcbca1038ba688629d5c8a2886c47d74718d87a2",
+            "official_file_url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl"
+          },
+          {
+            "filename": "httpx-0.28.1-py3-none-any.whl",
+            "name": "httpx",
+            "version": "0.28.1",
+            "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "official_sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "release_json_url": "https://pypi.org/pypi/httpx/0.28.1/json",
+            "release_json_sha256": "293bfab7bf587fcd0825f1bd8eed8e6303285ba14801b15659853827cbe30796",
+            "official_file_url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl"
+          },
+          {
+            "filename": "idna-3.20-py3-none-any.whl",
+            "name": "idna",
+            "version": "3.20",
+            "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "official_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "release_json_url": "https://pypi.org/pypi/idna/3.20/json",
+            "release_json_sha256": "e7cbd26e23ce60f6cb3a151d2adf3b1b087bb8f10ac2d9d6db70fdccbf3bb041",
+            "official_file_url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl"
+          },
+          {
+            "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+            "name": "typing_extensions",
+            "version": "4.16.0",
+            "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "official_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "release_json_url": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+            "release_json_sha256": "2140da00d62dde967f52d0be0ae28444f1d6a3fe603f52c83c23988c32122d5a",
+            "official_file_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "websockets-15.0.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+            "name": "websockets",
+            "version": "15.0.1",
+            "sha256": "64dee438fed052b52e4f98f76c5790513235efaa1ef7f3f2192c392cd7c91b65",
+            "official_sha256": "64dee438fed052b52e4f98f76c5790513235efaa1ef7f3f2192c392cd7c91b65",
+            "release_json_url": "https://pypi.org/pypi/websockets/15.0.1/json",
+            "release_json_sha256": "60bfa9592eacef2fb478bafc3cf95d9414cff0d951ab109885b92a155c217c00",
+            "official_file_url": "https://files.pythonhosted.org/packages/14/8f/aa61f528fba38578ec553c145857a181384c72b98156f858ca5c8e82d9d3/websockets-15.0.1-cp312-cp312-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+          }
+        ],
+        "artifacts": {
+          "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+          "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+          "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "355228651200f08972f3a7d31ac573418f04c7a64ad851f6450059804b4a473e",
+          "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+        },
+        "health_smokes": [
+          {
+            "pair": "direct",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          },
+          {
+            "pair": "derived",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "python_matrix": "3.13",
+        "source_commit": "21412a260a8a66cde8eac3622a91731dde6ef3d0",
+        "source_dirty": false,
+        "provenance_sha256": "0851d5448519769c8963cb430413dc99d17a4635f737c770a8cf69ef296a7c2d",
+        "health_runtime_sha256": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+        "installed_payload_check": {
+          "direct": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+          "derived": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce"
+        },
+        "test_results": [
+          {
+            "filename": "provider-results.xml",
+            "expected_executed": 797,
+            "sha256": "706ca8ee1141a95250a8b96d1bdb4d420396f47ec0e6a9d7ccac18fb9e8dcc4d",
+            "totals": {
+              "executed": 797,
+              "passed": 797,
+              "failed": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "per_tc": {
+              "tc025_02": {
+                "executed": 31,
+                "passed": 31,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_03": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_01": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_02": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_04": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_05": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_06": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_02": {
+                "executed": 4,
+                "passed": 4,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_03": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_04": {
+                "executed": 14,
+                "passed": 14,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_05": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_06": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_06": {
+                "executed": 29,
+                "passed": 29,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_06": {
+                "executed": 12,
+                "passed": 12,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_05": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_01": {
+                "executed": 24,
+                "passed": 24,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_02": {
+                "executed": 75,
+                "passed": 75,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_03": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_04": {
+                "executed": 72,
+                "passed": 72,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_05": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_01": {
+                "executed": 38,
+                "passed": 38,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_02": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_03": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_04": {
+                "executed": 10,
+                "passed": 10,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_02": {
+                "executed": 56,
+                "passed": 56,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_03": {
+                "executed": 61,
+                "passed": 61,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_04": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_05": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_01": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_02": {
+                "executed": 2,
+                "passed": 2,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_03": {
+                "executed": 20,
+                "passed": 20,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_04": {
+                "executed": 17,
+                "passed": 17,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_05": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_01": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_01": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_02": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_04": {
+                "executed": 15,
+                "passed": 15,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_05": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              }
+            }
+          }
+        ],
+        "dependency_verification": [
+          {
+            "filename": "anyio-4.15.1-py3-none-any.whl",
+            "name": "anyio",
+            "version": "4.15.1",
+            "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "official_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "release_json_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+            "release_json_sha256": "e2ee22fad2fab3e66be503cba9b41945607d3076c9b7aa49b6e2f95ac323efab",
+            "official_file_url": "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
+          },
+          {
+            "filename": "certifi-2026.7.22-py3-none-any.whl",
+            "name": "certifi",
+            "version": "2026.7.22",
+            "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "official_sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "release_json_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+            "release_json_sha256": "c6fe912677e373608eab51e324946005998faeb0fa999e6ddada24676e3556d3",
+            "official_file_url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl"
+          },
+          {
+            "filename": "h11-0.16.0-py3-none-any.whl",
+            "name": "h11",
+            "version": "0.16.0",
+            "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "official_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "release_json_url": "https://pypi.org/pypi/h11/0.16.0/json",
+            "release_json_sha256": "97f4efb9cc00826f0408076983adc1a1e48e8f2cabf403aaf250f724e081440d",
+            "official_file_url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "httpcore-1.0.9-py3-none-any.whl",
+            "name": "httpcore",
+            "version": "1.0.9",
+            "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "official_sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "release_json_url": "https://pypi.org/pypi/httpcore/1.0.9/json",
+            "release_json_sha256": "e26eca5c3d288fe9e6446af9bcbca1038ba688629d5c8a2886c47d74718d87a2",
+            "official_file_url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl"
+          },
+          {
+            "filename": "httpx-0.28.1-py3-none-any.whl",
+            "name": "httpx",
+            "version": "0.28.1",
+            "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "official_sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "release_json_url": "https://pypi.org/pypi/httpx/0.28.1/json",
+            "release_json_sha256": "293bfab7bf587fcd0825f1bd8eed8e6303285ba14801b15659853827cbe30796",
+            "official_file_url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl"
+          },
+          {
+            "filename": "idna-3.20-py3-none-any.whl",
+            "name": "idna",
+            "version": "3.20",
+            "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "official_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "release_json_url": "https://pypi.org/pypi/idna/3.20/json",
+            "release_json_sha256": "e7cbd26e23ce60f6cb3a151d2adf3b1b087bb8f10ac2d9d6db70fdccbf3bb041",
+            "official_file_url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl"
+          },
+          {
+            "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+            "name": "typing_extensions",
+            "version": "4.16.0",
+            "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "official_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "release_json_url": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+            "release_json_sha256": "2140da00d62dde967f52d0be0ae28444f1d6a3fe603f52c83c23988c32122d5a",
+            "official_file_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "websockets-15.0.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl",
+            "name": "websockets",
+            "version": "15.0.1",
+            "sha256": "0f3c1e2ab208db911594ae5b4f79addeb3501604a165019dd221c0bdcabe4db8",
+            "official_sha256": "0f3c1e2ab208db911594ae5b4f79addeb3501604a165019dd221c0bdcabe4db8",
+            "release_json_url": "https://pypi.org/pypi/websockets/15.0.1/json",
+            "release_json_sha256": "60bfa9592eacef2fb478bafc3cf95d9414cff0d951ab109885b92a155c217c00",
+            "official_file_url": "https://files.pythonhosted.org/packages/ff/b2/83a6ddf56cdcbad4e3d841fcc55d6ba7d19aeb89c50f24dd7e859ec0805f/websockets-15.0.1-cp313-cp313-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl"
+          }
+        ],
+        "artifacts": {
+          "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+          "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+          "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "355228651200f08972f3a7d31ac573418f04c7a64ad851f6450059804b4a473e",
+          "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+        },
+        "health_smokes": [
+          {
+            "pair": "direct",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          },
+          {
+            "pair": "derived",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "python_matrix": "3.14",
+        "source_commit": "21412a260a8a66cde8eac3622a91731dde6ef3d0",
+        "source_dirty": false,
+        "provenance_sha256": "4c936586cc00ba4855087f1c942430bd0dc7f01a493f3ff1d3a79c070b7a359a",
+        "health_runtime_sha256": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+        "installed_payload_check": {
+          "direct": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+          "derived": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce"
+        },
+        "test_results": [
+          {
+            "filename": "provider-results.xml",
+            "expected_executed": 797,
+            "sha256": "0d650cef24a03692d6c2afcd626671d4f5a7a8550c161d6dd3962ff21d798e84",
+            "totals": {
+              "executed": 797,
+              "passed": 797,
+              "failed": 0,
+              "errors": 0,
+              "skipped": 0
+            },
+            "per_tc": {
+              "tc025_02": {
+                "executed": 31,
+                "passed": 31,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_03": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_01": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_02": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_04": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_05": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc021_06": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_02": {
+                "executed": 4,
+                "passed": 4,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_03": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_04": {
+                "executed": 14,
+                "passed": 14,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_05": {
+                "executed": 16,
+                "passed": 16,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc020_06": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_06": {
+                "executed": 29,
+                "passed": 29,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_06": {
+                "executed": 6,
+                "passed": 6,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_06": {
+                "executed": 12,
+                "passed": 12,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_05": {
+                "executed": 8,
+                "passed": 8,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_01": {
+                "executed": 24,
+                "passed": 24,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_02": {
+                "executed": 75,
+                "passed": 75,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_03": {
+                "executed": 25,
+                "passed": 25,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_04": {
+                "executed": 72,
+                "passed": 72,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc022_05": {
+                "executed": 1,
+                "passed": 1,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_01": {
+                "executed": 38,
+                "passed": 38,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_02": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_03": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc026_04": {
+                "executed": 10,
+                "passed": 10,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_01": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_02": {
+                "executed": 56,
+                "passed": 56,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_03": {
+                "executed": 61,
+                "passed": 61,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_04": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc023_05": {
+                "executed": 5,
+                "passed": 5,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_01": {
+                "executed": 7,
+                "passed": 7,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_02": {
+                "executed": 2,
+                "passed": 2,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_03": {
+                "executed": 20,
+                "passed": 20,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_04": {
+                "executed": 17,
+                "passed": 17,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc024_05": {
+                "executed": 11,
+                "passed": 11,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc025_01": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_01": {
+                "executed": 35,
+                "passed": 35,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_02": {
+                "executed": 21,
+                "passed": 21,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_03": {
+                "executed": 19,
+                "passed": 19,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_04": {
+                "executed": 15,
+                "passed": 15,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              },
+              "tc019_05": {
+                "executed": 3,
+                "passed": 3,
+                "failed": 0,
+                "errors": 0,
+                "skipped": 0
+              }
+            }
+          }
+        ],
+        "dependency_verification": [
+          {
+            "filename": "anyio-4.15.1-py3-none-any.whl",
+            "name": "anyio",
+            "version": "4.15.1",
+            "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "official_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+            "release_json_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+            "release_json_sha256": "e2ee22fad2fab3e66be503cba9b41945607d3076c9b7aa49b6e2f95ac323efab",
+            "official_file_url": "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
+          },
+          {
+            "filename": "certifi-2026.7.22-py3-none-any.whl",
+            "name": "certifi",
+            "version": "2026.7.22",
+            "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "official_sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+            "release_json_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+            "release_json_sha256": "c6fe912677e373608eab51e324946005998faeb0fa999e6ddada24676e3556d3",
+            "official_file_url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl"
+          },
+          {
+            "filename": "h11-0.16.0-py3-none-any.whl",
+            "name": "h11",
+            "version": "0.16.0",
+            "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "official_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+            "release_json_url": "https://pypi.org/pypi/h11/0.16.0/json",
+            "release_json_sha256": "97f4efb9cc00826f0408076983adc1a1e48e8f2cabf403aaf250f724e081440d",
+            "official_file_url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "httpcore-1.0.9-py3-none-any.whl",
+            "name": "httpcore",
+            "version": "1.0.9",
+            "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "official_sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+            "release_json_url": "https://pypi.org/pypi/httpcore/1.0.9/json",
+            "release_json_sha256": "e26eca5c3d288fe9e6446af9bcbca1038ba688629d5c8a2886c47d74718d87a2",
+            "official_file_url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl"
+          },
+          {
+            "filename": "httpx-0.28.1-py3-none-any.whl",
+            "name": "httpx",
+            "version": "0.28.1",
+            "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "official_sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+            "release_json_url": "https://pypi.org/pypi/httpx/0.28.1/json",
+            "release_json_sha256": "293bfab7bf587fcd0825f1bd8eed8e6303285ba14801b15659853827cbe30796",
+            "official_file_url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl"
+          },
+          {
+            "filename": "idna-3.20-py3-none-any.whl",
+            "name": "idna",
+            "version": "3.20",
+            "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "official_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+            "release_json_url": "https://pypi.org/pypi/idna/3.20/json",
+            "release_json_sha256": "e7cbd26e23ce60f6cb3a151d2adf3b1b087bb8f10ac2d9d6db70fdccbf3bb041",
+            "official_file_url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl"
+          },
+          {
+            "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+            "name": "typing_extensions",
+            "version": "4.16.0",
+            "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "official_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+            "release_json_url": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+            "release_json_sha256": "2140da00d62dde967f52d0be0ae28444f1d6a3fe603f52c83c23988c32122d5a",
+            "official_file_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+          },
+          {
+            "filename": "websockets-15.0.1-py3-none-any.whl",
+            "name": "websockets",
+            "version": "15.0.1",
+            "sha256": "f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f",
+            "official_sha256": "f7a866fbc1e97b5c617ee4116daaa09b722101d4a3c170c787450ba409f9736f",
+            "release_json_url": "https://pypi.org/pypi/websockets/15.0.1/json",
+            "release_json_sha256": "60bfa9592eacef2fb478bafc3cf95d9414cff0d951ab109885b92a155c217c00",
+            "official_file_url": "https://files.pythonhosted.org/packages/fa/a8/5b41e0da817d64113292ab1f8247140aac61cbf6cfd085d6a0fa77f4984f/websockets-15.0.1-py3-none-any.whl"
+          }
+        ],
+        "artifacts": {
+          "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+          "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+          "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "355228651200f08972f3a7d31ac573418f04c7a64ad851f6450059804b4a473e",
+          "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "837627de9c963b32d90de98f2df44f9edabcacb63f4733f66a36c550e38a6127",
+          "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+        },
+        "health_smokes": [
+          {
+            "pair": "direct",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          },
+          {
+            "pair": "derived",
+            "modes": [
+              "-I",
+              "-O -I"
+            ],
+            "results": [
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              },
+              {
+                "profile": "req026-installed-health-v1",
+                "wire_auths": 3,
+                "rest_requests": 4,
+                "checks": [
+                  "connected",
+                  "independent_rest_auth",
+                  "rest_recovery",
+                  "finite_socket_reconnect",
+                  "terminal_socket_not_restarted",
+                  "socket_auth_rejected",
+                  "redaction",
+                  "closed_snapshot",
+                  "drained"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "review_boundary": "Generator remediation of non-signing local review; no independent signature or lifecycle acceptance. No Termux, Windows or live HA certification."
+}
