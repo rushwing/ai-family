@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import os
 import re
 import urllib.parse
 import urllib.request
@@ -12,9 +13,19 @@ from xml.etree import ElementTree
 INDEX_URL = "https://pypi.org/simple"
 
 
-def summarize_test_results(paths):
+def dependency_download_environment(environment):
+    """Ignore pip options and proxy routing, including lowercase proxy aliases."""
+    result = {k: v for k, v in environment.items()
+              if not k.upper().startswith("PIP_") and not k.upper().endswith("_PROXY")}
+    result["PIP_CONFIG_FILE"] = os.devnull
+    return result
+
+
+def summarize_test_results(paths, expected_counts):
+    if len(paths) != len(expected_counts) or any(n <= 0 for n in expected_counts):
+        raise ValueError("test_report_expected_counts_required")
     reports = []
-    for path in paths:
+    for path, expected in zip(paths, expected_counts, strict=True):
         root = ElementTree.parse(path).getroot()
         totals = {"executed": 0, "passed": 0, "failed": 0, "errors": 0, "skipped": 0}
         groups = {}
@@ -35,14 +46,17 @@ def summarize_test_results(paths):
         if (not totals["executed"] or totals["failed"] or totals["errors"]
                 or totals["skipped"]):
             raise ValueError("test_report_not_passing")
-        reports.append({"filename": path.name,
+        if totals["executed"] != expected:
+            raise ValueError("test_report_count_mismatch")
+        reports.append({"filename": path.name, "expected_executed": expected,
                         "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
                         "totals": totals, "per_tc": groups})
     return reports
 
 
 def _release_json(url):
-    with urllib.request.urlopen(url, timeout=30) as response:
+    opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+    with opener.open(url, timeout=30) as response:
         if response.geturl() != url:
             raise ValueError("dependency_metadata_redirect")
         payload = response.read(2_097_153)

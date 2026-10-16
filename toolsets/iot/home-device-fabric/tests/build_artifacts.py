@@ -19,7 +19,12 @@ import tempfile
 import venv
 from pathlib import Path
 
-from artifact_provenance import INDEX_URL, summarize_test_results, verify_dependency_wheels
+from artifact_provenance import (
+    INDEX_URL,
+    dependency_download_environment,
+    summarize_test_results,
+    verify_dependency_wheels,
+)
 from build import ProjectBuilder
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -30,16 +35,16 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", type=Path, required=True)
     parser.add_argument("--test-results", type=Path, action="append", default=[])
+    parser.add_argument("--expected-test-count", type=int, action="append", default=[])
     args = parser.parse_args()
-    test_results = summarize_test_results(args.test_results)
+    test_results = summarize_test_results(args.test_results, args.expected_test_count)
     output = args.out_dir.resolve()
     assert not output.is_relative_to(ROOT), "Artifacts and smoke must run outside the checkout"
     output.mkdir(parents=True, exist_ok=True)
     dependencies = output / "dependencies"
     # A fresh wheelhouse avoids silently reusing stale/mirror-supplied bytes.
     dependencies.mkdir()
-    download_env = {k: v for k, v in os.environ.items() if not k.startswith("PIP_")}
-    download_env["PIP_CONFIG_FILE"] = os.devnull
+    download_env = dependency_download_environment(os.environ)
     download = subprocess.run(
         [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
          "--index-url", INDEX_URL, "--no-cache-dir", "--disable-pip-version-check",
@@ -89,7 +94,10 @@ def main():
             "index_url": INDEX_URL, "pip_version": importlib.metadata.version("pip"),
             "pip_config_file": os.devnull, "cache": "disabled",
             "ignored_pip_environment_keys": sorted(k for k in os.environ
-                                                   if k.startswith("PIP_")),
+                                                   if k.upper().startswith("PIP_")),
+            "proxy_policy": "disabled for pip downloads and release metadata",
+            "ignored_proxy_environment_keys": sorted(
+                k for k in os.environ if k.upper().endswith("_PROXY")),
             "download_stdout_sha256": hashlib.sha256(download.stdout).hexdigest(),
             "download_stderr_sha256": hashlib.sha256(download.stderr).hexdigest(),
             "download_returncode": download.returncode,
