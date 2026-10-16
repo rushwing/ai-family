@@ -8,7 +8,7 @@ from pathlib import Path
 
 import certifi
 from home_device_fabric.ha_configuration import HAConfiguration
-from home_device_fabric.ha_websocket import HAWebSocketClient
+from home_device_fabric.ha_websocket import HAWebSocketClient, _tls_context
 from websockets.asyncio.server import serve
 
 TOKEN = "fictional-installed-websocket-token"
@@ -26,6 +26,9 @@ async def wait_state(client, state):
 
 
 async def main():
+    # Inspect the actual client context, not just certifi's bundle on disk.
+    trusted_roots = len(_tls_context().get_ca_certs())
+    require(trusted_roots > 0)
     auth = []
     mode = "connected"
 
@@ -84,7 +87,9 @@ async def main():
         await disconnected.aclose()
 
     print(json.dumps({"profile": "req024-installed-lifecycle-v1", "wire_auths": len(auth),
-                      "checks": ["authenticated", "shutdown", "auth_rejected", "finite_retry"],
+                      "checks": ["authenticated", "shutdown", "auth_rejected", "finite_retry",
+                                 "loaded_trust_roots"],
+                      "loaded_ca_count": trusted_roots,
                       "websockets": importlib.metadata.version("websockets"),
                       "certifi": importlib.metadata.version("certifi"),
                       "ca_bundle_sha256": hashlib.sha256(

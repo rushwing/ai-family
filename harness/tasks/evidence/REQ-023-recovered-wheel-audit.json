@@ -1,0 +1,212 @@
+{
+  "retrieved_at_utc": "2026-10-15T02:45:29.668663+00:00",
+  "purpose": "Append-only recovery of historical BUG-032 archive identities; no old provenance rewritten.",
+  "observed_mechanism": "The retained download logs identify piwheels URLs for all three wheels. Recovered bytes match historical recorded SHA256 and current piwheels downloads, rather than official PyPI wheel bytes.",
+  "limits": [
+    "Retained local logs are corroborating evidence, not signed chain-of-custody.",
+    "This establishes archive identity and member differences, not a general supply-chain certification.",
+    "No historical runtime execution or independent Harness signature is inferred."
+  ],
+  "recovered_wheels": [
+    {
+      "filename": "anyio-4.15.1-py3-none-any.whl",
+      "recovered_path": "/tmp/req023-artifacts312/dependencies/anyio-4.15.1-py3-none-any.whl",
+      "recovered_sha256": "3775a368d99ae82868850dfecbf23bebe253eb4b534211b62209e53ff0e5dceb",
+      "matches_historical_record": true,
+      "current_piwheels_url": "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+      "current_piwheels_sha256": "3775a368d99ae82868850dfecbf23bebe253eb4b534211b62209e53ff0e5dceb",
+      "matches_current_piwheels": true,
+      "official_pypi": {
+        "filename": "anyio-4.15.1-py3-none-any.whl",
+        "name": "anyio",
+        "version": "4.15.1",
+        "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+        "official_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+        "release_json_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+        "release_json_sha256": "e2ee22fad2fab3e66be503cba9b41945607d3076c9b7aa49b6e2f95ac323efab",
+        "official_file_url": "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
+      },
+      "member_sets_equal": true,
+      "changed_members": [],
+      "all_python_payloads_identical": true,
+      "zip_timestamp_changed_members": 6,
+      "wheel_generator_recovered": "Wheel-Version: 1.0\nGenerator: setuptools (84.0.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+      "wheel_generator_official": "Wheel-Version: 1.0\nGenerator: setuptools (84.0.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+      "archive_bytes_identical_after_masking_zip_dos_timestamps": true,
+      "timestamp_masked_archive_sha256": "a857477c56dc20b8bec07588404061f44df0c33faf1813d28b30717ee7d1417d"
+    },
+    {
+      "filename": "certifi-2026.7.22-py3-none-any.whl",
+      "recovered_path": "/tmp/req023-artifacts312/dependencies/certifi-2026.7.22-py3-none-any.whl",
+      "recovered_sha256": "9de65d0980dfad0fe9dcf13df12e8109d6f4a746b526bfb206d00126648c6c0f",
+      "matches_historical_record": true,
+      "current_piwheels_url": "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl",
+      "current_piwheels_sha256": "9de65d0980dfad0fe9dcf13df12e8109d6f4a746b526bfb206d00126648c6c0f",
+      "matches_current_piwheels": true,
+      "official_pypi": {
+        "filename": "certifi-2026.7.22-py3-none-any.whl",
+        "name": "certifi",
+        "version": "2026.7.22",
+        "sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+        "official_sha256": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+        "release_json_url": "https://pypi.org/pypi/certifi/2026.7.22/json",
+        "release_json_sha256": "c6fe912677e373608eab51e324946005998faeb0fa999e6ddada24676e3556d3",
+        "official_file_url": "https://files.pythonhosted.org/packages/0b/a7/71ac2cff56fec219ed242bb11b8efb69fcc4bec75db06fb7bfe35de520e6/certifi-2026.7.22-py3-none-any.whl"
+      },
+      "member_sets_equal": true,
+      "changed_members": [],
+      "all_python_payloads_identical": true,
+      "zip_timestamp_changed_members": 5,
+      "wheel_generator_recovered": "Wheel-Version: 1.0\nGenerator: setuptools (83.0.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+      "wheel_generator_official": "Wheel-Version: 1.0\nGenerator: setuptools (83.0.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+      "archive_bytes_identical_after_masking_zip_dos_timestamps": true,
+      "timestamp_masked_archive_sha256": "b75eae9815bf4fa7565d050491c818608fba1571bf3aa0ff3391e288da112b6a"
+    },
+    {
+      "filename": "h11-0.16.0-py3-none-any.whl",
+      "recovered_path": "/tmp/req023-artifacts312/dependencies/h11-0.16.0-py3-none-any.whl",
+      "recovered_sha256": "9e54505b012527625f54dcc591e3e253276327e8a9c86f55bdb9012e9000e462",
+      "matches_historical_record": true,
+      "current_piwheels_url": "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+      "current_piwheels_sha256": "9e54505b012527625f54dcc591e3e253276327e8a9c86f55bdb9012e9000e462",
+      "matches_current_piwheels": true,
+      "official_pypi": {
+        "filename": "h11-0.16.0-py3-none-any.whl",
+        "name": "h11",
+        "version": "0.16.0",
+        "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+        "official_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+        "release_json_url": "https://pypi.org/pypi/h11/0.16.0/json",
+        "release_json_sha256": "97f4efb9cc00826f0408076983adc1a1e48e8f2cabf403aaf250f724e081440d",
+        "official_file_url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl"
+      },
+      "member_sets_equal": true,
+      "changed_members": [
+        {
+          "member": "h11-0.16.0.dist-info/RECORD",
+          "recovered_sha256": "b31da482b829c6d3afb538435da33937be519afe181d2ba800af8b821745c448",
+          "official_sha256": "1f1d4d9080c9f2a995417616ead6ea614da41b477958ed0ba0e45a82c6212721"
+        },
+        {
+          "member": "h11-0.16.0.dist-info/WHEEL",
+          "recovered_sha256": "ff309ddcdd65ebd02bc724dbf2bcc4a0ff53a5b61792a44548d383e4ebb19d3b",
+          "official_sha256": "0a6c85234931e5c7443132e238d4116c64308c8a11d5a21807b782010e0a3c9d"
+        }
+      ],
+      "all_python_payloads_identical": true,
+      "zip_timestamp_changed_members": 5,
+      "wheel_generator_recovered": "Wheel-Version: 1.0\nGenerator: setuptools (80.9.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n",
+      "wheel_generator_official": "Wheel-Version: 1.0\nGenerator: setuptools (78.1.0)\nRoot-Is-Purelib: true\nTag: py3-none-any\n\n"
+    }
+  ],
+  "download_logs": [
+    {
+      "path": "/tmp/req023-artifacts312.log",
+      "sha256": "c7a9633d667d69c0ee9f67e9a24b7618d9c877bc0294c67daeefbcd3f7a6497b",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-artifacts313.log",
+      "sha256": "617b9b89022ae8a610c8889cf307ab55d8592959c52dc442d43577f0efb9eb46",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-artifacts314.log",
+      "sha256": "13a17a105623abc040bb2660fe8641c37a506fc3e45da6bfb9ea26e175861b68",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-f10-artifacts312.log",
+      "sha256": "3bf386f4872cf7297c8bdff814251361e019f63434b464517b05ed7749edd488",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-f10-artifacts313.log",
+      "sha256": "0c3cd86b2565677af9b981cf0b5f6ed1e929f018a891de148161b3834dbdaeaa",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-f10-artifacts314.log",
+      "sha256": "2e34725eba0ca41e9cf51f5e5f2c3d6a61ad3a107fe2406679531ea7ca9f3ce9",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-fixes-artifacts312.log",
+      "sha256": "997d0ada0c36145a5a4b9d910ee62fcd8b645be8cb6cbde00325f6ad5ab532a8",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-fixes-artifacts313.log",
+      "sha256": "997cc43be7e85fa67a7738dedc6282b6cae11b0f178a64784847e1a99c696bad",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    },
+    {
+      "path": "/tmp/req023-fixes-artifacts314.log",
+      "sha256": "b907f3a107a954bd123c80486ddf95e9c574893656787c5851eb8e6a4526b336",
+      "sanitized_matching_download_urls": [
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl.metadata",
+        "https://www.piwheels.org/simple/h11/h11-0.16.0-py3-none-any.whl",
+        "https://www.piwheels.org/simple/anyio/anyio-4.15.1-py3-none-any.whl",
+        "https://www.piwheels.org/simple/certifi/certifi-2026.7.22-py3-none-any.whl"
+      ]
+    }
+  ]
+}

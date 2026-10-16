@@ -608,6 +608,7 @@ def test_real_stalled_handshake_times_out(monkeypatch):
 
 
 @pytest.mark.tc024_04
+@pytest.mark.tc025_01
 def test_deadline_check_before_connected(monkeypatch):
     async def scenario():
         sockets = [Socket(), Socket()]
@@ -616,10 +617,68 @@ def test_deadline_check_before_connected(monkeypatch):
         times = iter([base, base + 1, base, base + 1])
         monkeypatch.setattr(runtime(), "_clock", lambda: next(times))
         client = runtime().HAWebSocketClient(configuration(timeout=100, attempts=1))
-        await client.run()
+        # A missing expiry check otherwise leaves the fake healthy forever.
+        # Turn that mutation into a prompt test failure with owned cleanup.
+        try:
+            await asyncio.wait_for(client.run(), 1)
+        finally:
+            await client.aclose()
         assert client.health().reason == "reconnect_exhausted"
         assert "connected" not in [h["state"] for h in state.transitions]
         assert all(s.closed == 1 for s in sockets)
+    asyncio.run(scenario())
+
+
+@pytest.mark.tc025_01
+@pytest.mark.tc024_05
+def test_tls_context_contains_trusted_roots():
+    context = runtime()._tls_context()
+    assert context.check_hostname and context.verify_mode == ssl.CERT_REQUIRED
+    assert context.get_ca_certs(), "the client's TLS context must load trust roots"
+
+
+@pytest.mark.tc025_01
+@pytest.mark.tc024_04
+def test_closed_snapshot_cannot_change_during_gated_auth_cancellation(monkeypatch):
+    async def scenario():
+        entered, cancelled, release = asyncio.Event(), asyncio.Event(), asyncio.Event()
+        socket = Socket()
+        original_recv = socket.recv
+
+        async def recv():
+            if not socket.messages or len(socket.messages) != 1:
+                return await original_recv()
+            entered.set()
+            try:
+                await asyncio.Future()
+            except asyncio.CancelledError:
+                cancelled.set()
+                await release.wait()
+                raise
+
+        socket.recv = recv
+        state = fake(monkeypatch, [socket])
+        client = runtime().HAWebSocketClient(configuration())
+        running = asyncio.create_task(client.run())
+        closing = None
+        try:
+            await asyncio.wait_for(entered.wait(), 1)
+            closing = asyncio.create_task(client.aclose())
+            await asyncio.wait_for(cancelled.wait(), 1)
+            closed = client.health()
+            assert closed.state == "closed"
+            release.set()
+            await asyncio.wait_for(asyncio.gather(running, closing), 1)
+            assert client.health() == closed
+            after_closed = state.transitions[next(
+                i for i, h in enumerate(state.transitions) if h["state"] == "closed"):]
+            assert after_closed and all(h == closed.to_dict() for h in after_closed)
+            assert state.attempts == 1 and not state.delays and socket.closed == 1
+        finally:
+            release.set()
+            await client.aclose()
+            await asyncio.gather(running, *([closing] if closing else []),
+                                 return_exceptions=True)
     asyncio.run(scenario())
 
 

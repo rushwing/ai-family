@@ -7,6 +7,7 @@ package pair and that recorded closure offline into fresh smoke environments.
 
 import argparse
 import hashlib
+import importlib.metadata
 import json
 import os
 import platform
@@ -18,6 +19,12 @@ import tempfile
 import venv
 from pathlib import Path
 
+from artifact_provenance import (
+    INDEX_URL,
+    dependency_download_environment,
+    summarize_test_results,
+    verify_dependency_wheels,
+)
 from build import ProjectBuilder
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -27,17 +34,25 @@ PACKAGES = (ROOT / "libs/state-schema", ROOT / "toolsets/iot/home-device-fabric"
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-dir", type=Path, required=True)
+    parser.add_argument("--test-results", type=Path, action="append", default=[])
+    parser.add_argument("--expected-test-count", type=int, action="append", default=[])
     args = parser.parse_args()
+    test_results = summarize_test_results(args.test_results, args.expected_test_count)
     output = args.out_dir.resolve()
     assert not output.is_relative_to(ROOT), "Artifacts and smoke must run outside the checkout"
     output.mkdir(parents=True, exist_ok=True)
     dependencies = output / "dependencies"
-    dependencies.mkdir(exist_ok=True)
-    subprocess.run(
+    # A fresh wheelhouse avoids silently reusing stale/mirror-supplied bytes.
+    dependencies.mkdir()
+    download_env = dependency_download_environment(os.environ)
+    download = subprocess.run(
         [sys.executable, "-m", "pip", "download", "--only-binary=:all:",
+         "--index-url", INDEX_URL, "--no-cache-dir", "--disable-pip-version-check",
          "--dest", str(dependencies), "httpx>=0.28.1,<0.29", "websockets>=15.0.1,<16",
-         "certifi>=2024.8.30,<2027"], check=True,
+         "certifi>=2024.8.30,<2027"], check=True, env=download_env,
+        capture_output=True,
     )
+    verified_dependencies = verify_dependency_wheels(dependencies)
     artifacts = []
     direct = []
     derived = []
@@ -68,6 +83,27 @@ def main():
         "machine": platform.machine(),
         "system": platform.system(),
         "implementation": platform.python_implementation(),
+        "test_results": test_results,
+        "runtime_sha256": hashlib.sha256((PACKAGES[1] /
+            "src/home_device_fabric/ha_websocket.py").read_bytes()).hexdigest(),
+        "source_dirty": bool(subprocess.run(
+            ["git", "status", "--porcelain"], check=True, cwd=ROOT,
+            capture_output=True, text=True).stdout.strip()),
+        "dependency_verification": verified_dependencies,
+        "dependency_acquisition": {
+            "index_url": INDEX_URL, "pip_version": importlib.metadata.version("pip"),
+            "pip_config_file": os.devnull, "cache": "disabled",
+            "ignored_pip_environment_keys": sorted(k for k in os.environ
+                                                   if k.upper().startswith("PIP_")),
+            "proxy_policy": "disabled for pip downloads and release metadata",
+            "ignored_proxy_environment_keys": sorted(
+                k for k in os.environ if k.upper().endswith("_PROXY")),
+            "download_stdout_sha256": hashlib.sha256(download.stdout).hexdigest(),
+            "download_stderr_sha256": hashlib.sha256(download.stderr).hexdigest(),
+            "download_returncode": download.returncode,
+            "log_policy": "Raw pip output and environment values are not exported; "
+                          "verified file URLs and identities form the acquisition log.",
+        },
         "artifacts": {
             str(p.relative_to(output)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in artifacts
