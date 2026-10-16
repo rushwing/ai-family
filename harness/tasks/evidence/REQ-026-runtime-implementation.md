@@ -1,5 +1,9 @@
 # REQ-026 / HI-S004 proposed runtime delivery
 
+This is the original source-specific execution record. The subsequent
+[local pre-review remediation](REQ-026-review-fixes.md) supersedes its active
+health hash, counts and mutation coverage; the original provenance stays intact.
+
 [human-001][2026-10-16] Authorized merging PR #53 and implementing the next
 slice in another PR, stopping at req_impl for externally arranged review.
 [generator-001] Delivers the recommended HI-S004 integration-health increment in
