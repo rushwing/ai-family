@@ -563,6 +563,9 @@ lifecycle. Start `run()` in an asyncio task, read `health().to_dict()` on the
 owning event loop, and await `aclose()` plus the run task at shutdown. Construction
 performs no I/O. The interval is an exact integer from 1 to 60000 ms, passed as a
 keyword; it does not change HAConfiguration's versioned settings schema.
+While running, reads from another loop or a synchronous context without a
+running loop raise the fixed `RuntimeError("wrong_event_loop")` before mutation.
+Initial and closed snapshots can be read without a running loop.
 
 A snapshot separately exposes REST unknown/reachable/unreachable/auth_failed,
 finite failure reason, `rest_reachable` (None/True/False), authenticated
@@ -589,10 +592,15 @@ and one event loop are admitted per monitor. Repr is redacted and monitor
 serialization is refused; raw versions, endpoint, credentials and upstream text
 are excluded from supported snapshots. Private memory/traceback introspection
 has the same boundary as the existing clients.
+The probe, sampler and publisher each guard closure as defense in depth.
+Isolated regressions check each boundary; fake-peer scenarios have a three-second
+deadline and release gates/drain tasks on failure. A released late probe must
+finish without another fake-clock advance, making a deleted guard an assertion
+failure rather than an indefinitely blocked close.
 
 Add `--require-ha-health-runtime` to the six previous fabric flags. The complete
 CI acceptance command now requires seven runtimes, rejects skips and checks an
-explicit 794-case baseline. Paired artifacts additionally execute
+explicit 797-case baseline. Paired artifacts additionally execute
 `ha_health_artifact_smoke.py` under `-I` and `-O -I`, using real REST/WebSocket
 loopback peers with explicit require() checks. No private HA endpoint is needed.
 

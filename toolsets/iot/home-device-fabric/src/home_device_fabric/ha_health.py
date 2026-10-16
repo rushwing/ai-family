@@ -138,12 +138,18 @@ class HAHealthMonitor:
         if self._started and not self._closed:
             # A synchronous observation must never return expired success even
             # if the sampler was delayed. Read only on the owning event loop.
-            if asyncio.get_running_loop() is not self._loop:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+            if loop is not self._loop:
                 raise RuntimeError("wrong_event_loop")
             self._sample()
         return self._health
 
     def _publish(self, *, closed: bool = False) -> None:
+        # Defense in depth: reject late publication even if a caller bypasses
+        # _sample. Each boundary has an isolated closed-state regression.
         if self._closed and not closed:
             return
         candidate = HAIntegrationHealth(self._rest_state, self._rest_reason,
@@ -154,6 +160,7 @@ class HAHealthMonitor:
                 candidate.closed, candidate.sequence + 1)
 
     def _sample(self) -> None:
+        # Preserve internal diagnostics too, rather than relying on _publish.
         if self._closed:
             return
         if (self._rest_state == "reachable" and self._last_success is not None

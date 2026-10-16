@@ -38,6 +38,30 @@ async def settle(predicate):
     raise AssertionError("expected state did not arrive")
 
 
+def run_scenario(scenario, peers):
+    """Bound waits and release fake gates even when a lifecycle assertion fails."""
+    async def bounded():
+        try:
+            try:
+                await asyncio.wait_for(scenario(), timeout=3)
+            except TimeoutError:
+                pytest.fail("health scenario exceeded its three-second deadline")
+        finally:
+            rest, _, clock = peers
+            if rest.release_cancel is not None:
+                rest.release_cancel.set()
+            # A broken late-result guard can leave a probe asleep on fake time.
+            await clock.advance(1000)
+            tasks = [task for task in asyncio.all_tasks()
+                     if task is not asyncio.current_task()]
+            for task in tasks:
+                task.cancel()
+            if tasks:
+                _, pending = await asyncio.wait(tasks, timeout=1)
+                assert not pending, "health scenario cleanup did not drain"
+    asyncio.run(bounded())
+
+
 class Clock:
     def __init__(self):
         self.now = 100.0
@@ -253,7 +277,7 @@ def test_independent_failure_recovery_sampling_and_stale_success(peers):
         await client.aclose()
         await running
         assert rest.max_active == 1 and rest.closed == socket.closed == 1
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_02
@@ -278,7 +302,7 @@ def test_rest_errors_are_finite_and_not_socket_failures(peers, error, reason):
         assert TOKEN not in repr(client.health()) and URL not in repr(client.health())
         await client.aclose()
         await running
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_02
@@ -299,7 +323,7 @@ def test_slow_probe_never_overlaps_or_queues_catchup(peers):
         await client.aclose()
         await running
         assert socket.starts == 1
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_03
@@ -316,7 +340,7 @@ def test_internal_correlation_never_contains_credential(peers, token):
         assert "fixture-version" not in json.dumps(client.health().to_dict())
         await client.aclose()
         await running
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_04
@@ -331,7 +355,7 @@ def test_close_before_start_and_repeated_lifecycle(peers):
         with pytest.raises(RuntimeError, match="client_closed"):
             await client.run()
         assert not rest.calls and socket.starts == 0 and rest.closed == socket.closed == 1
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_04
@@ -357,6 +381,9 @@ def test_gated_late_result_cannot_change_closed_snapshot(peers, cancel_run):
             await closing
         socket.transition("connected")
         rest.release_cancel.set()
+        # Completion must follow the released late result without advancing
+        # fake time: a closed probe must not schedule another interval sleep.
+        await settle(lambda: running.done())
         await client.aclose()
         if cancel_run:
             with pytest.raises(asyncio.CancelledError):
@@ -367,7 +394,7 @@ def test_gated_late_result_cannot_change_closed_snapshot(peers, cancel_run):
         assert rest.active == 0 and rest.closed == socket.closed == 1
         assert not [task for task in asyncio.all_tasks() if task is not asyncio.current_task()
                     and task.get_name().startswith("ha-health-")]
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_04
@@ -393,7 +420,7 @@ def test_worker_failure_redacted_and_owned_cleanup(peers):
         assert client.health().state == "closed"
         await client.aclose()
         assert rest.closed == socket.closed == 1
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_03
@@ -432,7 +459,7 @@ def test_process_control_failure_propagates_after_cleanup(peers):
         assert caught.value is failure
         assert client.health().closed and rest.closed == socket.closed == 1
         await client.aclose()
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
 
 
 @pytest.mark.tc026_04
@@ -447,4 +474,53 @@ def test_close_before_supervisor_first_instruction_drains_unused_clients(peers):
         await running
         assert client.health().closed and not rest.calls
         assert rest.closed == socket.closed == 1
-    asyncio.run(scenario())
+    run_scenario(scenario, peers)
+
+
+@pytest.mark.tc026_04
+@pytest.mark.parametrize("boundary", ["publish", "sample"])
+def test_closed_defense_in_depth_boundaries(peers, monkeypatch, boundary):
+    client = mod.HAHealthMonitor(configuration())
+    asyncio.run(client.aclose())
+    frozen = client.health()
+    client._rest_state = "reachable"
+    client._rest_reason = None
+    client._last_success = 0.0
+    if boundary == "publish":
+        # Bypass sampling so its independent guard cannot mask publication.
+        client._publish()
+        assert client.health() is frozen
+    else:
+        # Observe the sampling boundary before the publication guard can mask it.
+        publications = []
+        monkeypatch.setattr(mod.HAHealthMonitor, "_publish",
+                            lambda self: publications.append(True))
+        client._sample()
+        assert client._rest_state == "reachable" and client._rest_reason is None
+        assert publications == []
+        assert client.health() is frozen
+
+
+@pytest.mark.tc026_04
+def test_running_health_requires_owning_loop_even_from_sync_context(peers):
+    async def scenario():
+        rest, _, _ = peers
+        client = mod.HAHealthMonitor(configuration())
+        running = asyncio.create_task(client.run())
+        await settle(lambda: rest.calls)
+        frozen = client._health
+
+        def without_loop():
+            with pytest.raises(RuntimeError, match="^wrong_event_loop$") as caught:
+                client.health()
+            assert caught.value.__context__ is None and caught.value.__cause__ is None
+
+        async def other_loop():
+            without_loop()
+
+        await asyncio.to_thread(without_loop)
+        await asyncio.to_thread(asyncio.run, other_loop())
+        assert client._health is frozen
+        await client.aclose()
+        await running
+    run_scenario(scenario, peers)
