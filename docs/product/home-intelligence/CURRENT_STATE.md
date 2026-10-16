@@ -27,7 +27,7 @@ R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived RE
 
 ## Dependency-ready Candidates
 
-HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md), with human-accepted typed provider records, protocol and deterministic offline mock. HI-S026 is delivered through archived [REQ-020](../../../harness/tasks/archive/done/features/REQ-020.md), with human-accepted packaged mock switch/curtain/temperature models and offline CLI. HI-S027 conformance is delivered through archived [REQ-021](../../../harness/tasks/archive/done/features/REQ-021.md), with a packaged 51-check offline runner and independent driver/defect probes. Human final acceptance and PR #43 merge are recorded in Harness; read current owner/status there. HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md), with human-accepted immutable offline configuration, strict endpoints/limits, redacted diagnostics and finite reconnect inspection merged in PR #46. Read acceptance and evidence from Harness; HI-S002 bounded REST is delivered through archived REQ-023; HI-S003 WebSocket lifecycle is delivered through archived REQ-024. HI-S004 combined health is now admitted to REQ-026 for proposed implementation through req_impl; read its current owner/scope from Harness. HI-S005 subscriptions have their transport prerequisite but remain an unadmitted candidate. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
+HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/done/features/REQ-018.md) under human final acceptance. HI-S025 is delivered through archived [REQ-019](../../../harness/tasks/archive/done/features/REQ-019.md), with human-accepted typed provider records, protocol and deterministic offline mock. HI-S026 is delivered through archived [REQ-020](../../../harness/tasks/archive/done/features/REQ-020.md), with human-accepted packaged mock switch/curtain/temperature models and offline CLI. HI-S027 conformance is delivered through archived [REQ-021](../../../harness/tasks/archive/done/features/REQ-021.md), with a packaged 51-check offline runner and independent driver/defect probes. Human final acceptance and PR #43 merge are recorded in Harness; read current owner/status there. HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/done/features/REQ-022.md), with human-accepted immutable offline configuration, strict endpoints/limits, redacted diagnostics and finite reconnect inspection merged in PR #46. Read acceptance and evidence from Harness; HI-S002 bounded REST is delivered through archived REQ-023; HI-S003 WebSocket lifecycle is delivered through archived REQ-024. HI-S004 combined health is delivered through archived REQ-026 under human final acceptance and PR #54 merge; read its current owner/scope from Harness. HI-S005 subscriptions have their transport prerequisite but remain an unadmitted candidate. HI-S011/012 are delivered through archived REQ-016/017; remaining dependencies and explicit Harness admission still apply to later stories. Read engineering state from Harness.
 
 ## Blocked and Pending Stories
 
@@ -86,14 +86,17 @@ four pre-existing portability failures tracked in
 subscriptions, combined health or Feature/Stage completion is claimed.
 
 
-## Current proposed integration-health increment
+## Accepted integration-health increment
 
-[HI-S004](requirements/stories/HI-S004.md) is admitted to
-[REQ-026](../../../harness/tasks/features/REQ-026.md) under the human instruction
-to implement the next slice and stop at req_impl for external review. Its owned
+[HI-S004](requirements/stories/HI-S004.md) is delivered through archived
+[REQ-026](../../../harness/tasks/archive/done/features/REQ-026.md) under human
+final acceptance and PR #54 squash merge `b74bdc7`. Its owned
 monitor combines independent REST and WebSocket observations with finite,
 redacted, freshness-aware health and drained shutdown. Scope, acceptance and
-engineering state belong exclusively to that REQ. This proposed delivery does
+engineering state belong exclusively to that REQ. The
+[closeout record](../../../harness/tasks/evidence/REQ-026-review-acceptance.md)
+attributes human acceptance and the two non-signing local pre-review rounds.
+This delivery does
 not certify live HA, subscriptions, physical devices, HI-F001 or R1 completion.
 
 The preceding post-merge assurance increment REQ-025 was human-accepted and

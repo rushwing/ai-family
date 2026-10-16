@@ -604,7 +604,8 @@ explicit 797-case baseline. Paired artifacts additionally execute
 `ha_health_artifact_smoke.py` under `-I` and `-O -I`, using real REST/WebSocket
 loopback peers with explicit require() checks. No private HA endpoint is needed.
 
-[REQ-026](../../../harness/tasks/features/REQ-026.md) owns the proposed combined
-delivery and remains req_impl pending external review; this module does not
+[REQ-026](../../../harness/tasks/archive/done/features/REQ-026.md) records human acceptance of the combined
+delivery and PR #54 merge. [Health closeout](../../../harness/tasks/evidence/REQ-026-review-acceptance.md)
+retains verification and non-signing pre-review attribution; this module does not
 complete HI-F001/R1 or resolve Windows BUG-033. [REQ-025 acceptance](../../../harness/tasks/evidence/REQ-025-review-acceptance.md)
 records the independently authorized PR #53 merge and ledger closeout.
