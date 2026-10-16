@@ -86,6 +86,8 @@ def main():
         "test_results": test_results,
         "runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/ha_websocket.py").read_bytes()).hexdigest(),
+        "health_runtime_sha256": hashlib.sha256((PACKAGES[1] /
+            "src/home_device_fabric/ha_health.py").read_bytes()).hexdigest(),
         "source_dirty": bool(subprocess.run(
             ["git", "status", "--porcelain"], check=True, cwd=ROOT,
             capture_output=True, text=True).stdout.strip()),
@@ -162,12 +164,13 @@ def main():
             )
             for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py",
                              "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py",
-                             "ha_websocket_artifact_smoke.py"):
+                             "ha_websocket_artifact_smoke.py", "ha_health_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
             ha_rest = []
             ha_websocket = []
+            ha_health = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -193,6 +196,11 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 ha_websocket.append(json.loads(checked_websocket.stdout))
+                checked_health = subprocess.run(
+                    [str(interpreter), *flags, str(directory / "ha_health_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                ha_health.append(json.loads(checked_health.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -202,6 +210,7 @@ def main():
                     "ha_configuration": ha_configuration,
                     "ha_rest": ha_rest,
                     "ha_websocket": ha_websocket,
+                    "ha_health": ha_health,
                     "installed_distributions": json.loads(installed.stdout),
                 }
             )

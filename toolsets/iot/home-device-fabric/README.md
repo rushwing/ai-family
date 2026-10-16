@@ -465,7 +465,8 @@ explicit token and publishes connected only after `auth_ok`. Authentication
 rejection and invalid protocol stop immediately. Transient loss uses the exact
 configured finite reconnect tuple; successful reconnect does not reset this
 lifetime budget. The current snapshot is transport health only. Subscriptions,
-combined REST/WS health and device state/actions remain later increments.
+device state/actions remain later increments. Combined REST/WS health is proposed
+in REQ-026 below.
 
 One client starts once on one asyncio loop. `aclose()` closes admission, cancels
 connect/auth/backoff/idle receive and drains cleanup. Concurrent/repeated close
@@ -500,7 +501,7 @@ A separate synchronous constructor test denies ambient effects and file/environm
 reads. The historical REQ-023 test boundary remains separately documented.
 
 The always-running CI governance guard (`tools/check_fabric_ci.py`) pins the
-complete fabric acceptance command and all six required-runtime flags. Mutation
+complete fabric acceptance command and all seven required-runtime flags. Mutation
 tests remove each flag and replace/remove the command/job to verify rejection.
 Ordinary import-time runtime failures produce the required-mode UsageError rather
 than an internal pytest error. Optional missing/broken runtimes are explicit skips.
@@ -544,11 +545,58 @@ build time; it does not reconstruct missing historical dependency bytes.
 Pass --test-results PATH and --expected-test-count N (both repeatable, paired
 in order) to build_artifacts.py to attach JUnit totals and per-TC counts. Every
 report requires a positive, explicit expected count; partial, excess, failing or
-skipped reports fail closed. CI pins its current fabric baseline to 730; a local
+skipped reports fail closed. CI pins its current fabric baseline to 794; a local
 shared-contract report uses 1795. Update these reviewed baselines when the suite
 changes; do not derive them from the report being checked. A test may belong
 to multiple TC groups; group counts overlap and must not be summed as the suite
 total. Build reports include source commit, dirty-state flag and runtime SHA256.
-[REQ-025](../../../harness/tasks/features/REQ-025.md) tracks the increment; archived
+[REQ-025](../../../harness/tasks/archive/done/features/REQ-025.md) tracks the increment; archived
 REQ-024 and its previous provenance remain unchanged. BUG-032's historical
 identity discrepancy and BUG-033's Windows limitations retain their own scope.
+
+
+## Combined integration health (REQ-026 / HI-S004)
+
+`home_device_fabric.ha_health.HAHealthMonitor(configuration,
+observation_interval_ms=1000)` owns one accepted REST client and one WebSocket
+lifecycle. Start `run()` in an asyncio task, read `health().to_dict()` on the
+owning event loop, and await `aclose()` plus the run task at shutdown. Construction
+performs no I/O. The interval is an exact integer from 1 to 60000 ms, passed as a
+keyword; it does not change HAConfiguration's versioned settings schema.
+
+A snapshot separately exposes REST unknown/reachable/unreachable/auth_failed,
+finite failure reason, `rest_reachable` (None/True/False), authenticated
+`event_stream_connected`, the last immutable WebSocket snapshot and a sequence.
+Aggregate priority is closed, auth_failed, reconnecting, connected only when
+both channels are ready, otherwise disconnected. Connected socket health describes
+authentication only; subscriptions and device availability are not inferred.
+
+REST probes never overlap. Their start cadence and socket sampling use the
+observation interval; result completion publishes immediately. A prior REST
+success expires after one interval without a new success, even during a pending
+probe. Reading health also refreshes socket observations and expiry synchronously,
+without network I/O, so a delayed sampler cannot return expired success. Actual
+network detection includes the existing request deadline and bounded cleanup;
+event-loop scheduling is not hard real-time. A terminal socket never restarts
+or resets the lifetime retry budget; REST monitoring continues until closure.
+
+Close freezes a terminal snapshot before awaiting cleanup. Its component fields
+retain last observations, while `rest_reachable` becomes None and
+`event_stream_connected` false. Concurrent/repeated closes are idempotent;
+cancelling a close waiter leaves owned cleanup running. Cancelling run drains
+closure before propagation, including the supervisor's pre-start race. One run
+and one event loop are admitted per monitor. Repr is redacted and monitor
+serialization is refused; raw versions, endpoint, credentials and upstream text
+are excluded from supported snapshots. Private memory/traceback introspection
+has the same boundary as the existing clients.
+
+Add `--require-ha-health-runtime` to the six previous fabric flags. The complete
+CI acceptance command now requires seven runtimes, rejects skips and checks an
+explicit 794-case baseline. Paired artifacts additionally execute
+`ha_health_artifact_smoke.py` under `-I` and `-O -I`, using real REST/WebSocket
+loopback peers with explicit require() checks. No private HA endpoint is needed.
+
+[REQ-026](../../../harness/tasks/features/REQ-026.md) owns the proposed combined
+delivery and remains req_impl pending external review; this module does not
+complete HI-F001/R1 or resolve Windows BUG-033. [REQ-025 acceptance](../../../harness/tasks/evidence/REQ-025-review-acceptance.md)
+records the independently authorized PR #53 merge and ledger closeout.
