@@ -480,12 +480,84 @@ def test_production_loopback_subscription(caplog):
     # explicit require() checks that also remain active under optimized Python.
     from ha_subscription_artifact_smoke import check
 
+    async def bounded_check():
+        return await asyncio.wait_for(check(), 15)
+
     with caplog.at_level(logging.DEBUG):
-        report = asyncio.run(check())
+        report = asyncio.run(bounded_check())
     assert "fictional-installed-subscription-token" not in caplog.text
     assert "access_token" not in caplog.text
     assert report["connections"] == 3 and report["delivered"] == 2
     assert report["active_after_close"] == 0
+
+
+@pytest.mark.tc027_04
+@pytest.mark.ha_websocket_wire
+def test_loopback_failed_readiness_assertion_drains_peer(monkeypatch):
+    from ha_subscription_artifact_smoke import check
+
+    mod = runtime()
+    original = mod.HAStateSubscriptionClient.subscription_health
+
+    def premature_readiness(client):
+        snapshot = original(client)
+        if snapshot.state == "subscribing":
+            return mod.HASubscriptionHealth("subscribed")
+        return snapshot
+
+    monkeypatch.setattr(mod.HAStateSubscriptionClient, "subscription_health", premature_readiness)
+
+    async def scenario():
+        # Force failure while the real peer is waiting on its ACK-release gate.
+        # A timeout is a test failure, never evidence of a detected regression.
+        with pytest.raises(RuntimeError, match="^installed_subscription_check_failed$"):
+            await asyncio.wait_for(check(), 15)
+        assert not [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.parametrize("mode", ["supervisor", "child_close"])
+@pytest.mark.tc027_03
+def test_consumer_shutdown_coordination_is_bounded(monkeypatch, mode):
+    async def scenario():
+        socket = Socket(AUTH + [ACK, EVENT])
+        fake(monkeypatch, [socket])
+        stop = asyncio.Event()
+        cancelled, calls = [], []
+
+        async def callback(event):
+            calls.append(1)
+            if mode == "supervisor":
+                stop.set()  # Return to the reader; do not await its shutdown.
+                return
+            try:
+                await asyncio.create_task(client.aclose())
+            except asyncio.CancelledError:
+                cancelled.append(True)
+                raise
+
+        async def supervisor():
+            await stop.wait()
+            await client.aclose()
+
+        client = runtime().HAStateSubscriptionClient(configuration(), callback)
+        closer = asyncio.create_task(supervisor()) if mode == "supervisor" else None
+        try:
+            await asyncio.wait_for(client.run(), 3)
+            if closer is not None:
+                await asyncio.wait_for(closer, 3)
+        finally:
+            if closer is not None and not closer.done():
+                closer.cancel()
+                await asyncio.gather(closer, return_exceptions=True)
+            await client.aclose()
+        assert calls == [1] and socket.closed == 1
+        assert cancelled == ([True] if mode == "child_close" else [])
+        assert client.subscription_health().state == "closed"
+        assert not [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
+
+    asyncio.run(scenario())
 
 
 @pytest.mark.tc027_02

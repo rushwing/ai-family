@@ -653,8 +653,13 @@ structure is limited to 32 nested levels. Subscription rejection is terminal
 Delivery is serial: the next event is not read while the consumer is running.
 The client creates no application queue/history or retry of consumer effects.
 The consumer must return an awaitable, cooperate with cancellation and avoid
-blocking the event loop. Awaiting `aclose()` inside the consumer rejects with
-`close_from_consumer`; schedule close on another task. Failure or invalid return yields `delivery_failed`;
+blocking the event loop. Awaiting `aclose()` directly inside the consumer rejects
+with `close_from_consumer`. For shutdown, signal an existing supervisor task
+started outside delivery, then return; that supervisor awaits `aclose()`. Do not
+await close indirectly through a consumer-created task, `gather` or `wait_for`:
+the task-identity guard only rejects the direct call, and shutdown cancels the
+consumer and can cancel its child close waiter. Indirect waits are not a graceful
+completion protocol. Failure or invalid return yields `delivery_failed`;
 exceeding the delivery deadline yields `delivery_timeout`, both terminal. The
 consumer may have completed effects before failing/cancellation; readiness does
 not assert exactly-once delivery, physical state freshness or device availability.

@@ -24,6 +24,12 @@ async def wait_for(predicate):
 
 
 async def check():
+    # Bound the standalone installed smoke as well as its pytest caller.
+    async with asyncio.timeout(15):
+        return await _check()
+
+
+async def _check():
     state = {"connections": 0, "active": 0, "commands": 0}
     errors, delivered = [], []
     admission, release = asyncio.Event(), asyncio.Event()
@@ -99,20 +105,27 @@ async def check():
                 else:
                     require(False)
         finally:
-            await client.aclose()
-            await running
+            # A readiness assertion can fail before the normal release. Always
+            # free the gated peer before serve.__aexit__ joins its handlers.
+            release.set()
+            try:
+                await client.aclose()
+            finally:
+                await running
         await wait_for(lambda: state["active"] == 0)
         frozen = client.subscription_health()
         await client.aclose()
         require(client.subscription_health() is frozen and frozen.state == "closed")
         require(not frozen.subscribed)
         rejected = HAStateSubscriptionClient(config, callback)
-        await rejected.run()
-        require(rejected.subscription_health().state == "rejected")
-        require(rejected.subscription_health().reason == "subscription_rejected")
-        require(not rejected.subscription_health().subscribed)
-        require(TOKEN not in repr(rejected.subscription_health()))
-        await rejected.aclose()
+        try:
+            await rejected.run()
+            require(rejected.subscription_health().state == "rejected")
+            require(rejected.subscription_health().reason == "subscription_rejected")
+            require(not rejected.subscription_health().subscribed)
+            require(TOKEN not in repr(rejected.subscription_health()))
+        finally:
+            await rejected.aclose()
         await wait_for(lambda: state["active"] == 0)
         require(not errors and state["connections"] == state["commands"] == 3)
         require(not [t for t in asyncio.all_tasks() if t is not asyncio.current_task()
