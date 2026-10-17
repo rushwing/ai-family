@@ -132,7 +132,18 @@ def check():
         require(error.code == "incomplete_snapshot")
     else:
         require(False)
-    return {"checks": 12, "offline": True}
+    for expected, code, path in (
+        (0, "revision_conflict", ("expected_revision",)),
+        (1, "clock_regression", ("now_ms",)),
+    ):
+        try:
+            store.put(context(), **args, state={}, expected_revision=expected, now_ms=99)
+        except StateStoreError as error:
+            require(error.code == code and error.path == path)
+        else:
+            require(False)
+    require(store.read(context(), **args, now_ms=100, max_age_ms=0).to_dict() == saved.to_dict())
+    return {"checks": 15, "offline": True}
 
 
 if __name__ == "__main__":

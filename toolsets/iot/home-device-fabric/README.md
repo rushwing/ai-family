@@ -782,7 +782,19 @@ if not isinstance(view, StateNotFound):
 
 `put` is a full canonical-snapshot replacement with compare-and-swap, not a
 normalized event update. Every successful replacement increments its device
-revision once; conflicts and invalid input leave the cache unchanged. Do not
+revision once; conflicts and invalid input leave the cache unchanged. After
+scope/device and exact-integer metadata validation and lookup, `put` checks
+revision before elapsed-time regression, then validates snapshot shape/identity.
+A stale revision together with regressing time therefore reports
+`revision_conflict`; with a matching revision, regressing time reports
+`clock_regression` before payload validation.
+
+`DeviceState` has no completeness/provenance marker. A schema-valid sparse full
+snapshot and an adapter delta are indistinguishable at this API: the store
+performs no delta detection or implicit merge. A successful CAS proves the
+cache revision, not input completeness. The caller owns full snapshot contents;
+omitted reported members and `desired_state=None` replace/clear retained
+contents. Do not
 store HAEventNormalizer deltas as full snapshots: HI-S017 must merge observed
 members through `apply_state_update`, retaining desired intent/history first.
 Cache writes never execute device actions or promote ACKs to observations.

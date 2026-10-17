@@ -505,4 +505,53 @@ def test_no_file_env_or_clock_dependency(api, monkeypatch):
 
 @pytest.mark.tc029_04
 def test_installed_checks():
-    assert check() == {"checks": 12, "offline": True}
+    assert check() == {"checks": 15, "offline": True}
+
+
+@pytest.mark.tc029_02
+@pytest.mark.tc029_03
+@pytest.mark.parametrize(
+    "revision,now,state,code,path",
+    [
+        (0, 99, snapshot(), "revision_conflict", ("expected_revision",)),
+        (0, 99, {}, "revision_conflict", ("expected_revision",)),
+        (0, 100, {}, "revision_conflict", ("expected_revision",)),
+        (1, 99, {}, "clock_regression", ("now_ms",)),
+        (1, 99, snapshot(), "clock_regression", ("now_ms",)),
+        (1, 100, {}, "invalid_state", ("state",)),
+    ],
+)
+def test_put_error_priority_and_failure_atomicity(api, store, revision, now, state, code, path):
+    put(store)
+    before = read(store).to_dict()
+    payload = copy.deepcopy(state)
+    caught = error(api, code, put, store, expected_revision=revision, now_ms=now, state=payload)
+    assert caught.path == path
+    assert str(caught) == code + ": " + path[0]
+    assert read(store).to_dict() == before
+    assert payload == state
+
+
+@pytest.mark.tc029_02
+def test_schema_valid_sparse_snapshot_is_replacement_not_implicit_delta_merge(store):
+    original = snapshot(value=True)
+    original["reported_state"]["temperature_c"] = {
+        "status": "known",
+        "value": 22.5,
+        "observed_at": "2026-10-17T00:00:00Z",
+        "ordering": {"epoch": 1, "sequence": 1},
+    }
+    original["desired_state"] = {
+        "revision": 1,
+        "values": {"is_on": True},
+        "report_baseline": {"epoch": 1, "sequence": 0},
+    }
+    saved = put(store, state=original)
+    sparse = snapshot()
+    replacement = put(store, expected_revision=1, state=sparse)
+    assert replacement.revision == 2
+    assert replacement.state.to_dict() == sparse
+    assert replacement.state.desired_state is None
+    assert "temperature_c" not in dict(replacement.state.reported_state)
+    assert read(store).state.to_dict() == sparse
+    assert saved.state.to_dict() == original
