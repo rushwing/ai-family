@@ -825,7 +825,9 @@ must be restored by its owner, separately from provider observations.
 `StateStoreError` contains fixed codes/paths and suppresses underlying canonical
 diagnostics. `--require-state-store-runtime` enforces the required module and
 rejects required-suite skips. Direct/sdist-derived installs run the offline
-store smoke under `-I` and `-O -I`. The sole engineering specification and review
-state are [REQ-029](../../../harness/tasks/features/REQ-029.md). Event integration,
+store smoke under `-I` and `-O -I`. The sole engineering specification and
+human-accepted archived state are [REQ-029](../../../harness/tasks/archive/done/features/REQ-029.md).
+The [acceptance record](../../../harness/tasks/evidence/REQ-029-review-acceptance.md)
+links exact PR #59 merge identity and source-specific verification. Event integration,
 query services, authentication middleware, live HA and Feature/Stage completion
 retain their own gates.
