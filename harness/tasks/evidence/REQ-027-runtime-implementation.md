@@ -1,5 +1,10 @@
 # REQ-027 / HI-S005 proposed subscription delivery
 
+This original source-specific execution record remains historical. The
+[local pre-review remediation](REQ-027-review-fixes.md) and
+[fresh repair provenance](REQ-027-review-fixes-provenance.json) supersede the
+active verification baseline with bounded smoke-failure cleanup and 873 tests.
+
 [human-001][2026-10-17] Instructed “proceed with HI-S005” after the proposed
 REQ-027 increment and separate draft PR for external review. [generator-001]
 delivers the admitted specification, proposed TC text/code and implementation
