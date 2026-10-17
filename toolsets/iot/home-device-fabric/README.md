@@ -700,6 +700,15 @@ from the subscription consumer. The adapter owner supplies current-generation
 ordering; this helper does not allocate epochs/sequences or deduplicate source
 messages. Retain the same ordering when replaying the same event. Explicit
 `time_fired` timestamps normalize to UTC `Z`; ordering never derives from time.
+Numeric offsets accept both signs from 00:00 through 23:59, including values
+beyond ±14:00; this API treats them as durations rather than a whitelist of
+civil time zones. ±24:00 and offset minutes above 59 are rejected.
+Every non-null `new_state` requires object `attributes`, even for `unknown` and
+`unavailable`. Missing/null/non-object attributes produce `malformed_object` at
+`event.data.new_state.attributes`; a null `new_state` remains a removal event.
+Canonical output validation failures produce `HANormalizationError` with code
+`invalid_observation` and fixed path `("observation",)`, suppressing the
+underlying canonical diagnostic.
 
 Profiles support exact on/off → `is_on`, cover open/closed/opening/closing with
 integer `current_position` 0..100 → `position_percent`, and finite decimal state

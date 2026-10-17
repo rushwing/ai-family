@@ -189,6 +189,7 @@ def test_invalid_values(api, kind, raw, attrs, code):
         "2026-10-17T00:60:00Z",
         "2026-10-17T00:00:60Z",
         "2026-10-17T00:00:00+24:00",
+        "2026-10-17T00:00:00-24:00",
         "2026-10-17T00:00:00+00:60",
         "2026-10-17T00:00:00.1234567Z",
         "0001-01-01T00:00:00+01:00",
@@ -206,6 +207,10 @@ def test_bad_timestamps(api, stamp):
     "stamp,expected",
     [
         ("2026-10-17T00:00:00Z", "2026-10-17T00:00:00Z"),
+        ("2026-10-17T00:00:00+23:59", "2026-10-16T00:01:00Z"),
+        ("2026-10-17T00:00:00-23:59", "2026-10-17T23:59:00Z"),
+        ("2026-10-17T00:00:00+14:01", "2026-10-16T09:59:00Z"),
+        ("2026-10-17T00:00:00-14:01", "2026-10-17T14:01:00Z"),
         ("2026-10-17T00:00:00.123Z", "2026-10-17T00:00:00.123000Z"),
         ("2026-10-17T00:30:00-01:00", "2026-10-17T01:30:00Z"),
     ],
@@ -386,7 +391,7 @@ def test_privacy_repr_error_and_serialization(api):
 
 @pytest.mark.tc028_04
 def test_offline_installed_smoke():
-    assert check() == {"checks": 5, "offline": True}
+    assert check() == {"checks": 8, "offline": True}
 
 
 @pytest.mark.tc028_02
@@ -421,3 +426,45 @@ def test_subscription_delivery_composes_with_normalizer(api, monkeypatch):
         assert not [task for task in asyncio.all_tasks() if task is not asyncio.current_task()]
 
     asyncio.run(scenario())
+
+
+@pytest.mark.tc028_02
+@pytest.mark.parametrize("raw", ["unknown", "unavailable"])
+@pytest.mark.parametrize("attributes", ["missing", None, []])
+def test_unknown_offline_require_attributes_object(api, raw, attributes):
+    payload = event(raw)
+    state = payload["data"]["new_state"]
+    if attributes == "missing":
+        del state["attributes"]
+    else:
+        state["attributes"] = attributes
+    before = copy.deepcopy(payload)
+    with pytest.raises(api.HANormalizationError) as error:
+        api.HAEventNormalizer(**fixture()).normalize(payload, ordering={"epoch": 1, "sequence": 1})
+    assert error.value.code == "malformed_object"
+    assert error.value.path == ("event", "data", "new_state", "attributes")
+    assert payload == before
+
+
+@pytest.mark.tc028_02
+@pytest.mark.tc028_04
+def test_canonical_rejection_has_fixed_private_error(api, monkeypatch):
+    client = api.HAEventNormalizer(**fixture())
+    payload = event()
+    before = copy.deepcopy(payload)
+
+    def reject(cls, value):
+        raise StateError(("private-schema-key",), "private-canonical-detail")
+
+    monkeypatch.setattr(api.DeviceState, "from_dict", classmethod(reject))
+    with pytest.raises(api.HANormalizationError) as error:
+        client.normalize(payload, ordering={"epoch": 1, "sequence": 1})
+    assert error.value.code == "invalid_observation"
+    assert error.value.path == ("observation",)
+    assert str(error.value) == "invalid_observation: observation"
+    assert error.value.__cause__ is None
+    assert error.value.__suppress_context__ is True
+    import traceback
+
+    assert "private-" not in "".join(traceback.format_exception(error.value))
+    assert payload == before

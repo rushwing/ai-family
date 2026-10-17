@@ -32,8 +32,10 @@ def event(state="off", attributes=None):
 
 
 def check():
+    from unittest.mock import patch
+
     from home_device_fabric.ha_normalization import HAEventNormalizer, HANormalizationError
-    from state_schema.canonical_state import apply_state_update
+    from state_schema.canonical_state import DeviceState, StateError, apply_state_update
 
     normalizer = HAEventNormalizer(**fixture())
     delta = normalizer.normalize(event(), ordering={"epoch": 1, "sequence": 2}).to_dict()
@@ -64,7 +66,35 @@ def check():
             raise RuntimeError("installed_normalization_check_failed") from None
     else:
         raise RuntimeError("installed_normalization_check_failed")
-    return {"checks": 5, "offline": True}
+    for raw in ("unknown", "unavailable"):
+        payload = event(raw)
+        del payload["data"]["new_state"]["attributes"]
+        try:
+            normalizer.normalize(payload, ordering={"epoch": 1, "sequence": 1})
+        except HANormalizationError as error:
+            if (error.code != "malformed_object"
+                    or error.path != ("event", "data", "new_state", "attributes")):
+                raise RuntimeError("installed_normalization_check_failed") from None
+        else:
+            raise RuntimeError("installed_normalization_check_failed")
+    for offset, expected in (("+23:59", "2026-10-16T00:01:00Z"),
+                             ("-23:59", "2026-10-17T23:59:00Z")):
+        payload = event()
+        payload["time_fired"] = "2026-10-17T00:00:00" + offset
+        result = normalizer.normalize(payload, ordering={"epoch": 1, "sequence": 1}).to_dict()
+        if result["availability"]["observed_at"] != expected:
+            raise RuntimeError("installed_normalization_check_failed")
+    with patch.object(DeviceState, "from_dict",
+                      side_effect=StateError(("private-key",), "private-detail")):
+        try:
+            normalizer.normalize(event(), ordering={"epoch": 1, "sequence": 1})
+        except HANormalizationError as error:
+            if (str(error) != "invalid_observation: observation"
+                    or error.__cause__ is not None or not error.__suppress_context__):
+                raise RuntimeError("installed_normalization_check_failed") from None
+        else:
+            raise RuntimeError("installed_normalization_check_failed")
+    return {"checks": 8, "offline": True}
 
 
 if __name__ == "__main__":

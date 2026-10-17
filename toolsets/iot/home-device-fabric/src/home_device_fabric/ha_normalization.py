@@ -57,6 +57,8 @@ def _timestamp(value: object) -> str:
         int(value[start : start + 2]) > limit for start, limit in ((11, 23), (14, 59), (17, 59))
     ):
         raise HANormalizationError("malformed_timestamp", path)
+    # Numeric offsets are durations strictly less than 24 hours, not a list of
+    # civil time zones. Both signs through 23:59 are part of this adapter API.
     if value[-1] != "Z" and (int(value[-5:-3]) > 23 or int(value[-2:]) > 59):
         raise HANormalizationError("malformed_timestamp", path)
     try:
@@ -172,19 +174,22 @@ class HAEventNormalizer:
                     "observed_at": observed,
                     "ordering": order,
                 }
-        return DeviceState.from_dict(
-            {
-                "home_id": profile.home,
-                "device_id": profile.device,
-                "desired_state": None,
-                "reported_state": reports,
-                "availability": {
-                    "status": availability,
-                    "observed_at": observed,
-                    "ordering": order,
-                },
-            }
-        )
+        try:
+            return DeviceState.from_dict(
+                {
+                    "home_id": profile.home,
+                    "device_id": profile.device,
+                    "desired_state": None,
+                    "reported_state": reports,
+                    "availability": {
+                        "status": availability,
+                        "observed_at": observed,
+                        "ordering": order,
+                    },
+                }
+            )
+        except StateError:
+            raise HANormalizationError("invalid_observation", ("observation",)) from None
 
 
 def _convert(kind: Kind, raw: str, attrs: dict[str, object]) -> bool | int | float | None:
