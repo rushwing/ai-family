@@ -2,9 +2,6 @@
 
 import json
 
-from home_device_fabric.ha_normalization import HAEventNormalizer, HANormalizationError
-from state_schema.canonical_state import apply_state_update
-
 
 def fixture(kind="switch"):
     return {
@@ -35,6 +32,9 @@ def event(state="off", attributes=None):
 
 
 def check():
+    from home_device_fabric.ha_normalization import HAEventNormalizer, HANormalizationError
+    from state_schema.canonical_state import apply_state_update
+
     normalizer = HAEventNormalizer(**fixture())
     delta = normalizer.normalize(event(), ordering={"epoch": 1, "sequence": 2}).to_dict()
     if (delta["reported_state"]["is_on"]["value"] is not False
