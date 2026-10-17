@@ -62,6 +62,28 @@ is maintained in [draft PR #57](https://github.com/rushwing/ai-family/pull/57).
 ## External review stop
 
 Remain req_impl / generator-001, review_round 0, AC1–AC4 unchecked and
-TC-028-01–04 implemented. Evidence/link follow-up changes no tested runtime,
-test, smoke or CI bytes. PR #57 stays draft. External review, human acceptance,
+TC-028-01–04 implemented. PR #57 stays draft. External review, human acceptance,
 merge, BUG-033 and Feature/Stage completion retain separate gates.
+
+
+## Runtime-diagnosis follow-up — 2026-10-17
+
+Commit aa29fbd31fba80f69ae1da0f43f48792117e1960 moves imports in the
+normalization installed smoke into check(). The test fixture can now be imported
+before runtime availability is diagnosed. Runtime, test assertions and CI bytes
+are unchanged. Historical a49db40 build evidence and its smoke hash above remain
+source-specific; this follow-up uses the updated smoke hash recorded in
+[follow-up provenance](REQ-028-import-followup-provenance.json).
+
+At clean source aa29fbd, all **86 normalization cases pass**. Actual collection
+with an import blocker yields **86 skips** when runtime is optional, and exits
+**4** with the fixed absent/broken diagnosis when required. Private probe exception
+text is absent in all three outputs. These deliberate optional skips are separate
+from the complete required-suite results above.
+
+Fresh offline virtual environments installed each retained direct/derived wheel
+pair and previously verified dependencies. The updated smoke passes all four
+normal/optimized isolated runs (**five checks, offline:true** each). Existing
+wheels were reused rather than rebuilt; their runtime hash is unchanged.
+Governance, 21 planning tests, nine-flag CI wiring and whitespace checks pass.
+The PR's final-head CI independently verifies the complete three-version matrix.

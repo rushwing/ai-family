@@ -1,0 +1,96 @@
+{
+  "source_commit": "aa29fbd31fba80f69ae1da0f43f48792117e1960",
+  "source_dirty": false,
+  "smoke_sha256": "17afca69e061358d05bb7db3326cee11b91e7879c3b52d2a5c350eda64ec5916",
+  "runtime_sha256": "7a9004cce2f75521e002b797c33d14b9d98a79817a21722e52351650144342d4",
+  "normalization_tests": {
+    "passed": 86,
+    "failed": 0,
+    "skipped": 0
+  },
+  "runtime_gate_probes": [
+    {
+      "required": false,
+      "broken": false,
+      "returncode": 0,
+      "summary": "86 skipped in 0.15s",
+      "log_sha256": "368cbecf0118850e58174498a0bc2526f2e162dc1a4a4b1b3a672b4f3b71dd62"
+    },
+    {
+      "required": true,
+      "broken": false,
+      "returncode": 4,
+      "summary": "ERROR: REQ-028 ha-normalization runtime required but absent",
+      "log_sha256": "431f1d5390c15e7374c1634be5deda3037e45ba944be07cd8c5c00cd61bed8f7"
+    },
+    {
+      "required": true,
+      "broken": true,
+      "returncode": 4,
+      "summary": "ERROR: REQ-028 ha-normalization runtime required but broken",
+      "log_sha256": "309115e795e49459a68b29f24d187848fc6e028a5f54950554a3600c227fcf23"
+    }
+  ],
+  "installed_checks": [
+    {
+      "pair": "direct",
+      "flags": [
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "40e7b44b3b6ce486d02d79692d97d0398edfb71338e941c20a16082bccf2eddd",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 5,
+        "offline": true
+      }
+    },
+    {
+      "pair": "direct",
+      "flags": [
+        "-O",
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "40e7b44b3b6ce486d02d79692d97d0398edfb71338e941c20a16082bccf2eddd",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 5,
+        "offline": true
+      }
+    },
+    {
+      "pair": "derived",
+      "flags": [
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "40e7b44b3b6ce486d02d79692d97d0398edfb71338e941c20a16082bccf2eddd",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 5,
+        "offline": true
+      }
+    },
+    {
+      "pair": "derived",
+      "flags": [
+        "-O",
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "40e7b44b3b6ce486d02d79692d97d0398edfb71338e941c20a16082bccf2eddd",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 5,
+        "offline": true
+      }
+    }
+  ],
+  "verification_method": "Fresh offline virtual environment per retained direct/sdist-derived wheel pair; install with --no-index and previously verified dependencies; run current smoke from outside checkout under -I and -O -I. Existing wheels reused, not rebuilt. Runtime bytes unchanged from a49db40.",
+  "governance": "scripts/check.sh passed, including 21 planning tests and all nine required-runtime flags; git diff --check passed."
+}
