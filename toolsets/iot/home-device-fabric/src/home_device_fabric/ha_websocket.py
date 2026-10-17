@@ -270,10 +270,7 @@ class HAWebSocketClient:
                 if _clock() >= deadline:
                     raise TimeoutError
             self._publish("connected")
-            # Without subscriptions there are no valid application messages.
-            # Control frames/keepalive are consumed internally by websockets.
-            await socket.recv()
-            reason = "protocol_error"
+            reason = await self._consume_authenticated(socket)
         except TimeoutError:
             reason = "timeout"
         except InvalidStatus as error:
@@ -299,6 +296,13 @@ class HAWebSocketClient:
                 if interrupted:
                     raise asyncio.CancelledError
         return reason
+
+    async def _consume_authenticated(self, socket: ClientConnection) -> str:
+        # Internal adapter extension point. The base lifecycle still owns the
+        # sole reader, transport cleanup and lifetime reconnect budget.
+        # Without subscriptions there are no valid application messages.
+        await socket.recv()
+        return "protocol_error"
 
     async def _run(self) -> None:
         delays = self._configuration.reconnect_delays_ms()
