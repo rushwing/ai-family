@@ -29,6 +29,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-ha-websocket-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-health-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-subscription-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-normalization-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -126,6 +127,21 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_subscription.py":
                 item.add_marker(pytest.mark.skip(
                     reason="REQ-027 ha-subscription runtime " + subscription_error))
+    try:
+        importlib.import_module("home_device_fabric.ha_normalization")
+        normalization_error = None
+    except ImportError:
+        normalization_error = "absent"
+    except Exception:
+        normalization_error = "broken"
+    if config.getoption("--require-ha-normalization-runtime") and normalization_error:
+        raise pytest.UsageError(
+            "REQ-028 ha-normalization runtime required but " + normalization_error)
+    if normalization_error:
+        for item in items:
+            if item.path.name == "test_ha_normalization.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-028 ha-normalization runtime " + normalization_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -172,6 +188,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-websocket-runtime")
         or session.config.getoption("--require-ha-health-runtime")
         or session.config.getoption("--require-ha-subscription-runtime")
+        or session.config.getoption("--require-ha-normalization-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

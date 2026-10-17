@@ -88,6 +88,8 @@ def main():
             "src/home_device_fabric/ha_websocket.py").read_bytes()).hexdigest(),
         "health_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/ha_health.py").read_bytes()).hexdigest(),
+        "normalization_runtime_sha256": hashlib.sha256((PACKAGES[1] /
+            "src/home_device_fabric/ha_normalization.py").read_bytes()).hexdigest(),
         "subscription_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/ha_subscription.py").read_bytes()).hexdigest(),
         "source_dirty": bool(subprocess.run(
@@ -167,7 +169,8 @@ def main():
             for filename in ("conformance_artifact_smoke.py", "conformance_wrappers.py",
                              "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py",
                              "ha_websocket_artifact_smoke.py", "ha_health_artifact_smoke.py",
-                             "ha_subscription_artifact_smoke.py"):
+                             "ha_subscription_artifact_smoke.py",
+                             "ha_normalization_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
@@ -175,6 +178,7 @@ def main():
             ha_websocket = []
             ha_health = []
             ha_subscription = []
+            ha_normalization = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -211,6 +215,12 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 ha_subscription.append(json.loads(checked_subscription.stdout))
+                checked_normalization = subprocess.run(
+                    [str(interpreter), *flags,
+                     str(directory / "ha_normalization_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                ha_normalization.append(json.loads(checked_normalization.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -222,6 +232,7 @@ def main():
                     "ha_websocket": ha_websocket,
                     "ha_health": ha_health,
                     "ha_subscription": ha_subscription,
+                    "ha_normalization": ha_normalization,
                     "installed_distributions": json.loads(installed.stdout),
                 }
             )
