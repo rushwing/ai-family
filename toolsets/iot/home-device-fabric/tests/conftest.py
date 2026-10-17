@@ -30,6 +30,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-ha-health-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-subscription-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-normalization-runtime", action="store_true", default=False)
+    parser.addoption("--require-state-store-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -142,6 +143,20 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_normalization.py":
                 item.add_marker(pytest.mark.skip(
                     reason="REQ-028 ha-normalization runtime " + normalization_error))
+    try:
+        importlib.import_module("home_device_fabric.state_store")
+        store_error = None
+    except ImportError:
+        store_error = "absent"
+    except Exception:
+        store_error = "broken"
+    if config.getoption("--require-state-store-runtime") and store_error:
+        raise pytest.UsageError("REQ-029 state-store runtime required but " + store_error)
+    if store_error:
+        for item in items:
+            if item.path.name == "test_state_store.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-029 state-store runtime " + store_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -189,6 +204,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-health-runtime")
         or session.config.getoption("--require-ha-subscription-runtime")
         or session.config.getoption("--require-ha-normalization-runtime")
+        or session.config.getoption("--require-state-store-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

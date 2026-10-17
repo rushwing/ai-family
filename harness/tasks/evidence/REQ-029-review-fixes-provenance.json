@@ -1,0 +1,600 @@
+{
+  "source_commit": "bdabd0ddff3031af513142b7527e1e84235efa98",
+  "source_dirty": false,
+  "runtime_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da",
+  "smoke_sha256": "c098c3fe23c39518e3e7dfbc62487d769d25a336c8c0bb88302cce8a52d75baa",
+  "artifact_source_commit": "53939fa5e503715c762e99df70a877dd995fba28",
+  "method": "Reuse retained direct/sdist-derived package pairs from original clean source, with unchanged runtime hash. Fresh offline virtual environment per pair; pip --no-index using previously officially verified dependency wheelhouse. Updated review smoke copied outside checkout and executed under -I / -O -I; no wheel rebuild or new metadata acquisition claimed.",
+  "installed_checks": [
+    {
+      "pair": "direct",
+      "flags": [
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "6d6ca05b896117056a4342a0ba6ce75c8009668cafd896caab6dbf7d38803df8",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 15,
+        "offline": true
+      }
+    },
+    {
+      "pair": "direct",
+      "flags": [
+        "-O",
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "6d6ca05b896117056a4342a0ba6ce75c8009668cafd896caab6dbf7d38803df8",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 15,
+        "offline": true
+      }
+    },
+    {
+      "pair": "derived",
+      "flags": [
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "6d6ca05b896117056a4342a0ba6ce75c8009668cafd896caab6dbf7d38803df8",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 15,
+        "offline": true
+      }
+    },
+    {
+      "pair": "derived",
+      "flags": [
+        "-O",
+        "-I"
+      ],
+      "wheel_sha256": {
+        "ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "6d6ca05b896117056a4342a0ba6ce75c8009668cafd896caab6dbf7d38803df8",
+        "ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+      },
+      "result": {
+        "checks": 15,
+        "offline": true
+      }
+    }
+  ],
+  "dependency_wheels": {
+    "anyio-4.15.1-py3-none-any.whl": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+    "certifi-2026.7.22-py3-none-any.whl": "62f22742b58a1a33014a2b6b706588a8d7e2a88ae7bd1a6ebe8c992928483775",
+    "h11-0.16.0-py3-none-any.whl": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+    "httpcore-1.0.9-py3-none-any.whl": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+    "httpx-0.28.1-py3-none-any.whl": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+    "idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+    "typing_extensions-4.16.0-py3-none-any.whl": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+    "websockets-15.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl": "e8b56bdcdb4505c8078cb6c7157d9811a85790f2f2b3632c7d1462ab5783d215"
+  },
+  "test_results": [
+    {
+      "filename": "req029-review-fabric.xml",
+      "expected_executed": 1117,
+      "sha256": "f5a19484fdb227753597299b6af867ab88fce1bb7050f4d0ff9db49e70e1643d",
+      "totals": {
+        "executed": 1117,
+        "passed": 1117,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc025_02": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_03": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_01": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_02": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_03": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_04": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_05": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_06": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_06": {
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_06": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_05": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_05": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_01": {
+          "executed": 24,
+          "passed": 24,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_02": {
+          "executed": 75,
+          "passed": 75,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_03": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_04": {
+          "executed": 72,
+          "passed": 72,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_05": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_01": {
+          "executed": 38,
+          "passed": 38,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_02": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_03": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_01": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_02": {
+          "executed": 71,
+          "passed": 71,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_03": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_02": {
+          "executed": 56,
+          "passed": 56,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_03": {
+          "executed": 61,
+          "passed": 61,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_04": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_05": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_01": {
+          "executed": 18,
+          "passed": 18,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_02": {
+          "executed": 33,
+          "passed": 33,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_03": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_04": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_01": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_02": {
+          "executed": 2,
+          "passed": 2,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_03": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_04": {
+          "executed": 17,
+          "passed": 17,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_05": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_01": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_01": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_02": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_04": {
+          "executed": 15,
+          "passed": 15,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_05": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_01": {
+          "executed": 53,
+          "passed": 53,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_02": {
+          "executed": 34,
+          "passed": 34,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_03": {
+          "executed": 50,
+          "passed": 50,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    }
+  ],
+  "historical_shared_evidence": {
+    "provenance": "REQ-029-artifact-provenance.json",
+    "source_commit": "53939fa5e503715c762e99df70a877dd995fba28",
+    "result": {
+      "filename": "req029-shared.xml",
+      "expected_executed": 1795,
+      "sha256": "f6d27009b38fbf945aad726d04bd5f424d00d4e765c3ed1704b918adeee07573",
+      "totals": {
+        "executed": 1795,
+        "passed": 1795,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {}
+    },
+    "note": "Shared sources unchanged. This is historical generator execution (1795 passed), not a new local shared-suite rerun. CI independently executes the current shared matrix."
+  },
+  "generator_mutation_probes": [
+    {
+      "name": "clock_before_revision",
+      "description": "Move elapsed-time regression checking ahead of CAS.",
+      "selection": "test_put_error_priority_and_failure_atomicity",
+      "source_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da",
+      "mutated_source_sha256": "b92f75af223ab8518732144791fe45cbc616a001e78663ea9a79e78fd22b3ac3",
+      "returncode": 1,
+      "seconds": 0.722,
+      "log_sha256": "be59b1cb621e6ae3475a88db6fa3fd238990e462ba751704ab8acf85fe3d8df2",
+      "summary": "2 failed, 4 passed, 126 deselected in 0.16s",
+      "source_diff": "--- state_store.py\n+++ mutated_state_store.py\n@@ -210,6 +210,7 @@\n             row = self._rows.get((home, device))\n             if row is None:\n                 return StateNotFound(home, device)\n+            row.view(now, 0)\n             if row.revision != expected:\n                 raise StateStoreError(\"revision_conflict\", (\"expected_revision\",))\n             row.view(now, 0)  # Reject regressing elapsed time before publication.\n"
+    },
+    {
+      "name": "payload_before_revision",
+      "description": "Move canonical payload validation ahead of CAS and clock regression.",
+      "selection": "test_put_error_priority_and_failure_atomicity",
+      "source_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da",
+      "mutated_source_sha256": "fecea12bb2e446b60d8beb12db7551a604b0769e8dbef396625f1b4ede9b77c4",
+      "returncode": 1,
+      "seconds": 0.717,
+      "log_sha256": "99641af42cb6d4870d5b75c14f684d27b81f982edd02ebff3312868db5c305a0",
+      "summary": "3 failed, 3 passed, 126 deselected in 0.19s",
+      "source_diff": "--- state_store.py\n+++ mutated_state_store.py\n@@ -210,13 +210,13 @@\n             row = self._rows.get((home, device))\n             if row is None:\n                 return StateNotFound(home, device)\n-            if row.revision != expected:\n-                raise StateStoreError(\"revision_conflict\", (\"expected_revision\",))\n-            row.view(now, 0)  # Reject regressing elapsed time before publication.\n             try:\n                 candidate = DeviceState.from_dict(state)\n             except StateError:\n                 raise StateStoreError(\"invalid_state\", (\"state\",)) from None\n+            if row.revision != expected:\n+                raise StateStoreError(\"revision_conflict\", (\"expected_revision\",))\n+            row.view(now, 0)  # Reject regressing elapsed time before publication.\n             if candidate.home_id != home or candidate.device_id != device:\n                 raise StateStoreError(\"identity_mismatch\", (\"state\",))\n             updated = _Stored(candidate, row.revision + 1, now)\n"
+    },
+    {
+      "name": "implicit_report_merge",
+      "description": "Merge omitted reports into full replacement, contrary to explicit snapshot ownership.",
+      "selection": "test_schema_valid_sparse_snapshot_is_replacement_not_implicit_delta_merge",
+      "source_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da",
+      "mutated_source_sha256": "f40b2b3f164d8c336d8e5682289a4cd75d1646169ee1b3b768bd80c122e316ee",
+      "returncode": 1,
+      "seconds": 0.687,
+      "log_sha256": "0e946954e3ba633230cc3f11720b3fee386e0bc8bb05c65ad4466d7b6767e4bb",
+      "summary": "1 failed, 131 deselected in 0.12s",
+      "source_diff": "--- state_store.py\n+++ mutated_state_store.py\n@@ -219,6 +219,8 @@\n                 raise StateStoreError(\"invalid_state\", (\"state\",)) from None\n             if candidate.home_id != home or candidate.device_id != device:\n                 raise StateStoreError(\"identity_mismatch\", (\"state\",))\n+            candidate = DeviceState.from_dict({**candidate.to_dict(), \"reported_state\": {\n+                **row.state.to_dict()[\"reported_state\"], **candidate.to_dict()[\"reported_state\"]}})\n             updated = _Stored(candidate, row.revision + 1, now)\n             self._rows[home, device] = updated\n             return updated.view(now, 0)\n"
+    }
+  ],
+  "actual_runtime_gate_probes": [
+    {
+      "required": false,
+      "broken": false,
+      "returncode": 0,
+      "summary": "132 skipped in 0.29s",
+      "log_sha256": "f716f80967d6b133714500b53186a702843e0a58c218ecefea82cddd94cabef7"
+    },
+    {
+      "required": true,
+      "broken": false,
+      "returncode": 4,
+      "summary": "ERROR: REQ-029 state-store runtime required but absent",
+      "log_sha256": "a6349c91c74e71992f6ca028ba63ad682857682397737593f1780727d4e97958"
+    },
+    {
+      "required": true,
+      "broken": true,
+      "returncode": 4,
+      "summary": "ERROR: REQ-029 state-store runtime required but broken",
+      "log_sha256": "289548b4a82caa2a6f0274ff27ec7a0c99568e0f5a332c5119425b16e129218f"
+    }
+  ],
+  "wheel_runtime_verification": [
+    {
+      "pair": "direct",
+      "filename": "ai_family_home_device_fabric-0.1.0-py3-none-any.whl",
+      "state_store_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da"
+    },
+    {
+      "pair": "derived",
+      "filename": "ai_family_home_device_fabric-0.1.0-py3-none-any.whl",
+      "state_store_sha256": "b16cb872dc9b535456931c1fe0c28085088b129224476490093386aec59056da"
+    }
+  ],
+  "verification_sources": {
+    "toolsets/iot/home-device-fabric/tests/test_state_store.py": "b8b3f5718a6e1ef69e21035b4d430e018a25d4ddb4a53c7465f928e78af8b335",
+    "toolsets/iot/home-device-fabric/tests/state_store_artifact_smoke.py": "c098c3fe23c39518e3e7dfbc62487d769d25a336c8c0bb88302cce8a52d75baa",
+    "toolsets/iot/home-device-fabric/tests/conftest.py": "d3fdf0da30331ba5df0e6c304e0f3420bee1c39c111d0a26dd9d783b92c2b357",
+    "toolsets/iot/home-device-fabric/tests/build_artifacts.py": "a728cb968c9917558dbcf0cec775d0475d85bdf3d1bf19e8cdbe5903605fd83e",
+    ".github/workflows/ci.yml": "c80e9c2040feddd0b85893c2fe82461c282876ca3726f44c25ae6c75e77a09f2"
+  },
+  "execution_notes": {
+    "authority": "User supplied expressly non-signing local pre-review of b00f48e and instructed Fix all findings. Generator follow-up only; no T03/T07/T10/T13 approval, acceptance or merge.",
+    "O1": "Document and test post-metadata/lookup priority: CAS revision, elapsed-time regression, canonical snapshot validation. Six compound-error cases assert exact code/path and unchanged input/store.",
+    "O2": "Retain full-snapshot replacement API without schema changes. DeviceState has no completeness/provenance marker; schema-valid sparse snapshots/deltas cannot be distinguished. Explicit caller ownership and no implicit merge; regression pins replacement/clearing semantics.",
+    "O3": "Reviewer Termux ensurepip limit retained. Fresh Linux offline retained-wheel installs are separate evidence; no new build or metadata acquisition, Termux installation or live HA result inferred.",
+    "fabric_command": "/tmp/req019-env/bin/python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime --require-ha-websocket-runtime --require-ha-health-runtime --require-ha-subscription-runtime --require-ha-normalization-runtime --require-state-store-runtime --junitxml=/tmp/req029-review-fabric.xml -q",
+    "checks": "Ruff, strict mypy (15 runtime sources), governance with 21 planning regressions and ten-flag CI guard, public-data/requirements and whitespace checks pass. Mutation subprocesses use 20-second bounds; all three exit pytest 1 through real assertions, no timeout.",
+    "lifecycle": "req_impl / generator-001, review_round 0, AC1-AC4 unchecked, four TCs implemented, draft PR #59; no final acceptance or merge."
+  }
+}

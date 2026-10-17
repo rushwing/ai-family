@@ -749,3 +749,83 @@ for merge identity and verification limits. Live HA certification,
 reconciliation, multi-entity aggregation, source
 deduplication, durable epochs, action writes and Feature/Stage acceptance remain
 outside this increment.
+
+
+## Scoped current-state store (REQ-029 / HI-S016)
+
+`home_device_fabric.state_store.CurrentStateStore(inventories=[...], grants=[...])`
+is a rebuildable in-memory cache over accepted canonical inventory and State
+contracts. It registers only configured canonical devices, initially unknown
+at revision 0. Home IDs scope device IDs, including identical device IDs in
+different homes. Missing devices return `StateNotFound` and are never created.
+
+Each configured grant contains `subject_id`, `family_member_id`, `home_id`,
+`role` and `access` (`read` or `write`). All context fields must match exactly;
+a write grant includes reads and child (`kid`) write grants are rejected.
+Every operation checks scope before lookup, payload or metadata. The store has
+no authentication transport: construct grants from trusted policy and pass
+contexts derived from verified identity. Neither role spelling nor unverified
+agent/tool parameters are proof of permission. There is no northbound route or
+physical-device dispatch in this module.
+
+```python
+from home_device_fabric.state_store import CurrentStateStore, StateNotFound
+
+store = CurrentStateStore(inventories=trusted_inventories, grants=trusted_grants)
+view = store.read(verified_context, home_id=home_id, device_id=device_id,
+                  now_ms=elapsed_ms, max_age_ms=5000)
+if not isinstance(view, StateNotFound):
+    saved = store.put(verified_context, home_id=home_id, device_id=device_id,
+                      state=canonical_full_snapshot, expected_revision=view.revision,
+                      now_ms=elapsed_ms)
+```
+
+`put` is a full canonical-snapshot replacement with compare-and-swap, not a
+normalized event update. Every successful replacement increments its device
+revision once; conflicts and invalid input leave the cache unchanged. After
+scope/device and exact-integer metadata validation and lookup, `put` checks
+revision before elapsed-time regression, then validates snapshot shape/identity.
+A stale revision together with regressing time therefore reports
+`revision_conflict`; with a matching revision, regressing time reports
+`clock_regression` before payload validation.
+
+`DeviceState` has no completeness/provenance marker. A schema-valid sparse full
+snapshot and an adapter delta are indistinguishable at this API: the store
+performs no delta detection or implicit merge. A successful CAS proves the
+cache revision, not input completeness. The caller owns full snapshot contents;
+omitted reported members and `desired_state=None` replace/clear retained
+contents. Do not
+store HAEventNormalizer deltas as full snapshots: HI-S017 must merge observed
+members through `apply_state_update`, retaining desired intent/history first.
+Cache writes never execute device actions or promote ACKs to observations.
+
+Frozen `StateView` exposes `state`, `revision`, `updated_at_ms` and `freshness`;
+`to_dict()` returns a detached projection. Repr of the store is constant and raw
+serialization/copy is refused. Operations synchronize publication and CAS within
+one process; no distributed consistency is provided.
+
+Supply exact nonnegative integer `now_ms` and `max_age_ms` in a monotonic elapsed
+time domain; the store reads no ambient clock. Uninitialized records remain
+`uninitialized` with update time None. Initialized snapshots are `fresh` at
+`age <= max_age_ms`, otherwise `stale`. Earlier-than-update time fails with
+`clock_regression`. This measures snapshot ingestion age independently of
+availability and per-property observed_at; it does not certify physical freshness.
+Revisions are cache-local, not provider ordering/epochs or durable task state.
+
+After restart construct a new store (all revisions reset to 0). Fetch and map a
+fresh provider snapshot outside this module, then call
+`rebuild(verified_context, home_id=home_id, states=canonical_collection, now_ms=elapsed_ms)`.
+The collection must contain exactly every registered device for that home and
+must have no desired intent. Validation precedes one atomic publication at
+revision 1. Rebuild is one-shot per home and refuses a home already modified by
+put/rebuild; an empty home can rebuild once. Rebuild performs no I/O, epoch
+allocation, live-event buffering or reconnect reconciliation. Durable intent
+must be restored by its owner, separately from provider observations.
+
+`StateStoreError` contains fixed codes/paths and suppresses underlying canonical
+diagnostics. `--require-state-store-runtime` enforces the required module and
+rejects required-suite skips. Direct/sdist-derived installs run the offline
+store smoke under `-I` and `-O -I`. The sole engineering specification and review
+state are [REQ-029](../../../harness/tasks/features/REQ-029.md). Event integration,
+query services, authentication middleware, live HA and Feature/Stage completion
+retain their own gates.
