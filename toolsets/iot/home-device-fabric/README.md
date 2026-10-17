@@ -742,7 +742,10 @@ canonical identity, observations, availability and metadata. Repr redacts
 configuration and pickle serialization rejects. Ambient-effect guards and
 `--require-ha-normalization-runtime` enforce offline required verification;
 direct and sdist-derived installed smokes execute under `-I` and `-O -I`.
-[REQ-028](../../../harness/tasks/features/REQ-028.md) owns current scope and review
-state. Live HA certification, reconciliation, multi-entity aggregation, source
+[REQ-028](../../../harness/tasks/archive/done/features/REQ-028.md) records
+human-accepted scope and archived engineering state after PR #57. See the
+[acceptance record](../../../harness/tasks/evidence/REQ-028-review-acceptance.md)
+for merge identity and verification limits. Live HA certification,
+reconciliation, multi-entity aggregation, source
 deduplication, durable epochs, action writes and Feature/Stage acceptance remain
 outside this increment.
