@@ -681,5 +681,59 @@ checkout. Numeric-loopback peers verify ACK readiness, ordered events, reconnect
 rejection, redaction and drained shutdown. No private HA, Windows portability
 certification, physical device, Feature or Stage completion is inferred.
 
-[REQ-027](../../../harness/tasks/features/REQ-027.md) owns the current proposed
+[REQ-027](../../../harness/tasks/archive/done/features/REQ-027.md) owns the accepted
 specification and evidence; external review and final acceptance remain pending.
+
+## HA event normalization (REQ-028 / HI-S006)
+
+`home_device_fabric.ha_normalization.HAEventNormalizer` is a pure adapter with
+explicit profiles. Construct with JSON `inventory`, `bindings`, a configured
+`provider_instance_id` alias and `profiles=[{"entity_id": "opaque.fixture",
+"kind": "switch"}]`. Inventory references and binding collisions are validated
+before use. Every HA binding in that instance needs one profile and exactly one
+entity. Multi-entity device availability aggregation is deferred and fails
+configuration; other instances and mock mappings remain separate. Entity names
+never imply canonical identity or a conversion profile.
+
+Use `normalize(decoded_event, ordering={"epoch": epoch, "sequence": sequence})`
+from the subscription consumer. The adapter owner supplies current-generation
+ordering; this helper does not allocate epochs/sequences or deduplicate source
+messages. Retain the same ordering when replaying the same event. Explicit
+`time_fired` timestamps normalize to UTC `Z`; ordering never derives from time.
+
+Profiles support exact on/off → `is_on`, cover open/closed/opening/closing with
+integer `current_position` 0..100 → `position_percent`, and finite decimal state
+strings at least -273.15 with exact °C units → `temperature_c`. No unit conversion, endpoint
+inference, capability registration or rounding occurs. A missing cover position
+is explicitly unknown. Unknown HA state emits an unknown property and unknown
+availability; unavailable/removal emits offline availability and no property
+update. False and zero remain real observations.
+
+The returned frozen `DeviceState` is a **delta**. Apply its two observed members
+to an existing canonical snapshot, preserving desired intent and retained history:
+
+```python
+delta = normalizer.normalize(event, ordering={"epoch": epoch, "sequence": sequence}).to_dict()
+updated = apply_state_update(
+    current, current_epoch=epoch,
+    reported_state=delta["reported_state"], availability=delta["availability"],
+)
+```
+
+Import `apply_state_update` from `state_schema.canonical_state`. Existing state
+must belong to the same canonical Home/Device as the delta; the state owner routes
+by canonical IDs before applying. Replacing an entire snapshot with a delta would
+lose intent/history. Canonical helpers reject cross-epoch updates and conflicting
+equal ordering, accept identical replay and ignore stale same-epoch members.
+No ACK changes State; normalization performs no writes or persistence.
+
+`HANormalizationError.code` and `.path` are value-free structured diagnostics.
+Provider mappings/payloads remain private adapter inputs; outputs contain only
+canonical identity, observations, availability and metadata. Repr redacts
+configuration and pickle serialization rejects. Ambient-effect guards and
+`--require-ha-normalization-runtime` enforce offline required verification;
+direct and sdist-derived installed smokes execute under `-I` and `-O -I`.
+[REQ-028](../../../harness/tasks/features/REQ-028.md) owns current scope and review
+state. Live HA certification, reconciliation, multi-entity aggregation, source
+deduplication, durable epochs, action writes and Feature/Stage acceptance remain
+outside this increment.

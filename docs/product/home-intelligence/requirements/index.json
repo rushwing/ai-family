@@ -610,14 +610,8 @@
       "title": "Normalize HA state change events",
       "parent": "HI-F002",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S006.md",
-      "depends_on": [
-        "HI-S005",
-        "HI-S009",
-        "HI-S010"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-028",
       "legacy_refs": [
         "ZW-ST-0302"
       ],
