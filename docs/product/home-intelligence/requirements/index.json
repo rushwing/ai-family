@@ -598,12 +598,8 @@
       "title": "Subscribe to HA state changes",
       "parent": "HI-F002",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S005.md",
-      "depends_on": [
-        "HI-S003"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-027",
       "legacy_refs": [
         "ZW-ST-0302"
       ],

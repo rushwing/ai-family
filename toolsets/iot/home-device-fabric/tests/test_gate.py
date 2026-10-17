@@ -16,7 +16,7 @@ def isolated_hooks(
     directory, *, provider_present, demo_present, conformance_present=False,
     shared_present=True, ha_configuration_present=False, ha_rest_present=False,
     httpx_present=False, ha_websocket_present=False, websockets_present=False,
-    ha_health_present=False
+    ha_health_present=False, ha_subscription_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -38,6 +38,8 @@ def isolated_hooks(
             (package / "ha_websocket.py").write_text("import websockets\n")
         if ha_health_present:
             (package / "ha_health.py").write_text("import httpx\nimport websockets\n")
+        if ha_subscription_present:
+            (package / "ha_subscription.py").write_text("import websockets\n")
     if httpx_present:
         root.mkdir(parents=True, exist_ok=True)
         (root / "httpx.py").write_text('"""Gate-only dependency stub."""\n')
@@ -316,7 +318,7 @@ def test_ci_requires_complete_fabric_acceptance():
     for flag in ("--require-provider-runtime", "--require-demo-runtime",
                  "--require-conformance-runtime", "--require-ha-configuration-runtime",
                  "--require-ha-rest-runtime", "--require-ha-websocket-runtime",
-                 "--require-ha-health-runtime"):
+                 "--require-ha-health-runtime", "--require-ha-subscription-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -354,6 +356,44 @@ def test_ha_health_required_gate(tmp_path, monkeypatch, module, dependency,
     if expected == 4:
         diagnosis = "broken" if module == "broken" else "absent"
         assert "ha-health runtime required but " + diagnosis in result.stderr
+    elif skip or not module or module == "broken":
+        assert "1 skipped" in result.stdout
+    else:
+        assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc027_05
+@pytest.mark.parametrize("module,dependency,required,skip,expected", [
+    (False, True, True, False, 4), (True, False, True, False, 4),
+    ("broken", True, True, False, 4), ("broken", True, False, False, 0),
+    (False, True, False, False, 0), (True, True, True, True, 1),
+    (True, True, True, False, 0),
+])
+def test_ha_subscription_required_gate(tmp_path, monkeypatch, module, dependency,
+                                 required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False, ha_subscription_present=module,
+        httpx_present=dependency, websockets_present=dependency))
+    if module == "broken":
+        (tmp_path / "runtime/home_device_fabric/ha_subscription.py").write_text(
+            "raise AttributeError('private import details')\n")
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    # Required mode must diagnose missing runtime even under unrelated selection.
+    filename = "test_probe.py" if required and expected == 4 else "test_ha_subscription.py"
+    (tmp_path / filename).write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-ha-subscription-runtime")
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+    if expected == 4:
+        diagnosis = "broken" if module == "broken" else "absent"
+        assert "ha-subscription runtime required but " + diagnosis in result.stderr
     elif skip or not module or module == "broken":
         assert "1 skipped" in result.stdout
     else:

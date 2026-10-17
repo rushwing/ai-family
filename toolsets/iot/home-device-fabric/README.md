@@ -609,3 +609,77 @@ delivery and PR #54 merge. [Health closeout](../../../harness/tasks/evidence/REQ
 retains verification and non-signing pre-review attribution; this module does not
 complete HI-F001/R1 or resolve Windows BUG-033. [REQ-025 acceptance](../../../harness/tasks/evidence/REQ-025-review-acceptance.md)
 records the independently authorized PR #53 merge and ledger closeout.
+
+
+## State change subscription (REQ-027 / HI-S005)
+
+`home_device_fabric.ha_subscription.HAStateSubscriptionClient(configuration,
+callback, *, delivery_timeout_ms=1000)` owns one authenticated `state_changed`
+subscription. Start `run()` in an asyncio task and always await `aclose()` in a
+finally block. `health()` remains transport-only; use
+`subscription_health().subscribed` for acknowledged subscription readiness.
+
+```python
+from home_device_fabric.ha_subscription import HAStateSubscriptionClient
+
+async def adapter_consumer(event):
+    # Private provider event; pass to adapter processing without logging it.
+    await adapter_queue.put(event)
+
+async def observe(configuration, stop):
+    client = HAStateSubscriptionClient(configuration, adapter_consumer)
+    running = asyncio.create_task(client.run())
+    try:
+        await stop.wait()
+    finally:
+        await client.aclose()
+        await running
+```
+
+The consumer receives the decoded HA `event` object, including its `data`,
+without the wire command wrapper. Old/new states can be objects or null. This
+slice validates the envelope, without canonical state normalization (HI-S006).
+Treat consumer payloads as private provider data; public health contains only
+finite state/reason/sequence fields. Client repr is redacted and serialization
+is refused. No raw peer/callback exceptions or payloads are logged by the client.
+
+Each socket sends one command with ID 1 after authentication and waits for its
+matching successful result within the configured request timeout. Events before
+ACK, mismatched IDs, malformed frames, duplicate keys and nonfinite numbers fail
+closed. Frames retain the 64 KiB/four-frame transport limits and accepted JSON
+structure is limited to 32 nested levels. Subscription rejection is terminal
+`subscription_rejected`, distinct from authenticated transport health.
+
+Delivery is serial: the next event is not read while the consumer is running.
+The client creates no application queue/history or retry of consumer effects.
+The consumer must return an awaitable, cooperate with cancellation and avoid
+blocking the event loop. Awaiting `aclose()` directly inside the consumer rejects
+with `close_from_consumer`. For shutdown, signal an existing supervisor task
+started outside delivery, then return; that supervisor awaits `aclose()`. Do not
+await close indirectly through a consumer-created task, `gather` or `wait_for`:
+the task-identity guard only rejects the direct call, and shutdown cancels the
+consumer and can cancel its child close waiter. Indirect waits are not a graceful
+completion protocol. Failure or invalid return yields `delivery_failed`;
+exceeding the delivery deadline yields `delivery_timeout`, both terminal. The
+consumer may have completed effects before failing/cancellation; readiness does
+not assert exactly-once delivery, physical state freshness or device availability.
+
+Transient transport loss or ACK timeout uses REQ-024's existing finite lifetime
+retry budget; every new socket requires a fresh ACK. Reconnect can lose or repeat
+events and does not replay history; reconciliation is HI-S007. Close freezes
+closed health, prevents subsequent delivery and drains socket cleanup. Closing
+or aborting the socket ends its server subscription. No extra unsubscribe
+exchange or separate connection is created. The base WebSocket lifecycle and
+REQ-026 health monitor keep their previous public behavior and do not gain
+subscription readiness from this increment.
+
+Use `--require-ha-subscription-runtime` alongside all seven earlier fabric flags.
+The complete suite fails if this runtime/dependency is absent/broken or any
+required case skips. CI builds both packages as direct and sdist-derived pairs
+and runs `ha_subscription_artifact_smoke.py` under `-I` and `-O -I` outside the
+checkout. Numeric-loopback peers verify ACK readiness, ordered events, reconnect,
+rejection, redaction and drained shutdown. No private HA, Windows portability
+certification, physical device, Feature or Stage completion is inferred.
+
+[REQ-027](../../../harness/tasks/features/REQ-027.md) owns the current proposed
+specification and evidence; external review and final acceptance remain pending.

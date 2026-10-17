@@ -28,6 +28,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-ha-rest-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-websocket-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-health-runtime", action="store_true", default=False)
+    parser.addoption("--require-ha-subscription-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -110,6 +111,21 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_health.py":
                 item.add_marker(pytest.mark.skip(
                     reason="REQ-026 ha-health runtime " + health_error))
+    try:
+        importlib.import_module("home_device_fabric.ha_subscription")
+        subscription_error = None
+    except ImportError:
+        subscription_error = "absent"
+    except Exception:
+        subscription_error = "broken"
+    if config.getoption("--require-ha-subscription-runtime") and subscription_error:
+        raise pytest.UsageError(
+            "REQ-027 ha-subscription runtime required but " + subscription_error)
+    if subscription_error:
+        for item in items:
+            if item.path.name == "test_ha_subscription.py":
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-027 ha-subscription runtime " + subscription_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -155,6 +171,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-rest-runtime")
         or session.config.getoption("--require-ha-websocket-runtime")
         or session.config.getoption("--require-ha-health-runtime")
+        or session.config.getoption("--require-ha-subscription-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
