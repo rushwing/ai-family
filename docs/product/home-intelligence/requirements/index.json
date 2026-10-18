@@ -771,13 +771,8 @@
       "title": "Apply normalized events monotonically",
       "parent": "HI-F006",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S017.md",
-      "depends_on": [
-        "HI-S006",
-        "HI-S016"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-030",
       "legacy_refs": [
         "ZW-ST-0302",
         "ZW-ST-0304"

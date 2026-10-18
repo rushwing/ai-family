@@ -90,6 +90,8 @@ def main():
             "src/home_device_fabric/ha_health.py").read_bytes()).hexdigest(),
         "normalization_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/ha_normalization.py").read_bytes()).hexdigest(),
+        "state_events_runtime_sha256": hashlib.sha256((PACKAGES[1] /
+            "src/home_device_fabric/state_store.py").read_bytes()).hexdigest(),
         "state_store_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/state_store.py").read_bytes()).hexdigest(),
         "subscription_runtime_sha256": hashlib.sha256((PACKAGES[1] /
@@ -172,7 +174,9 @@ def main():
                              "ha_configuration_artifact_smoke.py", "ha_rest_artifact_smoke.py",
                              "ha_websocket_artifact_smoke.py", "ha_health_artifact_smoke.py",
                              "ha_subscription_artifact_smoke.py",
-                             "ha_normalization_artifact_smoke.py", "state_store_artifact_smoke.py"):
+                             "ha_normalization_artifact_smoke.py", "state_store_artifact_smoke.py",
+                             "state_events_artifact_smoke.py",
+                             "state_application_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
@@ -182,6 +186,8 @@ def main():
             ha_subscription = []
             ha_normalization = []
             state_store = []
+            state_application = []
+            state_events = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -229,6 +235,17 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 state_store.append(json.loads(checked_store.stdout))
+                checked_application = subprocess.run(
+                    [str(interpreter), *flags,
+                     str(directory / "state_application_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                state_application.append(json.loads(checked_application.stdout))
+                checked_events = subprocess.run(
+                    [str(interpreter), *flags, str(directory / "state_events_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                state_events.append(json.loads(checked_events.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -242,6 +259,8 @@ def main():
                     "ha_subscription": ha_subscription,
                     "ha_normalization": ha_normalization,
                     "state_store": state_store,
+                    "state_application": state_application,
+                    "state_events": state_events,
                     "installed_distributions": json.loads(installed.stdout),
                 }
             )
