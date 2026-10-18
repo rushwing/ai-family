@@ -891,3 +891,67 @@ Its [acceptance record](../../../harness/tasks/evidence/REQ-030-review-acceptanc
 retains exact merge identity, A–D fix disposition and source-specific verification.
 Query services, durable epochs, reconnect reconciliation and Feature/Stage
 completion retain separate gates.
+
+
+## Read-only HA registry discovery (REQ-031 / HI-S013)
+
+`home_device_fabric.ha_discovery.HARegistryDiscoveryClient` supplies device,
+entity and area registry records plus current states to trusted adapter mapping
+code. It requires an exact explicit `HAConfiguration` and does no constructor
+I/O. Each `discover()` opens a fresh authenticated WebSocket, then issues only
+`config/device_registry/list`, `config/entity_registry/list`,
+`config/area_registry/list` and `get_states`, serially with IDs 1–4. It reuses
+the accepted no-redirect, no-proxy, explicit TLS trust and disabled wire logging
+policy. Existing REST and connection/subscription client APIs are unchanged.
+
+```python
+from home_device_fabric.ha_discovery import HARegistryDiscoveryClient
+
+async with HARegistryDiscoveryClient(trusted_configuration) as discovery:
+    snapshot = await discovery.discover()
+    summary = snapshot.to_redacted_dict()  # complete flag and four counts only
+    provider_records = snapshot.for_mapping()  # private data for trusted mapper
+```
+
+`for_mapping()` returns detached provider JSON under devices/entities/areas/states.
+It can contain private labels, identifiers and attributes: keep it inside the
+adapter boundary and out of logs, agents and northbound routes. Snapshots are
+immutable, have constant repr and refuse raw serialization/copy. No raw result
+is cached on the client. Extra provider fields and unmatched/disabled entities
+are preserved for the later mapper; this operation does not assign canonical
+IDs, infer capabilities or write the state store.
+
+Complete means four successful validated responses visible to the configured
+credential. It does not certify global access, an atomic HA snapshot or physical
+freshness: HA may permission-filter current states without reporting an error,
+and registries can change between commands. Empty successful lists are valid.
+Any explicit permission, unsupported-command, transport or malformed-response
+failure rejects the operation and stops later commands; no partial snapshot or
+empty-success fallback is returned. `HADiscoveryError.to_dict()` exposes only
+finite code, stage and completed-component labels; no peer message or raw
+exception context is retained.
+
+One `request_timeout_ms` deadline covers connection, auth and all four reads,
+including validation. Cleanup is drained with at most one additional second and
+aborts on failure; cleanup failure also rejects otherwise successful discovery.
+No automatic retry/reconnect is performed. The owner may explicitly call again
+with a fresh socket. Calls are restricted to one event loop; concurrent discovery
+fails client_busy, and close rejects new work. Cancellation and idempotent close
+cancel/drain owned work before success can escape. Close waiters can be cancelled
+without cancelling the owned drain. Process-control exceptions propagate after
+cleanup; private introspection and traceback frame locals are outside the
+supported diagnostic boundary.
+
+`max_response_bytes` defaults to 262144 (exact integer 4096–4194304) per frame;
+`max_records` defaults to 2048 (1–10000) per component. Oversize/deep responses
+fail response_limit; JSON duplicate keys, non-finite values, invalid Unicode,
+wrong IDs/types and invalid/duplicate minimal provider records are rejected.
+Provider payloads are version-tolerant rather than a claim of support for every
+HA version. See [REQ-031](../../../harness/tasks/features/REQ-031.md) for exact
+validation, error categories, sources and external-review lifecycle.
+
+`--require-ha-discovery-runtime` is the twelfth required fabric flag. Installed
+checks execute real fictional loopback discovery and partial permission failure
+on both direct/sdist-derived wheel pairs under `-I` and `-O -I`. Registry mapping,
+capability inference, query/API services, reconnect reconciliation and real HA
+certification remain separate increments.

@@ -17,7 +17,7 @@ def isolated_hooks(
     shared_present=True, ha_configuration_present=False, ha_rest_present=False,
     httpx_present=False, ha_websocket_present=False, websockets_present=False,
     ha_health_present=False, ha_subscription_present=False, ha_normalization_present=False,
-    state_store_present=False, state_events_present=False
+    state_store_present=False, state_events_present=False, ha_discovery_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -43,6 +43,10 @@ def isolated_hooks(
             (package / "ha_subscription.py").write_text("import websockets\n")
         if ha_normalization_present:
             (package / "ha_normalization.py").write_text("import state_schema.canonical_state\n")
+        if ha_discovery_present:
+            (package / "ha_discovery.py").write_text(
+                "import websockets\nclass HARegistryDiscoveryClient:\n"
+                "    async def discover(self): pass\n    async def aclose(self): pass\n")
         if state_store_present:
             (package / "state_store.py").write_text("import state_schema.canonical_state\n")
         if state_events_present:
@@ -374,7 +378,7 @@ def test_ci_requires_complete_fabric_acceptance():
                  "--require-ha-rest-runtime", "--require-ha-websocket-runtime",
                  "--require-ha-health-runtime", "--require-ha-subscription-runtime",
                  "--require-ha-normalization-runtime", "--require-state-store-runtime",
-                 "--require-state-events-runtime"):
+                 "--require-state-events-runtime", "--require-ha-discovery-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -566,6 +570,45 @@ def test_state_events_required_gate(tmp_path, monkeypatch, module, required, ski
         diagnosis = "broken" if module == "broken" else "absent"
         assert "state-events runtime required but " + diagnosis in result.stderr
     elif skip or module in (False, "broken", "methods_missing"):
+        assert "1 skipped" in result.stdout
+    else:
+        assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc031_04
+@pytest.mark.parametrize("module,required,skip,expected", [
+    (False, True, False, 4), ("broken", True, False, 4),
+    ("methods_missing", True, False, 4), ("dependency_missing", True, False, 4),
+    ("broken", False, False, 0), (False, False, False, 0),
+    ("methods_missing", False, False, 0), ("dependency_missing", False, False, 0),
+    (True, True, True, 1), (True, True, False, 0),
+])
+def test_ha_discovery_required_gate(tmp_path, monkeypatch, module, required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False,
+        ha_discovery_present=bool(module), websockets_present=module != "dependency_missing"))
+    path = tmp_path / "runtime/home_device_fabric/ha_discovery.py"
+    if module == "broken":
+        path.write_text("raise AttributeError('private import details')\n")
+    elif module == "methods_missing":
+        path.write_text("class HARegistryDiscoveryClient: pass\n")
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    filename = "test_probe.py" if required and expected == 4 else "test_ha_discovery.py"
+    (tmp_path / filename).write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-ha-discovery-runtime")
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+    if expected == 4:
+        diagnosis = "broken" if module == "broken" else "absent"
+        assert "ha-discovery runtime required but " + diagnosis in result.stderr
+    elif skip or module in (False, "broken", "methods_missing", "dependency_missing"):
         assert "1 skipped" in result.stdout
     else:
         assert "1 passed" in result.stdout

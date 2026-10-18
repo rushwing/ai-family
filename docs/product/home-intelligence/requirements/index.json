@@ -704,13 +704,8 @@
       "title": "Discover HA registries and state",
       "parent": "HI-F005",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S013.md",
-      "depends_on": [
-        "HI-S002",
-        "HI-S003"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-031",
       "legacy_refs": [
         "ZW-ST-1303"
       ],
