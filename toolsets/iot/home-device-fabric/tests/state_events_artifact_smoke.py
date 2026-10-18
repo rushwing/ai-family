@@ -1,9 +1,13 @@
 """Installed event integration checks; explicit assertions survive -O."""
 
 import json
+import runpy
+from pathlib import Path
 
-from ha_normalization_artifact_smoke import event, fixture
-from state_store_artifact_smoke import context
+# Explicit sibling test fixtures remain available under isolated Python (-I).
+_normalizer = runpy.run_path(str(Path(__file__).with_name("ha_normalization_artifact_smoke.py")))
+_store = runpy.run_path(str(Path(__file__).with_name("state_store_artifact_smoke.py")))
+event, fixture, context = _normalizer["event"], _normalizer["fixture"], _store["context"]
 
 
 def check():

@@ -1,8 +1,13 @@
 """Offline installed monotonic apply checks; explicit checks survive optimization."""
 
 import json
+import runpy
+from pathlib import Path
 
-from state_store_artifact_smoke import configuration, context, snapshot
+# Load only explicit test fixtures; runtime imports resolve from installed packages.
+_fixtures = runpy.run_path(str(Path(__file__).with_name("state_store_artifact_smoke.py")))
+configuration, context, snapshot = (_fixtures[name] for name in (
+    "configuration", "context", "snapshot"))
 
 
 def event(*, epoch=1, sequence=1, value=False, status="online", device="device-one"):
