@@ -1,7 +1,7 @@
 """Scoped rebuildable process-local canonical snapshots (REQ-029).
 
 Contexts/grants are trusted composition inputs, not authentication tokens.
-Full snapshot CAS is distinct from future normalized-event application.
+Full snapshot CAS is distinct from normalized-event application (REQ-030).
 """
 
 from __future__ import annotations
@@ -11,7 +11,13 @@ from threading import Lock
 from typing import Literal, NoReturn, cast
 
 from state_schema.action_contracts import ActionError, RequesterContext
-from state_schema.canonical_state import DeviceState, StateCollection, StateError
+from state_schema.canonical_state import (
+    DeviceState,
+    Ordering,
+    StateCollection,
+    StateError,
+    apply_state_update,
+)
 from state_schema.home_inventory import CANONICAL_ID_PATTERN, Inventory, InventoryError
 
 Path = tuple[str | int, ...]
@@ -97,7 +103,7 @@ class _Stored:
 class CurrentStateStore:
     """Thread-safe in-memory snapshots; explicit grants on every operation."""
 
-    __slots__ = ("_inventories", "_grants", "_rows", "_rebuilt", "_lock")
+    __slots__ = ("_inventories", "_grants", "_rows", "_rebuilt", "_epochs", "_lock")
 
     def __init__(self, *, inventories: object, grants: object) -> None:
         if type(inventories) is not list or type(grants) is not list:
@@ -154,6 +160,7 @@ class CurrentStateStore:
         self._rows = rows
         self._grants = permissions
         self._rebuilt: set[str] = set()
+        self._epochs: dict[str, int] = {}
         self._lock = Lock()
 
     def __repr__(self) -> str:
@@ -258,3 +265,89 @@ class CurrentStateStore:
             self._rows.update(updates)
             self._rebuilt.add(home)
             return tuple(row.view(now, 0) for row in updates.values())
+
+    def advance_epoch(self, context: object, *, home_id: object, epoch: object) -> int:
+        """Pin a caller-established home generation without refreshing snapshots."""
+        home = self._authorize(context, home_id, write=True)
+        generation = _integer(epoch, "epoch")
+        with self._lock:
+            # The bounded process-local store scans all rows and this home's
+            # member orders under the publication lock. Computing the floor
+            # from current snapshots also covers trusted put/rebuild changes.
+            orders: list[Ordering | None] = []
+            for (row_home, _), row in self._rows.items():
+                if row_home != home:
+                    continue
+                orders.extend(report.ordering for _, report in row.state.reported_state)
+                orders.append(row.state.availability.ordering)
+                if row.state.desired_state is not None:
+                    orders.append(row.state.desired_state.report_baseline)
+            floor = max(
+                (order.epoch for order in orders if order is not None),
+                default=0,
+            )
+            if generation < max(floor, self._epochs.get(home, 0)):
+                raise StateStoreError("epoch_regression", ("epoch",))
+            self._epochs[home] = generation
+            return generation
+
+    def apply(
+        self,
+        context: object,
+        *,
+        home_id: object,
+        device_id: object,
+        event: object,
+        now_ms: object,
+    ) -> StateView | StateNotFound:
+        """Merge caller-verified observations; canonical JSON cannot prove origin."""
+        home = self._authorize(context, home_id, write=True)
+        device = _identifier(device_id)
+        now = _integer(now_ms, "now_ms")
+        with self._lock:
+            row = self._rows.get((home, device))
+            if row is None:
+                return StateNotFound(home, device)
+            view = row.view(now, 0)
+            epoch = self._epochs.get(home)
+            if epoch is None:
+                raise StateStoreError("epoch_uninitialized", ("epoch",))
+            # Raise outside the parser handler so the canonical exception is not
+            # retained as __context__, even though it contains submitted keys.
+            candidate = None
+            try:
+                candidate = DeviceState.from_dict(event)
+            except StateError:
+                pass
+            if candidate is None:
+                raise StateStoreError("invalid_event", ("event",)) from None
+            if candidate.home_id != home or candidate.device_id != device:
+                raise StateStoreError("identity_mismatch", ("event",))
+            if candidate.desired_state is not None:
+                raise StateStoreError("unexpected_intent", ("event",))
+            orders = [report.ordering for _, report in candidate.reported_state]
+            orders.append(candidate.availability.ordering)
+            if any(order is None for order in orders):
+                raise StateStoreError("invalid_event", ("event",)) from None
+            if any(order is not None and order.epoch != epoch for order in orders):
+                raise StateStoreError("epoch_mismatch", ("event",))
+            state = None
+            try:
+                merged = apply_state_update(
+                    row.state.to_dict(),
+                    current_epoch=epoch,
+                    reported_state={
+                        key: report.to_dict() for key, report in candidate.reported_state
+                    },
+                    availability=candidate.availability.to_dict(),
+                )
+                state = DeviceState.from_dict(merged)
+            except StateError:
+                pass
+            if state is None:
+                raise StateStoreError("invalid_event", ("event",)) from None
+            if state == row.state:
+                return view
+            updated = _Stored(state, row.revision + 1, now)
+            self._rows[home, device] = updated
+            return updated.view(now, 0)

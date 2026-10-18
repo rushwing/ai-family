@@ -31,6 +31,7 @@ def pytest_addoption(parser):
     parser.addoption("--require-ha-subscription-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-normalization-runtime", action="store_true", default=False)
     parser.addoption("--require-state-store-runtime", action="store_true", default=False)
+    parser.addoption("--require-state-events-runtime", action="store_true", default=False)
 
 
 def demo_available():
@@ -157,6 +158,22 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_state_store.py":
                 item.add_marker(pytest.mark.skip(
                     reason="REQ-029 state-store runtime " + store_error))
+    try:
+        event_store = importlib.import_module("home_device_fabric.state_store")
+        event_class = getattr(event_store, "CurrentStateStore", None)
+        events_error = (None if all(callable(getattr(event_class, name, None))
+                                   for name in ("apply", "advance_epoch")) else "absent")
+    except ImportError:
+        events_error = "absent"
+    except Exception:
+        events_error = "broken"
+    if config.getoption("--require-state-events-runtime") and events_error:
+        raise pytest.UsageError("REQ-030 state-events runtime required but " + events_error)
+    if events_error:
+        for item in items:
+            if item.path.name in ("test_state_events.py", "test_state_application.py"):
+                item.add_marker(pytest.mark.skip(
+                    reason="REQ-030 state-events runtime " + events_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -205,6 +222,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-subscription-runtime")
         or session.config.getoption("--require-ha-normalization-runtime")
         or session.config.getoption("--require-state-store-runtime")
+        or session.config.getoption("--require-state-events-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

@@ -794,9 +794,8 @@ snapshot and an adapter delta are indistinguishable at this API: the store
 performs no delta detection or implicit merge. A successful CAS proves the
 cache revision, not input completeness. The caller owns full snapshot contents;
 omitted reported members and `desired_state=None` replace/clear retained
-contents. Do not
-store HAEventNormalizer deltas as full snapshots: HI-S017 must merge observed
-members through `apply_state_update`, retaining desired intent/history first.
+contents. Do not store HAEventNormalizer deltas as full snapshots: use the
+REQ-030 `apply` operation below to retain desired intent and omitted reports.
 Cache writes never execute device actions or promote ACKs to observations.
 
 Frozen `StateView` exposes `state`, `revision`, `updated_at_ms` and `freshness`;
@@ -818,7 +817,7 @@ fresh provider snapshot outside this module, then call
 The collection must contain exactly every registered device for that home and
 must have no desired intent. Validation precedes one atomic publication at
 revision 1. Rebuild is one-shot per home and refuses a home already modified by
-put/rebuild; an empty home can rebuild once. Rebuild performs no I/O, epoch
+put/rebuild/apply; an empty home can rebuild once. Rebuild performs no I/O, epoch
 allocation, live-event buffering or reconnect reconciliation. Durable intent
 must be restored by its owner, separately from provider observations.
 
@@ -831,3 +830,60 @@ The [acceptance record](../../../harness/tasks/evidence/REQ-029-review-acceptanc
 links exact PR #59 merge identity and source-specific verification. Event integration,
 query services, authentication middleware, live HA and Feature/Stage completion
 retain their own gates.
+
+
+## Ordered state events (REQ-030 / HI-S017)
+
+`advance_epoch` and `apply` extend `CurrentStateStore` with the same exact trusted
+write scope and publication lock as snapshot replacement. The owner explicitly
+pins a home generation before accepting normalized observations:
+
+```python
+store.advance_epoch(verified_context, home_id=home_id, epoch=connection_epoch)
+delta = normalizer.normalize(frame, ordering=source_order).to_dict()
+view = store.apply(verified_context, home_id=home_id, device_id=device_id,
+                   event=delta, now_ms=elapsed_ms)
+```
+
+The owner coordinates one ordering domain across all devices/providers in a
+home and allocates a higher epoch when sequence numbers reset. Epoch advancement
+is monotonic, includes stored reports/availability/intent baselines in its floor,
+and retains snapshots, revisions and ingestion times. Equal re-pins are
+idempotent. Other homes are independent. Epochs reset with a new store; durable
+epochs and snapshot/live-event reconciliation remain HI-S007 work.
+Computing the floor scans the store's registered rows and this home's member
+orders under the lock, including observations replaced through `put`/`rebuild`.
+Its cost is linear in total registered devices plus this home's stored members;
+this is a bounded process-local operation without a separate floor cache.
+
+Each canonical delta must match the registered identity, contain no desired
+intent, and supply ordering for every provided observation and availability.
+All orders must match the pin, including stale members; old/future callbacks
+fail `epoch_mismatch`, and an unpinned home fails `epoch_uninitialized`.
+Unknown registered-key lookup returns `StateNotFound` before payload parsing.
+After authorization/metadata and lookup, clock regression precedes pin and
+payload checks. Malformed events and conflicting typed same-order replays fail
+`invalid_event` with a fixed path and no retained canonical exception context.
+This includes validation of the shared merge result before publication.
+
+Canonical `DeviceState` JSON has no delta or origin marker. A schema-valid full
+snapshot is indistinguishable from a normalizer delta here and is interpreted
+with the same member-merge semantics. The caller must admit only verified
+observations and route ACK/action results separately; constructing canonical
+JSON from an ACK does not prove that a device reported it. Raw ACK envelopes
+fail canonical validation, but the store cannot authenticate observation
+provenance. Enforcing an origin marker requires a future shared-contract change.
+
+Newer members merge independently; omitted reports and desired intent survive.
+An offline delta can contain no reports, and recovery retains observations until
+new reports replace them. Explicit unknowns stay unknown. Source timestamps do
+not decide order, and ACKs cannot supply observations. A changed delta publishes
+once and advances the device revision/ingestion time once. Exact replay and
+stale no-ops retain both; returned freshness uses `max_age_ms=0`. A newer order
+with an equal value is a new observation. Existing `put` semantics still replace
+the whole snapshot and do not allocate/advance a pin.
+
+`--require-state-events-runtime` requires both operations and rejects required
+suite skips. Direct/sdist-derived installs execute both event smoke programs
+under `-I` and `-O -I`. [REQ-030](../../../harness/tasks/features/REQ-030.md)
+owns the engineering scope, tests and external-review lifecycle.

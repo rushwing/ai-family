@@ -17,7 +17,7 @@ def isolated_hooks(
     shared_present=True, ha_configuration_present=False, ha_rest_present=False,
     httpx_present=False, ha_websocket_present=False, websockets_present=False,
     ha_health_present=False, ha_subscription_present=False, ha_normalization_present=False,
-    state_store_present=False
+    state_store_present=False, state_events_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -45,6 +45,12 @@ def isolated_hooks(
             (package / "ha_normalization.py").write_text("import state_schema.canonical_state\n")
         if state_store_present:
             (package / "state_store.py").write_text("import state_schema.canonical_state\n")
+        if state_events_present:
+            (package / "state_store.py").write_text(
+                "import state_schema.canonical_state\n"
+                "class CurrentStateStore:\n"
+                "    def apply(self): pass\n"
+                "    def advance_epoch(self): pass\n")
     if httpx_present:
         root.mkdir(parents=True, exist_ok=True)
         (root / "httpx.py").write_text('"""Gate-only dependency stub."""\n')
@@ -87,7 +93,50 @@ def run_probe(command, directory, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr(subprocess, "Popen", _POPEN)
         patch.setattr(time, "sleep", _SLEEP)
-        return subprocess.run(command, capture_output=True, text=True, timeout=30, cwd=directory)
+        try:
+            # Interpreter startup and collection can exceed 30s on loaded
+            # Termux hosts. Keep a finite deadline and retain timeout output.
+            return subprocess.run(
+                command, capture_output=True, text=True, timeout=90, cwd=directory,
+            )
+        except subprocess.TimeoutExpired as error:
+            def output(value):
+                if isinstance(value, bytes):
+                    return value.decode("utf-8", errors="replace")
+                return value or "<no output>"
+
+            pytest.fail(
+                f"gate probe timed out after {error.timeout}s: {command!r}\n"
+                f"stdout:\n{output(error.stdout)}\nstderr:\n{output(error.stderr)}",
+                pytrace=False,
+            )
+
+
+@pytest.mark.tc030_04
+@pytest.mark.parametrize("stdout,stderr", [
+    (b"partial stdout", b"partial stderr"),
+    ("partial stdout", "partial stderr"),
+    (None, None),
+])
+def test_gate_timeout_retains_diagnostics(tmp_path, monkeypatch, stdout, stderr):
+    command = [sys.executable, "-I", "-m", "pytest", "test_probe.py"]
+
+    def timeout(actual_command, **kwargs):
+        assert actual_command == command
+        assert kwargs == {"capture_output": True, "text": True, "timeout": 90, "cwd": tmp_path}
+        raise subprocess.TimeoutExpired(command, 90, output=stdout, stderr=stderr)
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(pytest.fail.Exception) as caught:
+        run_probe(command, tmp_path, monkeypatch)
+    message = str(caught.value)
+    assert "gate probe timed out after 90s" in message
+    assert "test_probe.py" in message
+    assert "stdout:\n" in message and "stderr:\n" in message
+    if stdout is None:
+        assert message.count("<no output>") == 2
+    else:
+        assert "partial stdout" in message and "partial stderr" in message
 
 
 @pytest.mark.parametrize("flag", ["provider", "demo", "conformance"])
@@ -324,7 +373,8 @@ def test_ci_requires_complete_fabric_acceptance():
                  "--require-conformance-runtime", "--require-ha-configuration-runtime",
                  "--require-ha-rest-runtime", "--require-ha-websocket-runtime",
                  "--require-ha-health-runtime", "--require-ha-subscription-runtime",
-                 "--require-ha-normalization-runtime", "--require-state-store-runtime"):
+                 "--require-ha-normalization-runtime", "--require-state-store-runtime",
+                 "--require-state-events-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -477,6 +527,45 @@ def test_state_store_required_gate(tmp_path, monkeypatch, module, dependency,
         diagnosis = "broken" if module == "broken" else "absent"
         assert "state-store runtime required but " + diagnosis in result.stderr
     elif skip or not module or module == "broken":
+        assert "1 skipped" in result.stdout
+    else:
+        assert "1 passed" in result.stdout
+
+
+@pytest.mark.tc030_04
+@pytest.mark.parametrize("module,required,skip,expected", [
+    (False, True, False, 4), ("broken", True, False, 4),
+    ("methods_missing", True, False, 4), ("dependency_missing", True, False, 4),
+    ("broken", False, False, 0), (False, False, False, 0),
+    ("methods_missing", False, False, 0), (True, True, True, 1),
+    (True, True, False, 0),
+])
+def test_state_events_required_gate(tmp_path, monkeypatch, module, required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False,
+        state_events_present=bool(module), shared_present=module != "dependency_missing"))
+    path = tmp_path / "runtime/home_device_fabric/state_store.py"
+    if module == "broken":
+        path.write_text("raise AttributeError('private import details')\n")
+    elif module == "methods_missing":
+        path.write_text("class CurrentStateStore: pass\n")
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    filename = "test_probe.py" if required and expected == 4 else "test_state_events.py"
+    (tmp_path / filename).write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-state-events-runtime")
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+    if expected == 4:
+        diagnosis = "broken" if module == "broken" else "absent"
+        assert "state-events runtime required but " + diagnosis in result.stderr
+    elif skip or module in (False, "broken", "methods_missing"):
         assert "1 skipped" in result.stdout
     else:
         assert "1 passed" in result.stdout
