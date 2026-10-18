@@ -271,6 +271,9 @@ class CurrentStateStore:
         home = self._authorize(context, home_id, write=True)
         generation = _integer(epoch, "epoch")
         with self._lock:
+            # The bounded process-local store scans all rows and this home's
+            # member orders under the publication lock. Computing the floor
+            # from current snapshots also covers trusted put/rebuild changes.
             orders: list[Ordering | None] = []
             for (row_home, _), row in self._rows.items():
                 if row_home != home:
@@ -297,7 +300,7 @@ class CurrentStateStore:
         event: object,
         now_ms: object,
     ) -> StateView | StateNotFound:
-        """Atomically merge observed members under an explicitly pinned epoch."""
+        """Merge caller-verified observations; canonical JSON cannot prove origin."""
         home = self._authorize(context, home_id, write=True)
         device = _identifier(device_id)
         now = _integer(now_ms, "now_ms")
@@ -328,7 +331,7 @@ class CurrentStateStore:
                 raise StateStoreError("invalid_event", ("event",)) from None
             if any(order is not None and order.epoch != epoch for order in orders):
                 raise StateStoreError("epoch_mismatch", ("event",))
-            merged = None
+            state = None
             try:
                 merged = apply_state_update(
                     row.state.to_dict(),
@@ -338,11 +341,11 @@ class CurrentStateStore:
                     },
                     availability=candidate.availability.to_dict(),
                 )
+                state = DeviceState.from_dict(merged)
             except StateError:
                 pass
-            if merged is None:
+            if state is None:
                 raise StateStoreError("invalid_event", ("event",)) from None
-            state = DeviceState.from_dict(merged)
             if state == row.state:
                 return view
             updated = _Stored(state, row.revision + 1, now)

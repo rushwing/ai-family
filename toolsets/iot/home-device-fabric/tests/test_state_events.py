@@ -196,6 +196,40 @@ def test_failed_event_is_atomic_and_detached(api, store, mutation, code):
     assert read(store).to_dict() == before and candidate == original
 
 
+@pytest.mark.tc030_01
+@pytest.mark.tc030_04
+@pytest.mark.parametrize("corruption", ["missing_identity", "private_extra", "bad_availability"])
+def test_invalid_merged_state_is_private_and_atomic(api, store, monkeypatch, corruption):
+    apply(store)
+    before = read(store).to_dict()
+    payload = delta(2, value=True)
+    original = copy.deepcopy(payload)
+    real_merge = api.apply_state_update
+
+    def corrupted_merge(*args, **kwargs):
+        merged = real_merge(*args, **kwargs)
+        if corruption == "missing_identity":
+            del merged["device_id"]
+        elif corruption == "private_extra":
+            merged["private-key"] = "private-value"
+        else:
+            merged["availability"]["status"] = "private-status"
+        return merged
+
+    with monkeypatch.context() as patch:
+        patch.setattr(api, "apply_state_update", corrupted_merge)
+        err = fails(api, "invalid_event", lambda: apply(store, payload, now_ms=110))
+    assert err.path == ("event",)
+    assert err.__cause__ is None and err.__context__ is None
+    assert str(err) == "invalid_event: event"
+    assert "private-" not in "".join(traceback.format_exception(err))
+    assert read(store).to_dict() == before and payload == original
+    assert pin(store) == 1
+    # Rejection keeps both the pin and the next publishable revision intact.
+    accepted = apply(store, payload, now_ms=110)
+    assert accepted.revision == 2 and accepted.updated_at_ms == 110
+
+
 @pytest.mark.tc030_02
 @pytest.mark.parametrize("value", [False, 0, 0.0, "unchanged"])
 def test_new_observation_same_value_bumps_once_then_replay_and_stale_do_not(store, value):

@@ -93,7 +93,50 @@ def run_probe(command, directory, monkeypatch):
     with monkeypatch.context() as patch:
         patch.setattr(subprocess, "Popen", _POPEN)
         patch.setattr(time, "sleep", _SLEEP)
-        return subprocess.run(command, capture_output=True, text=True, timeout=30, cwd=directory)
+        try:
+            # Interpreter startup and collection can exceed 30s on loaded
+            # Termux hosts. Keep a finite deadline and retain timeout output.
+            return subprocess.run(
+                command, capture_output=True, text=True, timeout=90, cwd=directory,
+            )
+        except subprocess.TimeoutExpired as error:
+            def output(value):
+                if isinstance(value, bytes):
+                    return value.decode("utf-8", errors="replace")
+                return value or "<no output>"
+
+            pytest.fail(
+                f"gate probe timed out after {error.timeout}s: {command!r}\n"
+                f"stdout:\n{output(error.stdout)}\nstderr:\n{output(error.stderr)}",
+                pytrace=False,
+            )
+
+
+@pytest.mark.tc030_04
+@pytest.mark.parametrize("stdout,stderr", [
+    (b"partial stdout", b"partial stderr"),
+    ("partial stdout", "partial stderr"),
+    (None, None),
+])
+def test_gate_timeout_retains_diagnostics(tmp_path, monkeypatch, stdout, stderr):
+    command = [sys.executable, "-I", "-m", "pytest", "test_probe.py"]
+
+    def timeout(actual_command, **kwargs):
+        assert actual_command == command
+        assert kwargs == {"capture_output": True, "text": True, "timeout": 90, "cwd": tmp_path}
+        raise subprocess.TimeoutExpired(command, 90, output=stdout, stderr=stderr)
+
+    monkeypatch.setattr(subprocess, "run", timeout)
+    with pytest.raises(pytest.fail.Exception) as caught:
+        run_probe(command, tmp_path, monkeypatch)
+    message = str(caught.value)
+    assert "gate probe timed out after 90s" in message
+    assert "test_probe.py" in message
+    assert "stdout:\n" in message and "stderr:\n" in message
+    if stdout is None:
+        assert message.count("<no output>") == 2
+    else:
+        assert "partial stdout" in message and "partial stderr" in message
 
 
 @pytest.mark.parametrize("flag", ["provider", "demo", "conformance"])

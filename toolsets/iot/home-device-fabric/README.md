@@ -851,6 +851,10 @@ is monotonic, includes stored reports/availability/intent baselines in its floor
 and retains snapshots, revisions and ingestion times. Equal re-pins are
 idempotent. Other homes are independent. Epochs reset with a new store; durable
 epochs and snapshot/live-event reconciliation remain HI-S007 work.
+Computing the floor scans the store's registered rows and this home's member
+orders under the lock, including observations replaced through `put`/`rebuild`.
+Its cost is linear in total registered devices plus this home's stored members;
+this is a bounded process-local operation without a separate floor cache.
 
 Each canonical delta must match the registered identity, contain no desired
 intent, and supply ordering for every provided observation and availability.
@@ -860,6 +864,15 @@ Unknown registered-key lookup returns `StateNotFound` before payload parsing.
 After authorization/metadata and lookup, clock regression precedes pin and
 payload checks. Malformed events and conflicting typed same-order replays fail
 `invalid_event` with a fixed path and no retained canonical exception context.
+This includes validation of the shared merge result before publication.
+
+Canonical `DeviceState` JSON has no delta or origin marker. A schema-valid full
+snapshot is indistinguishable from a normalizer delta here and is interpreted
+with the same member-merge semantics. The caller must admit only verified
+observations and route ACK/action results separately; constructing canonical
+JSON from an ACK does not prove that a device reported it. Raw ACK envelopes
+fail canonical validation, but the store cannot authenticate observation
+provenance. Enforcing an origin marker requires a future shared-contract change.
 
 Newer members merge independently; omitted reports and desired intent survive.
 An offline delta can contain no reports, and recovery retains observations until
