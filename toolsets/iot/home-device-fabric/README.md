@@ -827,8 +827,8 @@ rejects required-suite skips. Direct/sdist-derived installs run the offline
 store smoke under `-I` and `-O -I`. The sole engineering specification and
 human-accepted archived state are [REQ-029](../../../harness/tasks/archive/done/features/REQ-029.md).
 The [acceptance record](../../../harness/tasks/evidence/REQ-029-review-acceptance.md)
-links exact PR #59 merge identity and source-specific verification. Event integration,
-query services, authentication middleware, live HA and Feature/Stage completion
+links exact PR #59 merge identity and source-specific verification. Query
+services, authentication middleware, live HA and Feature/Stage completion
 retain their own gates.
 
 
@@ -885,5 +885,9 @@ the whole snapshot and do not allocate/advance a pin.
 
 `--require-state-events-runtime` requires both operations and rejects required
 suite skips. Direct/sdist-derived installs execute both event smoke programs
-under `-I` and `-O -I`. [REQ-030](../../../harness/tasks/features/REQ-030.md)
-owns the engineering scope, tests and external-review lifecycle.
+under `-I` and `-O -I`. [REQ-030](../../../harness/tasks/archive/done/features/REQ-030.md)
+owns the human-accepted engineering scope and tests, merged in PR #61.
+Its [acceptance record](../../../harness/tasks/evidence/REQ-030-review-acceptance.md)
+retains exact merge identity, A–D fix disposition and source-specific verification.
+Query services, durable epochs, reconnect reconciliation and Feature/Stage
+completion retain separate gates.

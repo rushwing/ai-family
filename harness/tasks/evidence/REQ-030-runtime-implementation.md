@@ -79,7 +79,7 @@ changes no tested runtime, test, dependency, smoke or CI bytes.
 
 ## External review boundary
 
-[REQ-030](../features/REQ-030.md) remains req_impl / generator-001, review_round 0,
+[REQ-030](../archive/done/features/REQ-030.md) remains req_impl / generator-001, review_round 0,
 AC1–AC4 unchecked and TC-030-01–04 implemented. [Draft PR #61](https://github.com/rushwing/ai-family/pull/61) requests external
 review; no independent approval or merge is inferred. Local Python 3.13/3.14,
 Windows/Termux, private HA or hardware results are not claimed. The configured
