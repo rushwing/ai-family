@@ -67,7 +67,7 @@ The user-supplied Termux results remain attributed to that report.
 ## Review boundary
 
 [Draft PR #61](https://github.com/rushwing/ai-family/pull/61) remains open/draft.
-[REQ-030](../features/REQ-030.md) stays req_impl / generator-001, review_round 0,
+[REQ-030](../archive/done/features/REQ-030.md) stays req_impl / generator-001, review_round 0,
 AC1–AC4 unchecked and all four TCs implemented. No independent evaluator
 signature, final human acceptance, merge, BUG-033 or Feature/Stage completion
 is inferred from this fix delivery.
