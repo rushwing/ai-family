@@ -1,14 +1,24 @@
 """REQ-032 proposed adversarial verification; fictional registry fixtures only."""
 
 import copy
+import importlib
 import json
 import math
 import pickle
 
 import pytest
-from home_device_fabric.ha_mapping import HAMappingError, HARegistryMapper
-from state_schema.home_inventory import Inventory
-from state_schema.provider_binding import BindingCollection
+
+
+def runtime():
+    return importlib.import_module("home_device_fabric.ha_mapping")
+
+
+def inventory_api():
+    return importlib.import_module("state_schema.home_inventory")
+
+
+def binding_api():
+    return importlib.import_module("state_schema.provider_binding")
 
 
 def configuration():
@@ -41,8 +51,10 @@ def discovery():
 
 
 def project(data=None, config=None):
-    return HARegistryMapper(configuration() if config is None else config).map(
-        discovery() if data is None else data
+    return (
+        runtime()
+        .HARegistryMapper(configuration() if config is None else config)
+        .map(discovery() if data is None else data)
     )
 
 
@@ -106,9 +118,11 @@ def test_literal_projection_and_shared_validation():
             },
         ],
     }
-    assert Inventory.from_dict(value["inventory"]).to_dict() == value["inventory"]
+    assert inventory_api().Inventory.from_dict(value["inventory"]).to_dict() == value["inventory"]
     assert (
-        BindingCollection.from_dict(value["bindings"], inventory=value["inventory"]).to_dict()
+        binding_api()
+        .BindingCollection.from_dict(value["bindings"], inventory=value["inventory"])
+        .to_dict()
         == value["bindings"]
     )
     assert result.to_redacted_dict() == {
@@ -133,7 +147,7 @@ def test_literal_projection_and_shared_validation():
 @pytest.mark.tc032_01
 def test_order_repeated_calls_and_inputs_detached():
     config, data = configuration(), discovery()
-    mapper = HARegistryMapper(config)
+    mapper = runtime().HARegistryMapper(config)
     original = copy.deepcopy(data)
     first = mapper.map(data).for_adapter()
     for rows in data.values():
@@ -175,7 +189,7 @@ def test_explicit_replacement_preserves_canonical_identity():
 
 @pytest.mark.tc032_02
 def test_removal_and_reappearance_are_fresh_projections():
-    mapper, data = HARegistryMapper(configuration()), discovery()
+    mapper, data = runtime().HARegistryMapper(configuration()), discovery()
     initial = mapper.map(data).for_adapter()
     data["entities"].pop(0)
     once = mapper.map(data).for_adapter()
@@ -273,10 +287,10 @@ def test_empty_complete_input_and_states_never_create_or_delete_devices():
 @pytest.mark.parametrize("value", [None, [], True, {}, {"extra": 1}])
 def test_invalid_top_level(value):
     for call, code in (
-        (lambda: HARegistryMapper(value), "invalid_configuration"),
-        (lambda: HARegistryMapper(configuration()).map(value), "invalid_discovery"),
+        (lambda: runtime().HARegistryMapper(value), "invalid_configuration"),
+        (lambda: runtime().HARegistryMapper(configuration()).map(value), "invalid_discovery"),
     ):
-        with pytest.raises(HAMappingError) as caught:
+        with pytest.raises(runtime().HAMappingError) as caught:
             call()
         assert caught.value.code == code and caught.value.__context__ is None
 
@@ -301,8 +315,8 @@ def test_invalid_top_level(value):
 def test_configuration_rejects_ambiguity_and_malformed(field, value):
     config = configuration()
     config[field] = value
-    with pytest.raises(HAMappingError, match="^invalid_configuration$"):
-        HARegistryMapper(config)
+    with pytest.raises(runtime().HAMappingError, match="^invalid_configuration$"):
+        runtime().HARegistryMapper(config)
 
 
 @pytest.mark.tc032_03
@@ -319,7 +333,7 @@ def test_every_component_validated(component, problem):
         del data[component][0][identity]
     if problem == "wrong_id":
         data[component][0][identity] = False
-    with pytest.raises(HAMappingError, match="^invalid_discovery$"):
+    with pytest.raises(runtime().HAMappingError, match="^invalid_discovery$"):
         project(data)
 
 
@@ -341,7 +355,7 @@ def test_every_component_validated(component, problem):
 def test_known_fields_strict_even_if_not_projected(component, field, value):
     data = discovery()
     data[component][0][field] = value
-    with pytest.raises(HAMappingError, match="^invalid_discovery$"):
+    with pytest.raises(runtime().HAMappingError, match="^invalid_discovery$"):
         project(data)
 
 
@@ -350,7 +364,7 @@ def test_known_fields_strict_even_if_not_projected(component, field, value):
 def test_unknown_fields_still_must_be_strict_json(extra):
     data = discovery()
     data["states"][0]["attributes"]["private"] = extra
-    with pytest.raises(HAMappingError) as caught:
+    with pytest.raises(runtime().HAMappingError) as caught:
         project(data)
     assert caught.value.to_dict() == {"code": "invalid_discovery"}
     assert "private" not in repr(caught.value)
@@ -379,15 +393,15 @@ def test_bounded_tree(problem):
         data["areas"] = [{"area_id": str(i), "name": "A"} for i in range(10001)]
     if problem == "bytes":
         data["states"][0]["attributes"]["large"] = "x" * (16 * 1024 * 1024)
-    with pytest.raises(HAMappingError, match=f"^{expected}$"):
+    with pytest.raises(runtime().HAMappingError, match=f"^{expected}$"):
         project(data)
 
 
 @pytest.mark.tc032_03
 def test_immutable_redacted_and_serialization_refused():
-    mapper = HARegistryMapper(configuration())
+    mapper = runtime().HARegistryMapper(configuration())
     result = mapper.map(discovery())
-    for obj in (mapper, result, HAMappingError("invalid_discovery")):
+    for obj in (mapper, result, runtime().HAMappingError("invalid_discovery")):
         assert not any(s in repr(obj) for s in ("raw-device", "Example", "sensor.solo"))
         for method in (copy.copy, copy.deepcopy, pickle.dumps):
             with pytest.raises(TypeError):
@@ -398,23 +412,23 @@ def test_immutable_redacted_and_serialization_refused():
         result._inventory = "private"
     with pytest.raises(AttributeError):
         mapper.__init__(configuration())
-    error = HAMappingError("invalid_discovery")
+    error = runtime().HAMappingError("invalid_discovery")
     with pytest.raises(AttributeError):
         error._code = "private"
     with pytest.raises(ValueError):
-        HAMappingError("private")
+        runtime().HAMappingError("private")
 
 
 @pytest.mark.tc032_03
 def test_shared_validation_failure_is_private_and_does_not_poison_mapper(monkeypatch):
-    mapper = HARegistryMapper(configuration())
+    mapper = runtime().HARegistryMapper(configuration())
     with monkeypatch.context() as patch:
         patch.setattr(
-            BindingCollection,
+            binding_api().BindingCollection,
             "from_dict",
             lambda *a, **kw: (_ for _ in ()).throw(ValueError("private provider identifier")),
         )
-        with pytest.raises(HAMappingError) as caught:
+        with pytest.raises(runtime().HAMappingError) as caught:
             mapper.map(discovery())
         assert str(caught.value) == "invalid_projection"
         assert caught.value.__context__ is None
@@ -444,7 +458,7 @@ def test_discovery_snapshot_export_composes_without_raw_state_leak():
         tuple(json.dumps(data[key]) for key in components),
         tuple(len(data[key]) for key in components),
     )
-    result = HARegistryMapper(configuration()).map(snapshot.for_mapping()).for_adapter()
+    result = runtime().HARegistryMapper(configuration()).map(snapshot.for_mapping()).for_adapter()
     assert result == project().for_adapter()
     assert "attributes" not in json.dumps(result)
 
@@ -469,12 +483,14 @@ def test_standalone_names_and_null_locations(names, expected):
 @pytest.mark.tc032_03
 @pytest.mark.parametrize("operation", ["inventory", "bindings"])
 def test_process_control_propagates_without_translation(monkeypatch, operation):
-    factory = Inventory if operation == "inventory" else BindingCollection
+    factory = (
+        inventory_api().Inventory if operation == "inventory" else binding_api().BindingCollection
+    )
 
     def interrupted(*args, **kwargs):
         raise KeyboardInterrupt()
 
-    mapper = HARegistryMapper(configuration())
+    mapper = runtime().HARegistryMapper(configuration())
     monkeypatch.setattr(factory, "from_dict", interrupted)
     with pytest.raises(KeyboardInterrupt):
         mapper.map(discovery())
@@ -486,11 +502,11 @@ def test_10000_boundary_is_accepted_and_10001_is_rejected(boundary):
     config, data = configuration(), discovery()
     if boundary == "assignments":
         config["device_ids"] = {f"raw-{i}": f"device-{i}" for i in range(10000)}
-        HARegistryMapper(config)
+        runtime().HARegistryMapper(config)
         config["device_ids"]["one-more"] = "extra-device"
 
         def call():
-            return HARegistryMapper(config)
+            return runtime().HARegistryMapper(config)
     else:
         data["devices"] = [{"id": f"raw-{i}"} for i in range(10000)]
         assert project(data).to_redacted_dict()["counts"]["unassigned_devices"] == 10000
@@ -499,7 +515,7 @@ def test_10000_boundary_is_accepted_and_10001_is_rejected(boundary):
         def call():
             return project(data)
 
-    with pytest.raises(HAMappingError, match="^input_limit$"):
+    with pytest.raises(runtime().HAMappingError, match="^input_limit$"):
         call()
 
 
@@ -511,7 +527,7 @@ def test_incomplete_or_extra_component_rejected(key):
         del data[key]
     else:
         data[key] = []
-    with pytest.raises(HAMappingError, match="^invalid_discovery$"):
+    with pytest.raises(runtime().HAMappingError, match="^invalid_discovery$"):
         project(data)
 
 

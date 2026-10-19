@@ -649,6 +649,13 @@ def test_ha_mapping_required_gate(tmp_path, monkeypatch, module, required, skip,
                "--confcutdir", str(tmp_path)]
     if required:
         command.append("--require-ha-mapping-runtime")
+    actual_tests = module is False or module == "broken" or module == "dependency_missing"
+    if actual_tests:
+        # A top-level runtime import would fail collection before the gate could
+        # classify absence or apply optional skips. Exercise the real test module.
+        (tmp_path / filename).unlink()
+        (tmp_path / "test_ha_mapping.py").write_text(
+            Path(__file__).with_name("test_ha_mapping.py").read_text())
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == expected, result.stdout + result.stderr
     assert "private import details" not in result.stdout + result.stderr
@@ -656,7 +663,7 @@ def test_ha_mapping_required_gate(tmp_path, monkeypatch, module, required, skip,
         diagnosis = "broken" if module == "broken" else "absent"
         assert "ha-mapping runtime required but " + diagnosis in result.stderr
     elif skip or module in (False, "broken", "methods_missing", "dependency_missing"):
-        assert "1 skipped" in result.stdout
+        assert ("84 skipped" if actual_tests else "1 skipped") in result.stdout
     else:
         assert "1 passed" in result.stdout
 
