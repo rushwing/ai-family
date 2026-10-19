@@ -716,14 +716,8 @@
       "title": "Map registries into canonical home objects",
       "parent": "HI-F005",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S014.md",
-      "depends_on": [
-        "HI-S008",
-        "HI-S009",
-        "HI-S013"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-032",
       "legacy_refs": [
         "ZW-ST-0102",
         "ZW-ST-0103",

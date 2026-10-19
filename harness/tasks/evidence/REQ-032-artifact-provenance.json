@@ -1,0 +1,1354 @@
+{
+  "source_commit": "d3b941a93c32f2cc00f365c170be3d158528a47c",
+  "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+  "executable": "/tmp/req032-env/bin/python",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "machine": "aarch64",
+  "system": "Linux",
+  "implementation": "CPython",
+  "test_results": [
+    {
+      "filename": "req032-fabric.xml",
+      "expected_executed": 1515,
+      "sha256": "d99deba7a6a98932368d677075d4f184495e66775766794f3af564b9ee7bb8be",
+      "totals": {
+        "executed": 1515,
+        "passed": 1515,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc025_02": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_03": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_01": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_02": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_03": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_04": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_05": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_06": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_04": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_06": {
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_06": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_04": {
+          "executed": 13,
+          "passed": 13,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_05": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_05": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_04": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_01": {
+          "executed": 24,
+          "passed": 24,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_02": {
+          "executed": 75,
+          "passed": 75,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_03": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_04": {
+          "executed": 72,
+          "passed": 72,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_05": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_01": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_02": {
+          "executed": 73,
+          "passed": 73,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_03": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_01": {
+          "executed": 38,
+          "passed": 38,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_02": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_03": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_01": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_02": {
+          "executed": 17,
+          "passed": 17,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_03": {
+          "executed": 63,
+          "passed": 63,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_01": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_02": {
+          "executed": 71,
+          "passed": 71,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_03": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_02": {
+          "executed": 56,
+          "passed": 56,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_03": {
+          "executed": 61,
+          "passed": 61,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_04": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_05": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_01": {
+          "executed": 18,
+          "passed": 18,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_02": {
+          "executed": 33,
+          "passed": 33,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_03": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_04": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_01": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_02": {
+          "executed": 2,
+          "passed": 2,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_03": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_04": {
+          "executed": 17,
+          "passed": 17,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_05": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_01": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_01": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_02": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_04": {
+          "executed": 15,
+          "passed": 15,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_05": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_01": {
+          "executed": 101,
+          "passed": 101,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_02": {
+          "executed": 36,
+          "passed": 36,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_03": {
+          "executed": 27,
+          "passed": 27,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_01": {
+          "executed": 53,
+          "passed": 53,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_02": {
+          "executed": 34,
+          "passed": 34,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_03": {
+          "executed": 50,
+          "passed": 50,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    },
+    {
+      "filename": "req032-shared.xml",
+      "expected_executed": 1795,
+      "sha256": "1a33c245fe61e87f6716c9d302ef3fb4e4fdd3c45b9756f78c9ed72f5808b6f8",
+      "totals": {
+        "executed": 1795,
+        "passed": 1795,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {}
+    }
+  ],
+  "runtime_sha256": "d8fdec510793ae01f528ffe85f5ebafadcd5cd3c11d33d48620bdfbd5c2919a2",
+  "health_runtime_sha256": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+  "normalization_runtime_sha256": "64133c8ef68f6cab3697f58be4505f289af04323e948ca026fa299891080e540",
+  "mapping_runtime_sha256": "5696906136bbb68282f4f2dddbf12501e1aee5efb4d5dd2d5e9cdc5223b99a04",
+  "discovery_runtime_sha256": "b6b3afc8ddc7d39e0786eac15ef7774aaf426c2e6abd140076537b2281b27254",
+  "state_events_runtime_sha256": "d6c55babd83500c376e35eb0315f39b0eda8aa93d804afa976a92b861d0c59d6",
+  "state_store_runtime_sha256": "d6c55babd83500c376e35eb0315f39b0eda8aa93d804afa976a92b861d0c59d6",
+  "subscription_runtime_sha256": "0739a731d6a8f93ba854739f152c16e7bbb5720e48419cce4c416551d655b42f",
+  "source_dirty": false,
+  "dependency_verification": [
+    {
+      "filename": "anyio-4.15.1-py3-none-any.whl",
+      "name": "anyio",
+      "version": "4.15.1",
+      "sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+      "official_sha256": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+      "release_json_url": "https://pypi.org/pypi/anyio/4.15.1/json",
+      "release_json_sha256": "e2ee22fad2fab3e66be503cba9b41945607d3076c9b7aa49b6e2f95ac323efab",
+      "official_file_url": "https://files.pythonhosted.org/packages/12/b8/4bd346e22b28902df4d651910f5242c28d84e4a5c2435ca5c3f797ed7e2e/anyio-4.15.1-py3-none-any.whl"
+    },
+    {
+      "filename": "certifi-2026.10.18-py3-none-any.whl",
+      "name": "certifi",
+      "version": "2026.10.18",
+      "sha256": "73191c47aaa79da394e8fee2dbc2ec827432cab56311122c9e47abf79e390f62",
+      "official_sha256": "73191c47aaa79da394e8fee2dbc2ec827432cab56311122c9e47abf79e390f62",
+      "release_json_url": "https://pypi.org/pypi/certifi/2026.10.18/json",
+      "release_json_sha256": "48807d8aaa093c5141049a877e6aacd09c7bae838d8f590f95cdfcba539b3329",
+      "official_file_url": "https://files.pythonhosted.org/packages/08/ba/95dd616042484f7c83a06974388b37b837732740ee70bc5dc715b5fcd55a/certifi-2026.10.18-py3-none-any.whl"
+    },
+    {
+      "filename": "h11-0.16.0-py3-none-any.whl",
+      "name": "h11",
+      "version": "0.16.0",
+      "sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+      "official_sha256": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+      "release_json_url": "https://pypi.org/pypi/h11/0.16.0/json",
+      "release_json_sha256": "97f4efb9cc00826f0408076983adc1a1e48e8f2cabf403aaf250f724e081440d",
+      "official_file_url": "https://files.pythonhosted.org/packages/04/4b/29cac41a4d98d144bf5f6d33995617b185d14b22401f75ca86f384e87ff1/h11-0.16.0-py3-none-any.whl"
+    },
+    {
+      "filename": "httpcore-1.0.9-py3-none-any.whl",
+      "name": "httpcore",
+      "version": "1.0.9",
+      "sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+      "official_sha256": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+      "release_json_url": "https://pypi.org/pypi/httpcore/1.0.9/json",
+      "release_json_sha256": "e26eca5c3d288fe9e6446af9bcbca1038ba688629d5c8a2886c47d74718d87a2",
+      "official_file_url": "https://files.pythonhosted.org/packages/7e/f5/f66802a942d491edb555dd61e3a9961140fd64c90bce1eafd741609d334d/httpcore-1.0.9-py3-none-any.whl"
+    },
+    {
+      "filename": "httpx-0.28.1-py3-none-any.whl",
+      "name": "httpx",
+      "version": "0.28.1",
+      "sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+      "official_sha256": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+      "release_json_url": "https://pypi.org/pypi/httpx/0.28.1/json",
+      "release_json_sha256": "293bfab7bf587fcd0825f1bd8eed8e6303285ba14801b15659853827cbe30796",
+      "official_file_url": "https://files.pythonhosted.org/packages/2a/39/e50c7c3a983047577ee07d2a9e53faf5a69493943ec3f6a384bdc792deb2/httpx-0.28.1-py3-none-any.whl"
+    },
+    {
+      "filename": "idna-3.20-py3-none-any.whl",
+      "name": "idna",
+      "version": "3.20",
+      "sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "official_sha256": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+      "release_json_url": "https://pypi.org/pypi/idna/3.20/json",
+      "release_json_sha256": "e7cbd26e23ce60f6cb3a151d2adf3b1b087bb8f10ac2d9d6db70fdccbf3bb041",
+      "official_file_url": "https://files.pythonhosted.org/packages/58/a2/bb081bab032533a855d44de1d56f8e8426114ff1ba5d1f07a438a0a654f8/idna-3.20-py3-none-any.whl"
+    },
+    {
+      "filename": "typing_extensions-4.16.0-py3-none-any.whl",
+      "name": "typing_extensions",
+      "version": "4.16.0",
+      "sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "official_sha256": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+      "release_json_url": "https://pypi.org/pypi/typing_extensions/4.16.0/json",
+      "release_json_sha256": "2140da00d62dde967f52d0be0ae28444f1d6a3fe603f52c83c23988c32122d5a",
+      "official_file_url": "https://files.pythonhosted.org/packages/49/d3/b8441a820a491ddfc024b0b0cf0393375b75ea13866d9c66727e54c2fc80/typing_extensions-4.16.0-py3-none-any.whl"
+    },
+    {
+      "filename": "websockets-15.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl",
+      "name": "websockets",
+      "version": "15.0.1",
+      "sha256": "e8b56bdcdb4505c8078cb6c7157d9811a85790f2f2b3632c7d1462ab5783d215",
+      "official_sha256": "e8b56bdcdb4505c8078cb6c7157d9811a85790f2f2b3632c7d1462ab5783d215",
+      "release_json_url": "https://pypi.org/pypi/websockets/15.0.1/json",
+      "release_json_sha256": "60bfa9592eacef2fb478bafc3cf95d9414cff0d951ab109885b92a155c217c00",
+      "official_file_url": "https://files.pythonhosted.org/packages/a6/02/0073b3952f5bce97eafbb35757f8d0d54812b6174ed8dd952aa08429bcc3/websockets-15.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl"
+    }
+  ],
+  "dependency_acquisition": {
+    "index_url": "https://pypi.org/simple",
+    "pip_version": "26.2.1",
+    "pip_config_file": "/dev/null",
+    "cache": "disabled",
+    "ignored_pip_environment_keys": [],
+    "proxy_policy": "disabled for pip downloads and release metadata",
+    "ignored_proxy_environment_keys": [
+      "ALL_PROXY",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "NO_PROXY",
+      "all_proxy",
+      "http_proxy",
+      "https_proxy",
+      "no_proxy"
+    ],
+    "download_stdout_sha256": "183079fe5f2b48e048207f42ad600b245bead434b35c1b3ef7726f4f6fdc0d21",
+    "download_stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "download_returncode": 0,
+    "log_policy": "Raw pip output and environment values are not exported; verified file URLs and identities form the acquisition log."
+  },
+  "artifacts": {
+    "direct/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe",
+    "sdist/ai_family_state_schema-0.1.0.tar.gz": "1ac791febfe84770c1ea315fc0a8519de2cfaff650191b3cf398d7316fdf1dfc",
+    "direct/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "1326dd093f659f685cdd4352e44e018dc224756945ec124288b3695b2b125817",
+    "sdist/ai_family_home_device_fabric-0.1.0.tar.gz": "7defe10a9437e527d6247131971a12c06579a378077b9a75558926a6b108a93e",
+    "derived/ai_family_home_device_fabric-0.1.0-py3-none-any.whl": "1326dd093f659f685cdd4352e44e018dc224756945ec124288b3695b2b125817",
+    "derived/ai_family_state_schema-0.1.0-py3-none-any.whl": "8e3746304530d520ac8f5d07f0b60e70d901ca9e3fda92865417558fb854e1fe"
+  },
+  "dependency_wheels": {
+    "anyio-4.15.1-py3-none-any.whl": "6152fdbbf9a77fdec97731721bebf7c4c44f7c29b424b0065826173efc7ed101",
+    "certifi-2026.10.18-py3-none-any.whl": "73191c47aaa79da394e8fee2dbc2ec827432cab56311122c9e47abf79e390f62",
+    "h11-0.16.0-py3-none-any.whl": "63cf8bbe7522de3bf65932fda1d9c2772064ffb3dae62d55932da54b31cb6c86",
+    "httpcore-1.0.9-py3-none-any.whl": "2d400746a40668fc9dec9810239072b40b4484b640a8c38fd654a024c7a1bf55",
+    "httpx-0.28.1-py3-none-any.whl": "d909fcccc110f8c7faf814ca82a9a4d816bc5a6dbfea25d6591d6985b8ba59ad",
+    "idna-3.20-py3-none-any.whl": "ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c",
+    "typing_extensions-4.16.0-py3-none-any.whl": "481caa481374e813c1b176ada14e97f1f67a4539ce9cfeb3f350d78d6370c2e8",
+    "websockets-15.0.1-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl": "e8b56bdcdb4505c8078cb6c7157d9811a85790f2f2b3632c7d1462ab5783d215"
+  },
+  "smokes": [
+    {
+      "pair": "direct",
+      "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+      "executable": "/tmp/req032-artifacts/req019-direct-sy835m82/env/bin/python",
+      "smoke": "passed",
+      "demo": {
+        "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+        "executable": "/tmp/req032-artifacts/req019-direct-sy835m82/env/bin/python",
+        "demo_smoke": "passed",
+        "runs": [
+          {
+            "device": "switch",
+            "scenario": "success",
+            "cases": 2,
+            "dispatch_count": 2,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "curtain",
+            "scenario": "success",
+            "cases": 3,
+            "dispatch_count": 3,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "temperature",
+            "scenario": "observe",
+            "cases": 1,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "switch",
+            "scenario": "timeout",
+            "cases": 1,
+            "dispatch_count": 1,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "switch",
+            "scenario": "offline",
+            "cases": 2,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "curtain",
+            "scenario": "invalid-position",
+            "cases": 4,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "temperature",
+            "scenario": "write-rejected",
+            "cases": 1,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          }
+        ]
+      },
+      "conformance": [
+        {
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req032-artifacts/req019-direct-sy835m82/env/bin/python",
+          "optimized": false,
+          "conformance_smoke": "passed",
+          "counts": {
+            "executed": 51,
+            "failed": 0,
+            "passed": 51,
+            "skipped": 0,
+            "total": 51
+          },
+          "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+          "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+          "wrapper": "passed",
+          "defect_detected": "discovery"
+        },
+        {
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req032-artifacts/req019-direct-sy835m82/env/bin/python",
+          "optimized": true,
+          "conformance_smoke": "passed",
+          "counts": {
+            "executed": 51,
+            "failed": 0,
+            "passed": 51,
+            "skipped": 0,
+            "total": 51
+          },
+          "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+          "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+          "wrapper": "passed",
+          "defect_detected": "discovery"
+        }
+      ],
+      "ha_configuration": [
+        {
+          "optimized": false,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "redaction": true,
+          "refused_exports": 6,
+          "rejected": 4,
+          "schedule_count": 8
+        },
+        {
+          "optimized": true,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "redaction": true,
+          "refused_exports": 6,
+          "rejected": 4,
+          "schedule_count": 8
+        }
+      ],
+      "ha_rest": [
+        {
+          "draining_close": true,
+          "httpx": "0.28.1",
+          "optimized": false,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "rest_smoke": "passed",
+          "runtime_sha256": "3f2c44dbf25e7a634214599f1053f838812699a64167e13a441e1737bee98c83",
+          "timeout": true,
+          "tls_verification": true,
+          "wire": true
+        },
+        {
+          "draining_close": true,
+          "httpx": "0.28.1",
+          "optimized": true,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "rest_smoke": "passed",
+          "runtime_sha256": "3f2c44dbf25e7a634214599f1053f838812699a64167e13a441e1737bee98c83",
+          "timeout": true,
+          "tls_verification": true,
+          "wire": true
+        }
+      ],
+      "ha_websocket": [
+        {
+          "profile": "req024-installed-lifecycle-v1",
+          "wire_auths": 4,
+          "checks": [
+            "authenticated",
+            "shutdown",
+            "auth_rejected",
+            "finite_retry",
+            "loaded_trust_roots"
+          ],
+          "loaded_ca_count": 117,
+          "websockets": "15.0.1",
+          "certifi": "2026.10.18",
+          "ca_bundle_sha256": "d87887200c9a705dccc937b9b83b5e67e47024c4a4b7f9dd15700c72e0f55453"
+        },
+        {
+          "profile": "req024-installed-lifecycle-v1",
+          "wire_auths": 4,
+          "checks": [
+            "authenticated",
+            "shutdown",
+            "auth_rejected",
+            "finite_retry",
+            "loaded_trust_roots"
+          ],
+          "loaded_ca_count": 117,
+          "websockets": "15.0.1",
+          "certifi": "2026.10.18",
+          "ca_bundle_sha256": "d87887200c9a705dccc937b9b83b5e67e47024c4a4b7f9dd15700c72e0f55453"
+        }
+      ],
+      "ha_health": [
+        {
+          "profile": "req026-installed-health-v1",
+          "wire_auths": 3,
+          "rest_requests": 4,
+          "checks": [
+            "connected",
+            "independent_rest_auth",
+            "rest_recovery",
+            "finite_socket_reconnect",
+            "terminal_socket_not_restarted",
+            "socket_auth_rejected",
+            "redaction",
+            "closed_snapshot",
+            "drained"
+          ]
+        },
+        {
+          "profile": "req026-installed-health-v1",
+          "wire_auths": 3,
+          "rest_requests": 4,
+          "checks": [
+            "connected",
+            "independent_rest_auth",
+            "rest_recovery",
+            "finite_socket_reconnect",
+            "terminal_socket_not_restarted",
+            "socket_auth_rejected",
+            "redaction",
+            "closed_snapshot",
+            "drained"
+          ]
+        }
+      ],
+      "ha_subscription": [
+        {
+          "profile": "req027-installed-subscription-v1",
+          "connections": 3,
+          "delivered": 2,
+          "active_after_close": 0,
+          "checks": [
+            "ack_readiness",
+            "ordered_events",
+            "one_subscription_per_socket",
+            "reconnect",
+            "rejection",
+            "redaction",
+            "serialization",
+            "drained"
+          ]
+        },
+        {
+          "profile": "req027-installed-subscription-v1",
+          "connections": 3,
+          "delivered": 2,
+          "active_after_close": 0,
+          "checks": [
+            "ack_readiness",
+            "ordered_events",
+            "one_subscription_per_socket",
+            "reconnect",
+            "rejection",
+            "redaction",
+            "serialization",
+            "drained"
+          ]
+        }
+      ],
+      "ha_normalization": [
+        {
+          "checks": 8,
+          "offline": true
+        },
+        {
+          "checks": 8,
+          "offline": true
+        }
+      ],
+      "state_store": [
+        {
+          "checks": 15,
+          "offline": true
+        },
+        {
+          "checks": 15,
+          "offline": true
+        }
+      ],
+      "state_application": [
+        {
+          "checks": 18,
+          "offline": true
+        },
+        {
+          "checks": 18,
+          "offline": true
+        }
+      ],
+      "state_events": [
+        {
+          "checks": 18,
+          "offline": true
+        },
+        {
+          "checks": 18,
+          "offline": true
+        }
+      ],
+      "ha_discovery": [
+        {
+          "checks": 15,
+          "device_writes": 0,
+          "loopback": true
+        },
+        {
+          "checks": 15,
+          "device_writes": 0,
+          "loopback": true
+        }
+      ],
+      "ha_mapping": [
+        {
+          "checks": 13,
+          "offline": true,
+          "rules_version": 1
+        },
+        {
+          "checks": 13,
+          "offline": true,
+          "rules_version": 1
+        }
+      ],
+      "installed_distributions": [
+        {
+          "name": "ai-family-home-device-fabric",
+          "version": "0.1.0"
+        },
+        {
+          "name": "ai-family-state-schema",
+          "version": "0.1.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.18"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9"
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "pip",
+          "version": "25.0.1"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "websockets",
+          "version": "15.0.1"
+        }
+      ]
+    },
+    {
+      "pair": "derived",
+      "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+      "executable": "/tmp/req032-artifacts/req019-derived-ghetdnse/env/bin/python",
+      "smoke": "passed",
+      "demo": {
+        "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+        "executable": "/tmp/req032-artifacts/req019-derived-ghetdnse/env/bin/python",
+        "demo_smoke": "passed",
+        "runs": [
+          {
+            "device": "switch",
+            "scenario": "success",
+            "cases": 2,
+            "dispatch_count": 2,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "curtain",
+            "scenario": "success",
+            "cases": 3,
+            "dispatch_count": 3,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "temperature",
+            "scenario": "observe",
+            "cases": 1,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "switch",
+            "scenario": "timeout",
+            "cases": 1,
+            "dispatch_count": 1,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "switch",
+            "scenario": "offline",
+            "cases": 2,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "curtain",
+            "scenario": "invalid-position",
+            "cases": 4,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          },
+          {
+            "device": "temperature",
+            "scenario": "write-rejected",
+            "cases": 1,
+            "dispatch_count": 0,
+            "repeat_and_optimized": "passed"
+          }
+        ]
+      },
+      "conformance": [
+        {
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req032-artifacts/req019-derived-ghetdnse/env/bin/python",
+          "optimized": false,
+          "conformance_smoke": "passed",
+          "counts": {
+            "executed": 51,
+            "failed": 0,
+            "passed": 51,
+            "skipped": 0,
+            "total": 51
+          },
+          "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+          "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+          "wrapper": "passed",
+          "defect_detected": "discovery"
+        },
+        {
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "executable": "/tmp/req032-artifacts/req019-derived-ghetdnse/env/bin/python",
+          "optimized": true,
+          "conformance_smoke": "passed",
+          "counts": {
+            "executed": 51,
+            "failed": 0,
+            "passed": 51,
+            "skipped": 0,
+            "total": 51
+          },
+          "inventory_sha256": "0cb57579e3eb82bb1d7c73722f1c5e3c386427d45c7efde9ed011a5c7f18e6bd",
+          "report_sha256": "7fdb120aa53ea458bf856e5f94f041df7851a0f8e672e8f4c9c5e8692ed82fc1",
+          "wrapper": "passed",
+          "defect_detected": "discovery"
+        }
+      ],
+      "ha_configuration": [
+        {
+          "optimized": false,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "redaction": true,
+          "refused_exports": 6,
+          "rejected": 4,
+          "schedule_count": 8
+        },
+        {
+          "optimized": true,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "redaction": true,
+          "refused_exports": 6,
+          "rejected": 4,
+          "schedule_count": 8
+        }
+      ],
+      "ha_rest": [
+        {
+          "draining_close": true,
+          "httpx": "0.28.1",
+          "optimized": false,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "rest_smoke": "passed",
+          "runtime_sha256": "3f2c44dbf25e7a634214599f1053f838812699a64167e13a441e1737bee98c83",
+          "timeout": true,
+          "tls_verification": true,
+          "wire": true
+        },
+        {
+          "draining_close": true,
+          "httpx": "0.28.1",
+          "optimized": true,
+          "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+          "rest_smoke": "passed",
+          "runtime_sha256": "3f2c44dbf25e7a634214599f1053f838812699a64167e13a441e1737bee98c83",
+          "timeout": true,
+          "tls_verification": true,
+          "wire": true
+        }
+      ],
+      "ha_websocket": [
+        {
+          "profile": "req024-installed-lifecycle-v1",
+          "wire_auths": 4,
+          "checks": [
+            "authenticated",
+            "shutdown",
+            "auth_rejected",
+            "finite_retry",
+            "loaded_trust_roots"
+          ],
+          "loaded_ca_count": 117,
+          "websockets": "15.0.1",
+          "certifi": "2026.10.18",
+          "ca_bundle_sha256": "d87887200c9a705dccc937b9b83b5e67e47024c4a4b7f9dd15700c72e0f55453"
+        },
+        {
+          "profile": "req024-installed-lifecycle-v1",
+          "wire_auths": 4,
+          "checks": [
+            "authenticated",
+            "shutdown",
+            "auth_rejected",
+            "finite_retry",
+            "loaded_trust_roots"
+          ],
+          "loaded_ca_count": 117,
+          "websockets": "15.0.1",
+          "certifi": "2026.10.18",
+          "ca_bundle_sha256": "d87887200c9a705dccc937b9b83b5e67e47024c4a4b7f9dd15700c72e0f55453"
+        }
+      ],
+      "ha_health": [
+        {
+          "profile": "req026-installed-health-v1",
+          "wire_auths": 3,
+          "rest_requests": 4,
+          "checks": [
+            "connected",
+            "independent_rest_auth",
+            "rest_recovery",
+            "finite_socket_reconnect",
+            "terminal_socket_not_restarted",
+            "socket_auth_rejected",
+            "redaction",
+            "closed_snapshot",
+            "drained"
+          ]
+        },
+        {
+          "profile": "req026-installed-health-v1",
+          "wire_auths": 3,
+          "rest_requests": 4,
+          "checks": [
+            "connected",
+            "independent_rest_auth",
+            "rest_recovery",
+            "finite_socket_reconnect",
+            "terminal_socket_not_restarted",
+            "socket_auth_rejected",
+            "redaction",
+            "closed_snapshot",
+            "drained"
+          ]
+        }
+      ],
+      "ha_subscription": [
+        {
+          "profile": "req027-installed-subscription-v1",
+          "connections": 3,
+          "delivered": 2,
+          "active_after_close": 0,
+          "checks": [
+            "ack_readiness",
+            "ordered_events",
+            "one_subscription_per_socket",
+            "reconnect",
+            "rejection",
+            "redaction",
+            "serialization",
+            "drained"
+          ]
+        },
+        {
+          "profile": "req027-installed-subscription-v1",
+          "connections": 3,
+          "delivered": 2,
+          "active_after_close": 0,
+          "checks": [
+            "ack_readiness",
+            "ordered_events",
+            "one_subscription_per_socket",
+            "reconnect",
+            "rejection",
+            "redaction",
+            "serialization",
+            "drained"
+          ]
+        }
+      ],
+      "ha_normalization": [
+        {
+          "checks": 8,
+          "offline": true
+        },
+        {
+          "checks": 8,
+          "offline": true
+        }
+      ],
+      "state_store": [
+        {
+          "checks": 15,
+          "offline": true
+        },
+        {
+          "checks": 15,
+          "offline": true
+        }
+      ],
+      "state_application": [
+        {
+          "checks": 18,
+          "offline": true
+        },
+        {
+          "checks": 18,
+          "offline": true
+        }
+      ],
+      "state_events": [
+        {
+          "checks": 18,
+          "offline": true
+        },
+        {
+          "checks": 18,
+          "offline": true
+        }
+      ],
+      "ha_discovery": [
+        {
+          "checks": 15,
+          "device_writes": 0,
+          "loopback": true
+        },
+        {
+          "checks": 15,
+          "device_writes": 0,
+          "loopback": true
+        }
+      ],
+      "ha_mapping": [
+        {
+          "checks": 13,
+          "offline": true,
+          "rules_version": 1
+        },
+        {
+          "checks": 13,
+          "offline": true,
+          "rules_version": 1
+        }
+      ],
+      "installed_distributions": [
+        {
+          "name": "ai-family-home-device-fabric",
+          "version": "0.1.0"
+        },
+        {
+          "name": "ai-family-state-schema",
+          "version": "0.1.0"
+        },
+        {
+          "name": "anyio",
+          "version": "4.15.1"
+        },
+        {
+          "name": "certifi",
+          "version": "2026.10.18"
+        },
+        {
+          "name": "h11",
+          "version": "0.16.0"
+        },
+        {
+          "name": "httpcore",
+          "version": "1.0.9"
+        },
+        {
+          "name": "httpx",
+          "version": "0.28.1"
+        },
+        {
+          "name": "idna",
+          "version": "3.20"
+        },
+        {
+          "name": "pip",
+          "version": "25.0.1"
+        },
+        {
+          "name": "typing_extensions",
+          "version": "4.16.0"
+        },
+        {
+          "name": "websockets",
+          "version": "15.0.1"
+        }
+      ]
+    }
+  ]
+}

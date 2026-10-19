@@ -1,0 +1,165 @@
+{
+  "authority": "Generator-authored verification only; no independent approval, acceptance or live certification.",
+  "source_commit": "d3b941a93c32f2cc00f365c170be3d158528a47c",
+  "source_hashes": {
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/demo.py": "d8c19a964ceb55d5ea66565f14596563fb326b2db3d8d040687aac1748a90c0f",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/scenarios.py": "98187a0fce080bf78c7dafee184b7bebf4f048b9e15f0ac7a0e1fc3e9eb9fa38",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_configuration.py": "448ab0c3befc91f5ca8e419ce704e698289d7e6dbeb11a107d5ce34eb2530b2c",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/conformance_fixtures.py": "7ae81cc57f35da8db7dd6c2f82f8088acd49fe003173cc70c61349d085c9d473",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_rest.py": "3f2c44dbf25e7a634214599f1053f838812699a64167e13a441e1737bee98c83",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/__init__.py": "fe9112f933be5dc538e4bb5c0972355da71d66943ad758e4218a11d1d8d29067",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_health.py": "bfa0cdb9816508f79ddd8b3edb3efeaf8949ffe06e6f5dd129c115f0672da4ce",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/state_store.py": "d6c55babd83500c376e35eb0315f39b0eda8aa93d804afa976a92b861d0c59d6",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_discovery.py": "b6b3afc8ddc7d39e0786eac15ef7774aaf426c2e6abd140076537b2281b27254",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_subscription.py": "0739a731d6a8f93ba854739f152c16e7bbb5720e48419cce4c416551d655b42f",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/mock.py": "9773df45ae33f5fef30ad3ed3367042e7ca18f9cf2671d1ef7dc016b5ce30073",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_websocket.py": "d8fdec510793ae01f528ffe85f5ebafadcd5cd3c11d33d48620bdfbd5c2919a2",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_normalization.py": "64133c8ef68f6cab3697f58be4505f289af04323e948ca026fa299891080e540",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_mapping.py": "5696906136bbb68282f4f2dddbf12501e1aee5efb4d5dd2d5e9cdc5223b99a04",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/conformance_catalogue.py": "bb6150ca683c6de80dc20c1ab54d0dd1005059ad7fc01d77e373963c202619ba",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/caller.py": "7240f559c16eddb898d02debc2fda57303a5b9b8e08c0769f0df73284047d2db",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/conformance.py": "c408c4e908880fec6768e8ea29f005cd025afd2c8a7a95e62da93cce898266fb",
+    "toolsets/iot/home-device-fabric/tests/test_ha_mapping.py": "79f3f2e289f6c568bbdf838e4771017c5a8ce953a09cc08a20804ece2fc41d84",
+    "toolsets/iot/home-device-fabric/tests/test_gate.py": "1b721fa06bc795c16e4311ce040149dece71c90acd92ce377fce1ac23659dd3c",
+    "toolsets/iot/home-device-fabric/tests/conftest.py": "89f6a6037eb1db8d73e36b09ae434713cd6c2c4a81d11fd7f9a92c39d82701d0",
+    "toolsets/iot/home-device-fabric/tests/ha_mapping_artifact_smoke.py": "2bfcefe852719b1ea2f3b9d14882bf92a95bb1667c5f746e5886f92315b03050",
+    "toolsets/iot/home-device-fabric/tests/ha_mapping_mutations.py": "214a29f3a6a61b4562c13492059cc1ad62253f078bb2d2eb655da98f7480a46f",
+    "toolsets/iot/home-device-fabric/tests/build_artifacts.py": "98f2f41d87e3046480d33dbbeb4ed028211537e54cd1cdbfa39294f88f2c2397",
+    "tools/check_fabric_ci.py": "0273c1b9b49db96354d703ab679b4c985d44d7ce4bb5355e1ae603fe9229c85a",
+    ".github/workflows/ci.yml": "e8e4ac85dbf01fed605890e863c56e77b298c376f7392eab1b91cc9bcf982910"
+  },
+  "artifacts_provenance_sha256": "a7697208624305552069da76b746587a50b7993707eeb445f7c02eaf05c247b9",
+  "tc032_groups": {
+    "tc032_01": 4,
+    "tc032_02": 17,
+    "tc032_03": 63,
+    "tc032_04": 13
+  },
+  "mutations": {
+    "runtime_sha256": "5696906136bbb68282f4f2dddbf12501e1aee5efb4d5dd2d5e9cdc5223b99a04",
+    "tests_sha256": "79f3f2e289f6c568bbdf838e4771017c5a8ce953a09cc08a20804ece2fc41d84",
+    "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+    "results": [
+      {
+        "mutation": "baseline",
+        "before": null,
+        "after": null,
+        "returncode": 0,
+        "log_sha256": "493c2c308f3f0f7faa7046a2a874a1892b64cbface2251cfd05cace7e163686d",
+        "summary": [
+          "84 passed in 0.44s"
+        ]
+      },
+      {
+        "mutation": "ambiguous_identity",
+        "before": "if identity in assigned:",
+        "after": "if False:",
+        "returncode": 1,
+        "log_sha256": "92008e556d8194bd29a51bd0e73ad500fb515da883ff7c359594b11d81b02562",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_configuration_rejects_ambiguity_and_malformed[area_ids-value3]",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_configuration_rejects_ambiguity_and_malformed[device_ids-value4]",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_configuration_rejects_ambiguity_and_malformed[entity_ids-value5]",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_configuration_rejects_ambiguity_and_malformed[device_ids-value6]",
+          "4 failed, 80 passed in 0.50s"
+        ]
+      },
+      {
+        "mutation": "last_entity_only",
+        "before": "grouped.setdefault(parent, []).append(raw_id)",
+        "after": "grouped[parent] = [raw_id]",
+        "returncode": 1,
+        "log_sha256": "ade16396cdf4531bd1dcdeb83fe1956a5b0922e0544d6e66119b9b95dd88e46e",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_literal_projection_and_shared_validation",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_order_repeated_calls_and_inputs_detached",
+          "2 failed, 82 passed in 0.48s"
+        ]
+      },
+      {
+        "mutation": "disabled_entity_included",
+        "before": "if record.get(\"disabled_by\") is not None:",
+        "after": "if False:",
+        "returncode": 1,
+        "log_sha256": "cce0bc232cc2bf480378d60987d95fa1626362c59a4a3449e9003515090d94a5",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_disabled_missing_unassigned_policy[disabled_entity-counts1-2]",
+          "1 failed, 83 passed in 0.47s"
+        ]
+      },
+      {
+        "mutation": "unsorted_binding_members",
+        "before": "\"entity_ids\": sorted(members)",
+        "after": "\"entity_ids\": members",
+        "returncode": 1,
+        "log_sha256": "ade16396cdf4531bd1dcdeb83fe1956a5b0922e0544d6e66119b9b95dd88e46e",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_literal_projection_and_shared_validation",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_order_repeated_calls_and_inputs_detached",
+          "2 failed, 82 passed in 0.48s"
+        ]
+      },
+      {
+        "mutation": "drop_spatial_assignment",
+        "before": "area_ids.get(raw_area) if raw_area is not None else None",
+        "after": "None",
+        "returncode": 1,
+        "log_sha256": "4d0969150946be95f792beb73b296bf42a2e5fe63fa0947bc714cc240d50c223",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_literal_projection_and_shared_validation",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_entity_override_does_not_split_group_or_promote_orphan",
+          "2 failed, 82 passed in 0.47s"
+        ]
+      },
+      {
+        "mutation": "skip_state_validation",
+        "before": "if type(state) is not str or len(state) > 4096:",
+        "after": "if False:",
+        "returncode": 1,
+        "log_sha256": "d37817e61d2a192a2b577acbc9518671cb1ee1875a33e3110b3e6cd5fa8de7d3",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_known_fields_strict_even_if_not_projected[states-state-False]",
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_known_fields_strict_even_if_not_projected[states-state-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx]",
+          "2 failed, 82 passed in 0.48s"
+        ]
+      },
+      {
+        "mutation": "allow_result_reinitialization",
+        "before": "if hasattr(self, \"_inventory\"):",
+        "after": "if False:",
+        "returncode": 1,
+        "log_sha256": "9849b77fe408e10cc77c40b7321dd5d16c0e5846b0301cf876286b9d0f9555e1",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_result_reinitialization_refused",
+          "1 failed, 83 passed in 0.46s"
+        ]
+      },
+      {
+        "mutation": "allow_aliased_objects",
+        "before": "if id(item) in seen:",
+        "after": "if False:",
+        "returncode": 1,
+        "log_sha256": "f34aa868403847480454549958248b6393e706195a629a6bd2fea194bcfa5308",
+        "summary": [
+          "FAILED ../../home/openclaw/.openclaw/workspace/ai-family/toolsets/iot/home-device-fabric/tests/test_ha_mapping.py::test_bounded_tree[alias]",
+          "1 failed, 83 passed in 0.46s"
+        ]
+      }
+    ]
+  },
+  "mutation_attribution": "Mutation execution preceded source commit; runtime and test hashes match committed bytes.",
+  "log_sha256": {
+    "req032-fabric.log": "4c16a7824827b8b66069b012f2910f7f7b812dbdcc5a127838204d0c7113a2e7",
+    "req032-shared.log": "9e1af304581384a053caaa1ef9a01c3133855941205be4d215f027de9ea113ab",
+    "req032-artifacts.log": "455b00476b487765fa2521d3b788aa89c644a94a2dc56038019fd28f28a8b9c7"
+  },
+  "commands": [
+    "/tmp/req032-env/bin/python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime --require-ha-websocket-runtime --require-ha-health-runtime --require-ha-subscription-runtime --require-ha-normalization-runtime --require-state-store-runtime --require-state-events-runtime --require-ha-discovery-runtime --require-ha-mapping-runtime -q --junitxml=/tmp/req032-fabric.xml",
+    "/tmp/req032-env/bin/python -m pytest -c libs/state-schema/pytest.ini libs/state-schema/tests --require-inventory-runtime --require-binding-runtime --require-state-runtime --require-capability-runtime --require-initial-capabilities-runtime --require-action-runtime -q --junitxml=/tmp/req032-shared.xml",
+    "/tmp/req032-env/bin/python toolsets/iot/home-device-fabric/tests/ha_mapping_mutations.py --out-dir /tmp/req032-mutations",
+    "/tmp/req032-env/bin/python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/req032-artifacts --test-results /tmp/req032-fabric.xml --expected-test-count 1515 --test-results /tmp/req032-shared.xml --expected-test-count 1795",
+    "/tmp/req032-env/bin/ruff check toolsets/iot/home-device-fabric tools/check_fabric_ci.py tests/test_home_intelligence_planning.py",
+    "/tmp/req032-env/bin/mypy --config-file toolsets/iot/home-device-fabric/pyproject.toml toolsets/iot/home-device-fabric/src",
+    "python3 -m unittest discover -s tests -p test_home_intelligence_planning.py"
+  ]
+}
