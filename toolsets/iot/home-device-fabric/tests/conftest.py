@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-ha-mapping-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-discovery-runtime", action="store_true", default=False)
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
     parser.addoption("--require-demo-runtime", action="store_true", default=False)
@@ -191,6 +192,21 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_discovery.py":
                 item.add_marker(pytest.mark.skip(reason="REQ-031 ha-discovery runtime "
                                                 + discovery_error))
+    try:
+        mapping = importlib.import_module("home_device_fabric.ha_mapping")
+        mapping_class = getattr(mapping, "HARegistryMapper", None)
+        mapping_error = None if callable(getattr(mapping_class, "map", None)) else "absent"
+    except ImportError:
+        mapping_error = "absent"
+    except Exception:
+        mapping_error = "broken"
+    if config.getoption("--require-ha-mapping-runtime") and mapping_error:
+        raise pytest.UsageError("REQ-032 ha-mapping runtime required but " + mapping_error)
+    if mapping_error:
+        for item in items:
+            if item.path.name == "test_ha_mapping.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-032 ha-mapping runtime "
+                                                + mapping_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -241,6 +257,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-state-store-runtime")
         or session.config.getoption("--require-state-events-runtime")
         or session.config.getoption("--require-ha-discovery-runtime")
+        or session.config.getoption("--require-ha-mapping-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

@@ -957,3 +957,64 @@ checks execute real fictional loopback discovery and partial permission failure
 on both direct/sdist-derived wheel pairs under `-I` and `-O -I`. Registry mapping,
 capability inference, query/API services, reconnect reconciliation and real HA
 certification remain separate increments.
+
+
+## Canonical HA registry mapping (REQ-032 / HI-S014)
+
+`home_device_fabric.ha_mapping.HARegistryMapper` is an offline, synchronous
+projection from `HADiscoverySnapshot.for_mapping()` to accepted canonical
+Inventory and separate HA ProviderBindings. It requires explicit canonical
+identity assignments from trusted caller code. It never allocates IDs from HA
+identifiers, hashes or names. Keep these assignments durable outside the mapper;
+rediscovery and explicit provider replacement retain identity by reusing the
+same canonical IDs. No name-based replacement matching is performed.
+
+```python
+from home_device_fabric.ha_mapping import HARegistryMapper
+
+mapper = HARegistryMapper({
+    "schema_version": 1,
+    "home": {"id": "home-example", "name": "Example", "residence_type": "other"},
+    "provider_instance_id": "ha-example",
+    "area_ids": {"fictional-ha-area": "area-example"},
+    "device_ids": {"fictional-ha-device": "device-example"},
+    "entity_ids": {"sensor.fictional_standalone": "device-standalone"},
+})
+result = mapper.map(private_discovery_snapshot.for_mapping())
+summary = result.to_redacted_dict()  # rules version and fixed counters only
+private_projection = result.for_adapter()  # inventory and bindings; trusted adapter only
+```
+
+All enabled entities referencing one assigned registry device share one canonical
+Device and sorted binding membership. An entity without a registry device needs
+an explicit `entity_ids` assignment to form a standalone Device. Missing,
+unassigned or disabled referenced devices do not silently become standalone.
+Unassigned resources and disabled entities/devices are omitted and counted.
+State rows never create devices and missing states do not remove registry rows.
+Device area assignment controls grouped devices; entity overrides do not split
+or relocate the group. Standalone devices use the entity's area. Missing or
+unassigned areas become null; floors/types are not inferred. Areas use type
+`other` and no floor, labels or aliases. Names use explicit provider name fields
+with a neutral `Device` fallback; raw IDs are not display-name fallbacks.
+
+Every call returns a fresh projection. Removed entities disappear from bindings;
+removing the last member omits that Device. The caller keeps its identity
+assignments for reappearance. This is not a store merge, tombstone, physical
+availability or automatic deletion policy. Integrating a projection into an
+existing state store requires a separate reconciliation policy.
+
+Inputs are bounded plain JSON trees with strict identities and known field
+types; the whole four-component bundle is validated even for rows not projected.
+No partial projection is returned on invalid input. Configuration/results are
+detached immutable private snapshots; repr and summaries are redacted and
+copy/pickle is refused. `for_adapter()` deliberately exports private names and
+binding identifiers: do not log or expose the raw projection through agents or
+public routes. Finite `HAMappingError` diagnostics discard raw exception context.
+Private introspection and traceback locals are outside this diagnostic boundary.
+
+[REQ-032](../../../harness/tasks/features/REQ-032.md) owns exact limits, identity,
+spatial/removal rules, proposed TCs and external-review lifecycle.
+`--require-ha-mapping-runtime` is the thirteenth required fabric flag; direct and
+sdist-derived packages exercise normal/optimized isolated mapper smokes. This
+proposed increment adds no capability inference, state publication, query/API,
+provider action, HA connection or live certification.

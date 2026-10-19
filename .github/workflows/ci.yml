@@ -143,10 +143,10 @@ jobs:
       - name: Run provider TCs without skips
         run: >-
           python -m pytest -c toolsets/iot/home-device-fabric/pytest.ini
-          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime --require-ha-websocket-runtime --require-ha-health-runtime --require-ha-subscription-runtime --require-ha-normalization-runtime --require-state-store-runtime --require-state-events-runtime --require-ha-discovery-runtime -q
+          toolsets/iot/home-device-fabric/tests --require-provider-runtime --require-demo-runtime --require-conformance-runtime --require-ha-configuration-runtime --require-ha-rest-runtime --require-ha-websocket-runtime --require-ha-health-runtime --require-ha-subscription-runtime --require-ha-normalization-runtime --require-state-store-runtime --require-state-events-runtime --require-ha-discovery-runtime --require-ha-mapping-runtime -q
           --junitxml=/tmp/provider-results.xml
       - name: Build and smoke-test direct and sdist-derived wheel pairs
-        run: python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts --test-results /tmp/provider-results.xml --expected-test-count 1419
+        run: python toolsets/iot/home-device-fabric/tests/build_artifacts.py --out-dir /tmp/provider-artifacts --test-results /tmp/provider-results.xml --expected-test-count 1515
       - uses: actions/upload-artifact@v4
         if: always()
         with:
