@@ -1,0 +1,100 @@
+{
+  "authority": "Generator-authored response to user local pre-review F1/F2; no independent approval or acceptance.",
+  "source_commit": "16d0fe49a8da017e35de89e9b97f1fe51323d6ce",
+  "execution_note": "Local tests executed before source commit; tested file bytes match this commit. Original artifact provenance remains historical and unchanged. Fresh wheel-pair verification is delegated to the final PR CI matrix.",
+  "python": "Python 3.12.12",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "source_hashes": {
+    ".github/workflows/ci.yml": "510708f52504cfd092a0ed39a975f73b119691938d347abc51d130a17190f4cc",
+    "harness/tasks/test-cases/TC-031-02.md": "cb6cd9beaf44a942eab03b1c8309dbdfc3b7ac480bf49601d08bb3ad90ab5aba",
+    "harness/tasks/test-cases/TC-031-03.md": "7285baa47098333b3013d6004ee77a1cf20455d180d7fd2713cfafb4df9484ea",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/ha_discovery.py": "b6b3afc8ddc7d39e0786eac15ef7774aaf426c2e6abd140076537b2281b27254",
+    "toolsets/iot/home-device-fabric/tests/test_ha_discovery.py": "7d9aef78514b5d75b14512a9a84f2728e6d32507992e92977e5a432b92970d15"
+  },
+  "test_results": [
+    {
+      "filename": "req031-fixes-fabric.xml",
+      "sha256": "64bbe6e0f61208de262199be96676c9ed9153cc1586365011a194e2fee5da473",
+      "totals": {
+        "executed": 1419,
+        "passed": 1419,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "tc031_groups": {
+        "tc031_04": 12,
+        "tc031_01": 20,
+        "tc031_02": 73,
+        "tc031_03": 31
+      }
+    },
+    {
+      "filename": "req031-fixes-shared.xml",
+      "sha256": "5d3c51825a17c4773b133744a0273d99d05988966a43eae0648ae5877d604a88",
+      "totals": {
+        "executed": 1795,
+        "passed": 1795,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "tc031_groups": {}
+    },
+    {
+      "filename": "req031-fixes-targeted.xml",
+      "sha256": "fa3e7f6d0342d6b9e0b5d1e61f75f24c5dfe22b76ea398b3d9672ace3c1b7741",
+      "totals": {
+        "executed": 5,
+        "passed": 5,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "tc031_groups": {
+        "tc031_02": 4,
+        "tc031_03": 1
+      }
+    }
+  ],
+  "discovery_cases": 113,
+  "tc_groups": {
+    "tc031_01": 20,
+    "tc031_02": 73,
+    "tc031_03": 31,
+    "tc031_04": 12
+  },
+  "mutations": [
+    {
+      "name": "duplicate-json-keys",
+      "selection": "test_duplicate_json_keys_reject_otherwise_valid_last_wins",
+      "exit_code": 1,
+      "failed": 4,
+      "summary": "4 failed, 109 deselected in 0.45s",
+      "mutant_sha256": "dc8574498c6ea731b3f147bd197d7d9dcd77e1ebd9876f50a6d43033b1e653b8",
+      "log_sha256": "9828875104a4428e29c5a54675a380c02bf937c222991a51248457d88d5dce89"
+    },
+    {
+      "name": "cleanup-cancellation-observation",
+      "selection": "test_close_during_successful_acquisition_cleanup_never_publishes",
+      "exit_code": 1,
+      "failed": 1,
+      "summary": "1 failed, 112 deselected in 0.24s",
+      "mutant_sha256": "eac8213e23056360461317cb96f8d7456fd84591401a26194d7782b939fd28fc",
+      "log_sha256": "d90315a280db536f0b656c9ef6ca89c4df8a2412f2ce4ce0dfe84a80745d11cd"
+    }
+  ],
+  "mutation_harness": "import hashlib\nimport json\nimport os\nfrom pathlib import Path\nimport shutil\nimport subprocess\nimport tempfile\n\nROOT = Path('/home/openclaw/.openclaw/workspace/ai-family')\nPACKAGE = ROOT / 'toolsets/iot/home-device-fabric/src/home_device_fabric'\nsource = (PACKAGE / 'ha_discovery.py').read_text()\ncases = [\n    ('duplicate-json-keys',\n     source.replace('        if key in result:\\n            raise ValueError(\"invalid_response\")\\n', ''),\n     'test_duplicate_json_keys_reject_otherwise_valid_last_wins', 4),\n    ('cleanup-cancellation-observation',\n     source.replace('cancelled = await _drain(cleanup) or cancelled', 'await _drain(cleanup)'),\n     'test_close_during_successful_acquisition_cleanup_never_publishes', 1),\n]\nreport = []\nfor name, changed, selection, expected in cases:\n    assert changed != source\n    with tempfile.TemporaryDirectory(prefix='req031-fix-mutant-') as temp:\n        package = Path(temp) / 'home_device_fabric'\n        shutil.copytree(PACKAGE, package, ignore=shutil.ignore_patterns('__pycache__'))\n        (package / 'ha_discovery.py').write_text(changed)\n        env = dict(os.environ, PYTHONPATH=temp, PYTEST_DISABLE_PLUGIN_AUTOLOAD='1')\n        python = '/tmp/req031-fixes-env/bin/python'\n        probe = subprocess.run([python, '-c',\n            'import home_device_fabric.ha_discovery as d; print(d.__file__)'],\n            cwd='/tmp', env=env, text=True, capture_output=True, check=True)\n        assert probe.stdout.startswith(temp)\n        command = [python, '-m', 'pytest', '-c',\n            str(ROOT / 'toolsets/iot/home-device-fabric/pytest.ini'),\n            str(ROOT / 'toolsets/iot/home-device-fabric/tests/test_ha_discovery.py'),\n            '-k', selection, '--require-ha-discovery-runtime', '-q', '--tb=short']\n        result = subprocess.run(command, cwd='/tmp', env=env, text=True,\n                                capture_output=True, timeout=30)\n        log = result.stdout + result.stderr\n        Path('/tmp/req031-fixes-mutation-' + name + '.log').write_text(log)\n        assert result.returncode == 1 and f'{expected} failed' in log, log\n        report.append(dict(name=name, selection=selection, exit_code=result.returncode,\n                           failed=expected, summary=result.stdout.strip().splitlines()[-1],\n                           mutant_sha256=hashlib.sha256(changed.encode()).hexdigest(),\n                           log_sha256=hashlib.sha256(log.encode()).hexdigest()))\n        print(name, report[-1]['summary'], flush=True)\nPath('/tmp/req031-fixes-mutations.json').write_text(json.dumps(report, indent=2) + '\\n')\n",
+  "mutation_harness_sha256": "34a287d14667d08ad750b6206fc99ed40f5cbd4df90e95ea5681b4d89b6928b5",
+  "log_hashes": {
+    "req031-fixes-fabric.log": "1cb2993867842ffc2f063315cb10e1c46ce81f1373cd35d02d0f36f10d8a56a4",
+    "req031-fixes-shared.log": "88fa43c463fbfcbd878dd065af7a9ec03c9df1f91e62ecab8591d392b4596164"
+  },
+  "checks": {
+    "ruff": "passed",
+    "strict_mypy": "16 source files passed",
+    "governance": "all nine scripts passed",
+    "planning_regressions": 21
+  },
+  "environment_limit": "An initial sandboxed discovery run passed 112 tests; its loopback case could not bind a socket. The subsequent authorized full suite outside the sandbox passed all 1419 tests; the sandbox attempt is not counted as a fully passing run."
+}

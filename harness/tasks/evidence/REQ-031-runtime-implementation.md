@@ -1,5 +1,9 @@
 # REQ-031 / HI-S013 proposed read-only discovery delivery
 
+This is the historical implementation record for source `47a1a7d`. The subsequent
+[F1/F2 response](REQ-031-review-fixes.md) records amended source `16d0fe4`,
+1419 fabric passes, 113 discovery cases and the additional mutation checks.
+
 ## Authority and implementation
 
 [human-001][2026-10-18] Instructed “continue with your suggestion” after the
