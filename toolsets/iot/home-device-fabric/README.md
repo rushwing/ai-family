@@ -987,7 +987,10 @@ private_projection = result.for_adapter()  # inventory and bindings; trusted ada
 
 All enabled entities referencing one assigned registry device share one canonical
 Device and sorted binding membership. An entity without a registry device needs
-an explicit `entity_ids` assignment to form a standalone Device. Missing,
+an explicit `entity_ids` assignment to form a standalone Device. An assignment
+for an entity that currently has `device_id` is reserved (and still subject to
+global ID uniqueness); it does not create an independent Device. It can be used
+if the entity later has no `device_id`. Missing,
 unassigned or disabled referenced devices do not silently become standalone.
 Unassigned resources and disabled entities/devices are omitted and counted.
 State rows never create devices and missing states do not remove registry rows.
@@ -996,6 +999,10 @@ or relocate the group. Standalone devices use the entity's area. Missing or
 unassigned areas become null; floors/types are not inferred. Areas use type
 `other` and no floor, labels or aliases. Names use explicit provider name fields
 with a neutral `Device` fallback; raw IDs are not display-name fallbacks.
+`unresolved_areas` counts unresolved nonnull area references per emitted Device,
+including standalone Devices. Two Devices referencing the same missing area
+contribute two; multiple grouped entities share their Device's one contribution.
+Null area references and omitted Devices do not contribute.
 
 Every call returns a fresh projection. Removed entities disappear from bindings;
 removing the last member omits that Device. The caller keeps its identity
@@ -1007,7 +1014,12 @@ Inputs are bounded plain JSON trees with strict identities and known field
 types; the whole four-component bundle is validated even for rows not projected.
 No partial projection is returned on invalid input. Configuration/results are
 detached immutable private snapshots; repr and summaries are redacted and
-copy/pickle is refused. `for_adapter()` deliberately exports private names and
+copy/pickle is refused. Direct `HAMappingResult` construction eagerly validates
+bounded strict JSON, accepted inventory/binding contracts and references, and an
+exact 12-integer count tuple (0..10000) with matching area/device/binding counts.
+Invalid inputs fail at construction with finite redacted errors. These checks
+validate structure, not the execution history or origin of caller-supplied data.
+`for_adapter()` deliberately exports private names and
 binding identifiers: do not log or expose the raw projection through agents or
 public routes. Finite `HAMappingError` diagnostics discard raw exception context.
 Private introspection and traceback locals are outside this diagnostic boundary.

@@ -5,7 +5,7 @@ import json
 
 
 def check():
-    from home_device_fabric.ha_mapping import HAMappingError, HARegistryMapper
+    from home_device_fabric.ha_mapping import HAMappingError, HAMappingResult, HARegistryMapper
     from state_schema.home_inventory import Inventory
     from state_schema.provider_binding import BindingCollection
 
@@ -69,7 +69,28 @@ def check():
         raise RuntimeError("installed_mapping_check_failed")
     require("raw-device" not in repr(mapper) + repr(result)
             + json.dumps(result.to_redacted_dict()))
-    return {"checks": 13, "offline": True, "rules_version": 1}
+    recreated = HAMappingResult(json.dumps(projected["inventory"]),
+                                json.dumps(projected["bindings"]), result._counts)
+    require(recreated.for_adapter() == projected)
+    try:
+        HAMappingResult(json.dumps(projected["inventory"]),
+                        json.dumps(projected["bindings"]), result._counts[:-1])
+    except HAMappingError as error:
+        require(error.code == "invalid_projection" and error.__context__ is None)
+    else:
+        raise RuntimeError("installed_mapping_check_failed")
+    config["device_ids"] = {"raw-device": "device-example"}
+    config["entity_ids"]["switch.example"] = "reserved-device"
+    config["area_ids"] = {}
+    data["entities"][2]["area_id"] = "raw-room"
+    reserved = HARegistryMapper(config).map(data)
+    require(reserved.for_adapter()["inventory"]["devices"] == [
+        {"id": "device-example", "home_id": "home-example", "name": "Device",
+         "area_id": None, "labels": []},
+        {"id": "device-solo", "home_id": "home-example", "name": "Device",
+         "area_id": None, "labels": []}]
+        and reserved.to_redacted_dict()["counts"]["unresolved_areas"] == 2)
+    return {"checks": 16, "offline": True, "rules_version": 1}
 
 
 if __name__ == "__main__":

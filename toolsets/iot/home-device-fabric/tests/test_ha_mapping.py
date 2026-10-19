@@ -544,6 +544,175 @@ def test_unknown_json_fields_are_tolerated_but_never_inferred():
 def test_result_reinitialization_refused():
     result = project()
     before = result.for_adapter()
+    replacement = result.for_adapter()
+    replacement["inventory"]["home"]["name"] = "Replacement"
     with pytest.raises(AttributeError):
-        result.__init__("private", "private", ())
+        result.__init__(
+            json.dumps(replacement["inventory"]),
+            json.dumps(replacement["bindings"]),
+            result._counts,
+        )
     assert result.for_adapter() == before
+
+
+@pytest.mark.tc032_03
+@pytest.mark.parametrize(
+    "field,bad",
+    [
+        ("inventory", None),
+        ("inventory", {}),
+        ("inventory", "private-not-json"),
+        ("inventory", "[]"),
+        ("inventory", '{"private": 1}'),
+        ("bindings", None),
+        ("bindings", []),
+        ("bindings", "private-not-json"),
+        ("bindings", "{}"),
+        ("bindings", '{"schema_version":1,"bindings":[{}]}'),
+        ("counts", None),
+        ("counts", [0] * 12),
+        ("counts", (0,) * 11),
+        ("counts", (0,) * 13),
+        ("counts", (True,) + (0,) * 11),
+        ("counts", (-1,) + (0,) * 11),
+        ("counts", (1.0,) + (0,) * 11),
+        ("counts", (10001,) + (0,) * 11),
+        ("counts", ("private",) + (0,) * 11),
+    ],
+)
+def test_direct_result_rejects_malformed_initial_values(field, bad):
+    result = project()
+    value = result.for_adapter()
+    arguments = {
+        "inventory": json.dumps(value["inventory"]),
+        "bindings": json.dumps(value["bindings"]),
+        "counts": result._counts,
+    }
+    if field == "counts":
+        # Keep all other values valid so cardinality validation cannot mask
+        # counter type/range/length regressions in this constructor boundary.
+        if type(bad) is tuple and len(bad) == 12:
+            bad = (*result._counts[:3], bad[0], *result._counts[4:])
+        elif type(bad) is tuple and len(bad) == 11:
+            bad = result._counts[:-1]
+        elif type(bad) is tuple and len(bad) == 13:
+            bad = (*result._counts, 0)
+        elif type(bad) is list:
+            bad = list(result._counts)
+    arguments[field] = bad
+    with pytest.raises(runtime().HAMappingError) as caught:
+        runtime().HAMappingResult(**arguments)
+    assert caught.value.to_dict() == {"code": "invalid_projection"}
+    assert "private" not in str(caught.value) + repr(caught.value)
+    assert caught.value.__context__ is None and caught.value.__cause__ is None
+
+
+@pytest.mark.tc032_03
+@pytest.mark.parametrize("field", ["inventory", "bindings"])
+@pytest.mark.parametrize("problem", ["duplicate", "nonfinite", "unicode", "depth", "bytes"])
+def test_direct_result_validates_strict_bounded_json(field, problem):
+    result = project()
+    data = result.for_adapter()
+    arguments = {
+        "inventory": json.dumps(data["inventory"]),
+        "bindings": json.dumps(data["bindings"]),
+        "counts": result._counts,
+    }
+    expected = "invalid_projection"
+    if problem == "duplicate":
+        arguments[field] = arguments[field].replace(
+            '"schema_version": 1', '"schema_version":1,"schema_version":1'
+        )
+    elif problem == "nonfinite":
+        arguments[field] = arguments[field][:-1] + ',"extra":NaN}'
+    elif problem == "unicode":
+        arguments[field] = arguments[field][:-1] + ',"extra":"\\ud800"}'
+    elif problem == "depth":
+        arguments[field] = "[" * 34 + "0" + "]" * 34
+        expected = "input_limit"
+    elif problem == "bytes":
+        arguments[field] = " " * (16 * 1024 * 1024 + 1)
+        expected = "input_limit"
+    with pytest.raises(runtime().HAMappingError, match=f"^{expected}$") as caught:
+        runtime().HAMappingResult(**arguments)
+    assert caught.value.__context__ is None
+
+
+@pytest.mark.tc032_03
+@pytest.mark.parametrize("counter", [0, 1, 2])
+def test_direct_result_counts_must_match_exported_cardinalities(counter):
+    result = project()
+    value = result.for_adapter()
+    counts = list(result._counts)
+    counts[counter] += 1
+    with pytest.raises(runtime().HAMappingError, match="^invalid_projection$"):
+        runtime().HAMappingResult(
+            json.dumps(value["inventory"]), json.dumps(value["bindings"]), tuple(counts)
+        )
+
+
+@pytest.mark.tc032_03
+def test_direct_result_accepts_valid_initial_values_and_detaches():
+    original = project()
+    value = original.for_adapter()
+    result = runtime().HAMappingResult(
+        json.dumps(value["inventory"]), json.dumps(value["bindings"]), original._counts
+    )
+    assert result.for_adapter() == value
+    assert result.to_redacted_dict() == original.to_redacted_dict()
+    exported = result.for_adapter()
+    exported["inventory"]["devices"].clear()
+    assert result.for_adapter() == value
+
+
+@pytest.mark.tc032_03
+def test_direct_result_checks_binding_references_eagerly():
+    result = project()
+    value = result.for_adapter()
+    value["bindings"]["bindings"][0]["device_id"] = "missing-device"
+    with pytest.raises(runtime().HAMappingError, match="^invalid_projection$"):
+        runtime().HAMappingResult(
+            json.dumps(value["inventory"]), json.dumps(value["bindings"]), result._counts
+        )
+
+
+@pytest.mark.tc032_02
+def test_grouped_entity_assignment_is_reserved_until_entity_is_standalone():
+    config, data = configuration(), discovery()
+    config["entity_ids"]["switch.example"] = "device-reserved"
+    mapper = runtime().HARegistryMapper(config)
+    grouped = mapper.map(data).for_adapter()
+    assert [row["id"] for row in grouped["inventory"]["devices"]] == [
+        "device-example",
+        "device-solo",
+    ]
+    assert grouped["bindings"]["bindings"][0]["mapping"]["entity_ids"] == [
+        "sensor.example",
+        "switch.example",
+    ]
+    data["entities"][0]["device_id"] = None
+    standalone = mapper.map(data).for_adapter()
+    assert [row["id"] for row in standalone["inventory"]["devices"]] == [
+        "device-example",
+        "device-reserved",
+        "device-solo",
+    ]
+    assert standalone["bindings"]["bindings"][1]["mapping"] == {
+        "entity_ids": ["switch.example"],
+        "device_registry_id": None,
+    }
+
+
+@pytest.mark.tc032_02
+@pytest.mark.parametrize("area_records", [[], [{"area_id": "raw-room", "name": "Room"}]])
+def test_unresolved_areas_counts_each_output_device_reference(area_records):
+    config, data = configuration(), discovery()
+    config["area_ids"] = {}
+    data["areas"] = area_records
+    result = project(data, config)
+    devices = result.for_adapter()["inventory"]["devices"]
+    assert len(devices) == 2
+    assert all(device["area_id"] is None for device in devices)
+    # Both grouped entities share one Device, so their shared area contributes
+    # once; the standalone Device's same raw area contributes once more.
+    assert result.to_redacted_dict()["counts"]["unresolved_areas"] == 2

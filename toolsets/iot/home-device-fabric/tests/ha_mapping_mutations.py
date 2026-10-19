@@ -23,6 +23,12 @@ MUTATIONS = (
     ("skip_state_validation", "if type(state) is not str or len(state) > 4096:", "if False:"),
     ("allow_result_reinitialization", 'if hasattr(self, "_inventory"):', "if False:"),
     ("allow_aliased_objects", "if id(item) in seen:", "if False:"),
+    ("result_counter_type", "type(count) is not int or not 0 <= count <= 10000",
+     "not 0 <= count <= 10000"),
+    ("result_counter_length", "or len(counts) != len(_COUNT_KEYS)", "or False"),
+    ("result_cardinalities",
+     "if counts[:3] != (len(canonical.areas), len(canonical.devices), len(bound.bindings)):",
+     "if False:"),
 )
 
 

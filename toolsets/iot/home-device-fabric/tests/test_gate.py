@@ -663,7 +663,7 @@ def test_ha_mapping_required_gate(tmp_path, monkeypatch, module, required, skip,
         diagnosis = "broken" if module == "broken" else "absent"
         assert "ha-mapping runtime required but " + diagnosis in result.stderr
     elif skip or module in (False, "broken", "methods_missing", "dependency_missing"):
-        assert ("84 skipped" if actual_tests else "1 skipped") in result.stdout
+        assert ("121 skipped" if actual_tests else "1 skipped") in result.stdout
     else:
         assert "1 passed" in result.stdout
 
@@ -680,4 +680,4 @@ def test_installed_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimiz
     command.append(str(Path(__file__).with_name("ha_mapping_artifact_smoke.py")))
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout) == {"checks": 13, "offline": True, "rules_version": 1}
+    assert json.loads(result.stdout) == {"checks": 16, "offline": True, "rules_version": 1}

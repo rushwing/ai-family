@@ -246,9 +246,40 @@ def _name(record: dict[str, object], *fields: str) -> str:
     return "Device"
 
 
+def _result_pairs(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise _Rejected()
+        result[key] = value
+    return result
+
+
+def _result_constant(value: str) -> NoReturn:
+    raise _Rejected()
+
+
+def _result_json(value: str) -> object:
+    if type(value) is not str:
+        raise _Rejected()
+    # Bound the encoded input before invoking the JSON decoder. The plain-tree
+    # validation also checks decoded depth, node count, Unicode and numbers.
+    if len(value) > 16 * 1024 * 1024 or len(value.encode("utf-8")) > 16 * 1024 * 1024:
+        raise _Limit()
+    decoded: object = json.loads(
+        value, object_pairs_hook=_result_pairs, parse_constant=_result_constant
+    )
+    _json(decoded)
+    return decoded
+
+
 @dataclass(frozen=True, slots=True, init=False, repr=False)
 class HAMappingResult:
-    """Internal result record; export consciously to trusted adapter consumers."""
+    """Validated private projection; direct construction validates before publication.
+
+    Shape/count validation does not prove that a mapper produced supplied data.
+    Export consciously to trusted adapter consumers.
+    """
 
     _inventory: str
     _bindings: str
@@ -257,8 +288,29 @@ class HAMappingResult:
     def __init__(self, inventory: str, bindings: str, counts: tuple[int, ...]):
         if hasattr(self, "_inventory"):
             raise AttributeError("immutable_mapping_result")
-        object.__setattr__(self, "_inventory", inventory)
-        object.__setattr__(self, "_bindings", bindings)
+        failure: str | None = None
+        try:
+            if (
+                type(counts) is not tuple
+                or len(counts) != len(_COUNT_KEYS)
+                or any(type(count) is not int or not 0 <= count <= 10000 for count in counts)
+            ):
+                raise _Rejected()
+            canonical = Inventory.from_dict(_result_json(inventory))
+            inventory_data = canonical.to_dict()
+            bound = BindingCollection.from_dict(_result_json(bindings), inventory=inventory_data)
+            if counts[:3] != (len(canonical.areas), len(canonical.devices), len(bound.bindings)):
+                raise _Rejected()
+            inventory_json = _json(inventory_data)
+            bindings_json = _json(bound.to_dict())
+        except _Limit:
+            failure = "input_limit"
+        except Exception:
+            failure = "invalid_projection"
+        if failure is not None:
+            raise HAMappingError(failure)
+        object.__setattr__(self, "_inventory", inventory_json)
+        object.__setattr__(self, "_bindings", bindings_json)
         object.__setattr__(self, "_counts", counts)
 
     def for_adapter(self) -> dict[str, object]:
