@@ -97,7 +97,7 @@ all thirteen required flags and expects 1515 installed-artifact fabric cases.
 
 ## Scope and lifecycle limits
 
-The sole [REQ-032](../features/REQ-032.md) remains req_impl / generator-001,
+The sole [REQ-032](../archive/done/features/REQ-032.md) remains req_impl / generator-001,
 review_round 0, ACs unchecked and TC-032-01–04 implemented in
 [draft PR #65](https://github.com/rushwing/ai-family/pull/65). Local evidence
 covers Linux aarch64 / Python 3.12.12 only. Final PR CI owns Python 3.13/3.14 and

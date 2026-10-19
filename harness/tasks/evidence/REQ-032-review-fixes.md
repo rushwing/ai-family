@@ -86,7 +86,7 @@ actual source/counts; fresh results above do not retag historical executions.
 Nine preceding accepted runtime modules and shared contracts remain unchanged.
 O1 is the only production runtime change; O2/O3 clarify existing semantics.
 
-[REQ-032](../features/REQ-032.md) stays req_impl / generator-001, review_round 0,
+[REQ-032](../archive/done/features/REQ-032.md) stays req_impl / generator-001, review_round 0,
 four unchecked ACs and four implemented TCs in
 [draft PR #65](https://github.com/rushwing/ai-family/pull/65). This response does
 not authorize merge, done archival, Feature/Stage completion or the next Story.
