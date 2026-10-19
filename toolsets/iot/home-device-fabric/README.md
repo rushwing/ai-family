@@ -947,8 +947,10 @@ supported diagnostic boundary.
 fail response_limit; JSON duplicate keys, non-finite values, invalid Unicode,
 wrong IDs/types and invalid/duplicate minimal provider records are rejected.
 Provider payloads are version-tolerant rather than a claim of support for every
-HA version. See [REQ-031](../../../harness/tasks/features/REQ-031.md) for exact
-validation, error categories, sources and external-review lifecycle.
+HA version. See [REQ-031](../../../harness/tasks/archive/done/features/REQ-031.md) for exact
+human-accepted validation, error categories and source-specific evidence.
+[Final acceptance](../../../harness/tasks/evidence/REQ-031-review-acceptance.md)
+records PR #63 merge and the F1/F2 regression verification.
 
 `--require-ha-discovery-runtime` is the twelfth required fabric flag. Installed
 checks execute real fictional loopback discovery and partial permission failure

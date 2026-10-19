@@ -100,7 +100,7 @@ test, dependency, smoke or CI bytes.
 
 ## External review boundary
 
-[REQ-031](../features/REQ-031.md) stays req_impl / generator-001, review_round 0,
+[REQ-031](../archive/done/features/REQ-031.md) stays req_impl / generator-001, review_round 0,
 AC1–AC4 unchecked and TC-031-01–04 implemented. [Draft PR #63](https://github.com/rushwing/ai-family/pull/63) requests external
 review. No independent approval, human acceptance, merge, BUG-033 resolution or
 Feature/Stage completion is inferred. Local Python 3.13/3.14, Windows/Termux,

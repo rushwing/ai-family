@@ -43,6 +43,6 @@ Python 3.13/3.14 validation belongs to the final PR CI matrix.
 
 Runtime executable behavior is unchanged: its only edit is the F2 comment.
 Accepted modules, shared contracts and original provenance remain unchanged.
-[REQ-031](../features/REQ-031.md) remains req_impl / generator-001, review_round 0,
+[REQ-031](../archive/done/features/REQ-031.md) remains req_impl / generator-001, review_round 0,
 with unchecked ACs, implemented TCs and [draft PR #63](https://github.com/rushwing/ai-family/pull/63).
 This response is not independent approval, human acceptance or merge authority.
