@@ -954,9 +954,10 @@ records PR #63 merge and the F1/F2 regression verification.
 
 `--require-ha-discovery-runtime` is the twelfth required fabric flag. Installed
 checks execute real fictional loopback discovery and partial permission failure
-on both direct/sdist-derived wheel pairs under `-I` and `-O -I`. Registry mapping,
-capability inference, query/API services, reconnect reconciliation and real HA
-certification remain separate increments.
+on both direct/sdist-derived wheel pairs under `-I` and `-O -I`. Canonical mapping
+is subsequently delivered through REQ-032. Capability inference, query/API
+services, reconnect reconciliation and real HA certification remain separate
+increments.
 
 
 ## Canonical HA registry mapping (REQ-032 / HI-S014)
@@ -1024,9 +1025,11 @@ binding identifiers: do not log or expose the raw projection through agents or
 public routes. Finite `HAMappingError` diagnostics discard raw exception context.
 Private introspection and traceback locals are outside this diagnostic boundary.
 
-[REQ-032](../../../harness/tasks/features/REQ-032.md) owns exact limits, identity,
-spatial/removal rules, proposed TCs and external-review lifecycle.
+[REQ-032](../../../harness/tasks/archive/done/features/REQ-032.md) owns exact limits, identity,
+human-accepted spatial/removal rules, TCs and source-specific verification.
+[Final acceptance](../../../harness/tasks/evidence/REQ-032-review-acceptance.md)
+records PR #65 merge, collection-gate correction and O1–O3 dispositions.
 `--require-ha-mapping-runtime` is the thirteenth required fabric flag; direct and
 sdist-derived packages exercise normal/optimized isolated mapper smokes. This
-proposed increment adds no capability inference, state publication, query/API,
+accepted increment adds no capability inference, state publication, query/API,
 provider action, HA connection or live certification.
