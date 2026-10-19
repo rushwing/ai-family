@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-ha-discovery-runtime", action="store_true", default=False)
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
     parser.addoption("--require-demo-runtime", action="store_true", default=False)
     parser.addoption("--require-conformance-runtime", action="store_true", default=False)
@@ -174,6 +175,22 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name in ("test_state_events.py", "test_state_application.py"):
                 item.add_marker(pytest.mark.skip(
                     reason="REQ-030 state-events runtime " + events_error))
+    try:
+        discovery = importlib.import_module("home_device_fabric.ha_discovery")
+        discovery_class = getattr(discovery, "HARegistryDiscoveryClient", None)
+        discovery_error = (None if all(callable(getattr(discovery_class, name, None))
+                                      for name in ("discover", "aclose")) else "absent")
+    except ImportError:
+        discovery_error = "absent"
+    except Exception:
+        discovery_error = "broken"
+    if config.getoption("--require-ha-discovery-runtime") and discovery_error:
+        raise pytest.UsageError("REQ-031 ha-discovery runtime required but " + discovery_error)
+    if discovery_error:
+        for item in items:
+            if item.path.name == "test_ha_discovery.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-031 ha-discovery runtime "
+                                                + discovery_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -223,6 +240,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-normalization-runtime")
         or session.config.getoption("--require-state-store-runtime")
         or session.config.getoption("--require-state-events-runtime")
+        or session.config.getoption("--require-ha-discovery-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
