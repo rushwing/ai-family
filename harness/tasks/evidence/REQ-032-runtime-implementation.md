@@ -1,5 +1,15 @@
 # REQ-032 / HI-S014 proposed canonical registry mapper
 
+The [collection-gate follow-up](REQ-032-collection-fix-verification.json)
+records amended test source `f66ab43` and a fresh 1515-case fabric pass. Final
+self-review moved mapper/shared imports inside test execution so optional
+runtime absence is classified before fixtures execute. Missing/broken/dependency
+gate probes now collect the actual mapper test module rather than only toy
+probes. All 97 targeted checks and eight runtime mutations pass their intended
+assertions. Production/runtime/build code is unchanged. Original local shared
+and wheel-pair evidence below retains its actual source; fresh amended-source
+wheel-pair verification belongs to final PR CI.
+
 [generator-001][2026-10-19] Human-001 explicitly instructed “Proceed with
 HI-S014” after clarifying the HI-S015 dependency. This is a generator-authored
 combined specification, proposed TC and runtime delivery for external review.
