@@ -430,6 +430,9 @@ class HARegistryDiscoveryClient:
                         code, stage = "cleanup_failed", "cleanup"
         if cancelled:
             raise asyncio.CancelledError() from None
+        # aclose cancels the owned worker, including during cleanup, so the
+        # cancellation path above normally prevents publication after close.
+        # Retain this final closed check as a defensive publication guard.
         if self._closed:
             raise HADiscoveryError("client_closed", "operation", completed)
         if code is None and asyncio.get_running_loop().time() >= deadline:

@@ -256,6 +256,46 @@ def test_strict_wire_validation(monkeypatch, bad, code):
 
 @pytest.mark.tc031_02
 @pytest.mark.parametrize(
+    "component,raw",
+    [
+        ("devices", '{"id":2,"id":1,"type":"result","success":true,"result":[]}'),
+        ("devices", '{"id":1,"type":"result","success":false,"success":true,"result":[]}'),
+        (
+            "devices",
+            '{"id":1,"type":"result","success":true,"result":[{"id":"'
+            + TOKEN
+            + '","id":"device"}]}',
+        ),
+        (
+            "states",
+            '{"id":4,"type":"result","success":true,"result":[{"entity_id":"sensor.x",'
+            '"state":"on","attributes":{"k":"' + TOKEN + '","k":2}}]}',
+        ),
+    ],
+    ids=["envelope-id", "envelope-success", "record-id", "nested-attributes"],
+)
+def test_duplicate_json_keys_reject_otherwise_valid_last_wins(monkeypatch, component, raw):
+    # A permissive decoder would accept every frame, so no other validation can
+    # accidentally satisfy the rejection assertion when unique-key checks regress.
+    index = COMPONENTS.index(component)
+    assert json.loads(raw)["success"] is True
+
+    async def scenario():
+        messages = frames()
+        messages[index] = raw
+        socket = Socket(AUTH + messages)
+        attempts = fake(monkeypatch, [socket])
+        client = runtime().HARegistryDiscoveryClient(configuration())
+        await rejected(client, "invalid_response", component, COMPONENTS[:index])
+        assert len(socket.sent) == index + 2 and len(attempts) == 1
+        assert socket.closed == 1 and socket.aborted == 0 and client._worker is None
+        await client.aclose()
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.tc031_02
+@pytest.mark.parametrize(
     "component,rows,code",
     [
         ("devices", None, "invalid_response"),
@@ -447,6 +487,40 @@ def test_repeated_cancellation_drains_owned_cleanup(monkeypatch, close_waiter):
             if t is not asyncio.current_task() and t.get_name().startswith("ha-discovery")
         ]
         assert owned == []
+
+    asyncio.run(scenario())
+
+
+@pytest.mark.tc031_03
+def test_close_during_successful_acquisition_cleanup_never_publishes(monkeypatch):
+    async def scenario():
+        entered, release = asyncio.Event(), asyncio.Event()
+
+        async def close():
+            entered.set()
+            await release.wait()
+
+        socket = Socket(AUTH + frames(), close=close)
+        fake(monkeypatch, [socket])
+        client = runtime().HARegistryDiscoveryClient(configuration())
+        async with asyncio.timeout(2):
+            running = asyncio.create_task(client.discover())
+            await entered.wait()  # All four reads succeeded; only cleanup remains.
+            assert len(socket.sent) == 5
+            closing = asyncio.create_task(client.aclose())
+            await asyncio.sleep(0)
+            assert client._closed and not running.done() and not closing.done()
+            release.set()
+            with pytest.raises(asyncio.CancelledError):
+                await running
+            await closing
+        await client.aclose()
+        assert socket.closed == 1 and socket.aborted == 0 and client._worker is None
+        assert not any(
+            task.get_name().startswith("ha-discovery")
+            for task in asyncio.all_tasks()
+            if task is not asyncio.current_task()
+        )
 
     asyncio.run(scenario())
 
