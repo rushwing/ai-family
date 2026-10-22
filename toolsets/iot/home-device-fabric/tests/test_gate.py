@@ -729,7 +729,7 @@ def test_ha_capabilities_required_gate(tmp_path, monkeypatch, module, required, 
         diagnosis = "broken" if module == "broken" else "absent"
         assert "ha-capabilities runtime required but " + diagnosis in result.stderr
     elif skip or module in (False, "broken", "methods_missing", "dependency_missing"):
-        assert ("126 skipped" if actual_tests else "1 skipped") in result.stdout
+        assert ("127 skipped" if actual_tests else "1 skipped") in result.stdout
     else:
         assert "1 passed" in result.stdout
 
