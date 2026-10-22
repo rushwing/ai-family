@@ -545,7 +545,7 @@ build time; it does not reconstruct missing historical dependency bytes.
 Pass --test-results PATH and --expected-test-count N (both repeatable, paired
 in order) to build_artifacts.py to attach JUnit totals and per-TC counts. Every
 report requires a positive, explicit expected count; partial, excess, failing or
-skipped reports fail closed. CI pins its current fabric baseline to 794; a local
+skipped reports fail closed. CI pins its current fabric baseline to 1872; a local
 shared-contract report uses 1795. Update these reviewed baselines when the suite
 changes; do not derive them from the report being checked. A test may belong
 to multiple TC groups; group counts overlap and must not be summed as the suite
@@ -1094,3 +1094,55 @@ Installed direct/sdist packages exercise the
 new smoke in isolated normal/optimized Python. Device writes, query services,
 store publication, reconciliation, live HA and Feature/Stage acceptance retain
 their separate gates.
+
+## Scoped canonical queries (REQ-034 / HI-S018)
+
+`home_device_fabric.home_queries.HomeQueryService` provides `home`, `areas`,
+`devices`, `device`, `states`, `state` and `capabilities` methods. Each takes a
+trusted RequesterContext dictionary and explicit `home_id`; the existing store
+checks exact subject/member/home/role grants before validating resource selectors
+or returning inventory. Context dictionaries are supplied by authenticated
+composition; this library does not verify tokens. Read grants, including explicit
+kid grants, permit these reads. Replacing the store/service is required to change
+its fixed inventory/grants or descriptor snapshot.
+
+```python
+from home_device_fabric.home_queries import HomeQueryService
+
+# store is an accepted CurrentStateStore populated by trusted composition.
+# inferred is HACapabilityInferrer.infer(...).for_adapter(); keep mappings private.
+metadata = [
+    {"home_id": row["home_id"], "device_id": row["device_id"],
+     "capabilities": [item["descriptor"] for item in row["capabilities"]]}
+    for row in inferred["devices"]
+]
+queries = HomeQueryService(store=store, capabilities=metadata)
+result = queries.states(trusted_context, home_id="home-example", now_ms=100, max_age_ms=10)
+canonical_json = result.to_dict()
+```
+
+Inventory queries return canonical records in ID order. `devices(area_id=...)`
+filters a known area; an empty area returns `found` with `[]`, an unknown area
+returns `not_found` with null data. A missing device likewise returns not_found.
+Capability configuration contains canonical descriptors only; unknown resource
+metadata never establishes inventory membership. Known devices without configured
+metadata return `uninitialized`; explicitly empty metadata returns `found`/`[]`.
+Descriptors describe support, not permission to execute, observed availability or
+freshness. Provider bindings and HA service/entity mappings stay private.
+
+QueryResult exports detached `{status, data}` JSON. State results preserve the
+store's complete canonical snapshot and revision/timestamp/freshness fields.
+Unobserved devices retain unknown availability and empty reports. Explicit
+`now_ms`/`max_age_ms` control freshness: age equal to max age is fresh; greater
+age is stale; regressing time is an error. Staleness does not convert reported
+false into unknown or desired true into physical convergence. A whole-home
+`states` read holds one store lock; separate queries are separate observations.
+
+`CurrentStateStore.inventory(...)` returns its authorized immutable Inventory;
+`snapshot(..., now_ms=..., max_age_ms=...)` returns an atomic ID-sorted tuple of
+StateViews. Reads do not contact HA or mutate store revisions. HomeQueryError
+uses fixed codes with redacted diagnostics; ordinary service/result repr omits
+payloads. The required `--require-home-queries-runtime` gate forbids absent/broken
+runtime and skipped acceptance tests. The canonical descriptor snapshot is bounded
+plain JSON; no HTTP routes, dynamic reconciliation, durable policy storage,
+authentication service or device actions are delivered here.

@@ -199,6 +199,23 @@ class CurrentStateStore:
                 return StateNotFound(home, device)
             return row.view(now, age)
 
+    def inventory(self, context: object, *, home_id: object) -> Inventory:
+        """Authorized immutable canonical inventory; fixed for this store's lifetime."""
+        home = self._authorize(context, home_id, write=False)
+        return self._inventories[home]
+
+    def snapshot(
+        self, context: object, *, home_id: object, now_ms: object, max_age_ms: object,
+    ) -> tuple[StateView, ...]:
+        """Capture a whole home's views atomically against puts/rebuilds/events."""
+        home = self._authorize(context, home_id, write=False)
+        now, age = _integer(now_ms, "now_ms"), _integer(max_age_ms, "max_age_ms")
+        with self._lock:
+            return tuple(
+                self._rows[home, device.id].view(now, age)
+                for device in sorted(self._inventories[home].devices, key=lambda item: item.id)
+            )
+
     def put(
         self,
         context: object,

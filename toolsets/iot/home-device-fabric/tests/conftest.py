@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-home-queries-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-capabilities-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-mapping-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-discovery-runtime", action="store_true", default=False)
@@ -225,6 +226,23 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_capabilities.py":
                 item.add_marker(pytest.mark.skip(reason="REQ-033 ha-capabilities runtime "
                                                 + capabilities_error))
+    try:
+        queries = importlib.import_module("home_device_fabric.home_queries")
+        queries_class = getattr(queries, "HomeQueryService", None)
+        queries_error = (None if all(callable(getattr(queries_class, name, None))
+                                    for name in ("home", "areas", "devices", "device",
+                                                 "state", "states", "capabilities")) else "absent")
+    except ImportError:
+        queries_error = "absent"
+    except Exception:
+        queries_error = "broken"
+    if config.getoption("--require-home-queries-runtime") and queries_error:
+        raise pytest.UsageError("REQ-034 home-queries runtime required but " + queries_error)
+    if queries_error:
+        for item in items:
+            if item.path.name == "test_home_queries.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-034 home-queries runtime "
+                                                + queries_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -277,6 +295,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-discovery-runtime")
         or session.config.getoption("--require-ha-mapping-runtime")
         or session.config.getoption("--require-ha-capabilities-runtime")
+        or session.config.getoption("--require-home-queries-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

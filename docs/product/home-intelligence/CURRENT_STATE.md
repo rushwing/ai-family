@@ -23,7 +23,7 @@ The original `c595649` inspection found no HA REST/WebSocket home adapter, HA re
 
 ## Active Feature
 
-R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base and HI-S012 initial-catalogue deliveries; its Feature remains planned until product refinement/execution is explicitly advanced. HI-F006 now has accepted scoped snapshot storage HI-S016 and monotonic event application HI-S017; query services HI-S018 remain separate work. HI-F005 has accepted discovery HI-S013, explicit canonical mapping HI-S014 and deterministic capability inference HI-S015; Feature acceptance retains its separate gate. Child delivery acceptance alone does not complete a Feature.
+R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base and HI-S012 initial-catalogue deliveries; its Feature remains planned until product refinement/execution is explicitly advanced. HI-F006 now has accepted scoped snapshot storage HI-S016 and monotonic event application HI-S017; query services HI-S018 are admitted through REQ-034 for combined review. HI-F005 has accepted discovery HI-S013, explicit canonical mapping HI-S014 and deterministic capability inference HI-S015; Feature acceptance retains its separate gate. Child delivery acceptance alone does not complete a Feature.
 
 ## Dependency-ready Candidates
 
@@ -154,3 +154,13 @@ Grouped/measurement State integration, store publication, query/API services,
 reconnect reconciliation, device writes, live HA/device certification, BUG-033
 and Feature/Stage acceptance remain separate work. Read engineering state from
 the sole Harness REQ.
+
+## Admitted scoped query increment
+
+[HI-S018](requirements/stories/HI-S018.md) is admitted as
+[REQ-034](../../../harness/tasks/features/REQ-034.md), the sole engineering
+specification. It implements canonical scoped service queries over the accepted
+store and explicit descriptor metadata, with per-call grants and explicit
+missing/uninitialized/fresh/stale results. Read status, ownership and execution
+evidence from Harness; this admission does not assert final acceptance.
+HI-S028 HTTP query routes and HI-S007 reconnect reconciliation remain separate.
