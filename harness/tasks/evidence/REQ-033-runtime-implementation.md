@@ -78,3 +78,37 @@ See the sole [REQ-033](../features/REQ-033.md),
 combined-review artifact. Subsequent commits add evidence/navigation only;
 runtime and test bytes remain identical to tested source 3630316. Final PR-head
 CI is checked separately. No merge or next increment is authorized.
+
+## Local pre-review follow-up
+
+The human supplied a local pre-review report, explicitly without independent
+T03/T07/T10/T13 signatures. F1 now has a cover fixture with `2147483652`
+(absolute-position bit set, above the signed-32-bit upper bound) and exact
+unsupported counts. The accepted `2147483647` control remains. The reproducible
+runner includes removal of the upper bound and an unexpected sensor action:
+baseline **127 passed**, **13/13 mutations detected**. The upper-bound mutant
+fails the new case; the action mutant fails four existing catalogue action-key
+equality assertions, addressing O2 without duplicating those tests.
+
+For O1, the requirement now explicitly limits the private result constructor
+to `infer()`'s validated internal projection/counts; direct construction is
+unsupported and the class remains absent from `__all__`. This adopts the
+report's documented-private alternative. F2 is equivalent: the entity pattern
+uses explicit ASCII ranges, so removing `re.ASCII` changes no accepted strings.
+No runtime module or accepted shared contract changed.
+
+[Follow-up verification](REQ-033-review-fixes.json) identifies executed file
+hashes, JUnit totals and mutation logs. Full rerun: **1691 passed**, zero
+failures/errors/skips, 73.29 seconds on Linux aarch64 / Python 3.12.12. Ruff,
+strict mypy across eighteen runtime modules and governance/21 planning
+regressions passed. The suite now has **1691 fabric cases**;
+the CI artifact gate and isolated optional-skip assertion use the new counts.
+The first follow-up full run had **1688 passed / 3 failed** because the isolated
+gate still expected 126 optional skips instead of 127. That assertion was fixed
+before the complete rerun. Original 1690/126-case verification and artifact
+records above remain historical, source-specific evidence; the earlier handoff's
+test-byte equality statement applies to head 9986689 only. Current runtime bytes
+still match 3630316. Follow-up execution started before its matching source
+commit; no clean-tree execution is claimed. Final-head CI is reported separately.
+
+REQ-033 remains req_impl, ACs unchecked, TCs implemented and PR #67 draft.
