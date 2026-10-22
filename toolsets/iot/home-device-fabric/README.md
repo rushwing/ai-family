@@ -955,9 +955,9 @@ records PR #63 merge and the F1/F2 regression verification.
 `--require-ha-discovery-runtime` is the twelfth required fabric flag. Installed
 checks execute real fictional loopback discovery and partial permission failure
 on both direct/sdist-derived wheel pairs under `-I` and `-O -I`. Canonical mapping
-is subsequently delivered through REQ-032. Capability inference, query/API
-services, reconnect reconciliation and real HA certification remain separate
-increments.
+is subsequently delivered through REQ-032, and capability inference through
+REQ-033. Query/API services, reconnect reconciliation and real HA certification
+remain separate increments.
 
 
 ## Canonical HA registry mapping (REQ-032 / HI-S014)
@@ -1084,10 +1084,13 @@ freshness, permissions or atomic discovery. Existing normalization supports its
 previous explicit profiles only; consuming inferred grouped/measurement mappings
 requires a separate integration increment.
 
-[REQ-033](../../../harness/tasks/features/REQ-033.md) owns the proposed contract,
-unchecked acceptance criteria and source-specific verification. Delivery remains
-req_impl for external combined review. `--require-ha-capabilities-runtime` is the
-fourteenth required runtime flag. Installed direct/sdist packages exercise the
+[REQ-033](../../../harness/tasks/archive/done/features/REQ-033.md) owns the accepted
+contract and source-specific verification. Human-001 accepted the combined
+delivery and local pre-review follow-up through PR #67 merge.
+[Final acceptance](../../../harness/tasks/evidence/REQ-033-review-acceptance.md)
+records exact merge identity and verification limits.
+`--require-ha-capabilities-runtime` is the fourteenth required runtime flag.
+Installed direct/sdist packages exercise the
 new smoke in isolated normal/optimized Python. Device writes, query services,
 store publication, reconciliation, live HA and Feature/Stage acceptance retain
 their separate gates.

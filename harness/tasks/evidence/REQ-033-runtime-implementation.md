@@ -66,7 +66,7 @@ physical availability. Existing event normalization still requires its explicit
 profiles; grouped/extra measurement integration, writes, query/store publication,
 reconciliation, BUG-033 and Feature/Stage acceptance remain separate work.
 
-See the sole [REQ-033](../features/REQ-033.md),
+See the sole [REQ-033](../archive/done/features/REQ-033.md),
 [TC-033-01](../test-cases/TC-033-01.md),
 [TC-033-02](../test-cases/TC-033-02.md),
 [TC-033-03](../test-cases/TC-033-03.md) and
