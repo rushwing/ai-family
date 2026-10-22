@@ -730,13 +730,8 @@
       "title": "Infer supported capabilities deterministically",
       "parent": "HI-F005",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S015.md",
-      "depends_on": [
-        "HI-S012",
-        "HI-S014"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-033",
       "legacy_refs": [
         "ZW-ST-0202",
         "ZW-ST-1302"

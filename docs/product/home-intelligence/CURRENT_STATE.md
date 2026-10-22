@@ -136,3 +136,14 @@ fresh projection, requiring a separate reconciliation policy before updating an
 existing store. Automatic identity allocation/persistence, capability inference,
 state publication, query/API services, reconnect reconciliation, live HA/device
 certification and Feature/Stage completion remain separate work.
+
+## Capability Inference In Progress
+
+[HI-S015](requirements/stories/HI-S015.md) is admitted through
+[REQ-033](../../../harness/tasks/features/REQ-033.md) following the explicit
+2026-10-22 instruction to proceed. The combined specification, proposed TC
+text/code and runtime delivery remains req_impl / generator-001 for external
+review. Fixed rules describe six supported canonical capability types and
+explicit provider property/action mappings; unsupported or ambiguous candidates
+are omitted. Read current lifecycle and verification from the sole Harness REQ.
+This admission does not mark HI-F005 or R1 complete.
