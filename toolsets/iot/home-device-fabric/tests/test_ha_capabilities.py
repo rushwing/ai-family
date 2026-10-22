@@ -123,7 +123,7 @@ def test_advertised_action_schema_rejects_wrong_payload(value):
 @pytest.mark.parametrize("features,supported", [
     (0, False), (1, False), (2, False), (3, False), (4, True), (7, True),
     (8, False), (128, False), (132, True), (2147483647, True),
-    (-1, False), (2147483648, False), (True, False), (False, False),
+    (-1, False), (2147483648, False), (2147483652, False), (True, False), (False, False),
     (4.0, False), ("4", False), (None, False), ([], False), ({}, False),
 ])
 def test_cover_absolute_position_requires_exact_feature_bit(features, supported):
@@ -131,6 +131,8 @@ def test_cover_absolute_position_requires_exact_feature_bit(features, supported)
     data["states"][1]["attributes"] = {"supported_features": features}
     identities = [row["descriptor"]["capability_id"] for row in capabilities(infer(mapped, data))]
     assert ("home.positionable" in identities) is supported
+    assert infer(mapped, data).to_redacted_dict()["counts"]["unsupported_entities"] == (
+        0 if supported else 1)
 
 
 @pytest.mark.tc033_02

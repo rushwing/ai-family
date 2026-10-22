@@ -15,6 +15,8 @@ TEST = ROOT / "toolsets/iot/home-device-fabric/tests/test_ha_capabilities.py"
 MUTATIONS = (
     ("wrong_unit", '("temperature", "°C"):', '("temperature", "°F"):'),
     ("missing_position_support", "and features & 4:", ":"),
+    ("missing_feature_upper_bound", "0 <= features <= 2147483647", "0 <= features"),
+    ("extra_sensor_action", '    return {}\n', '    return {"unexpected_action": {}}\n'),
     ("coerce_float_features",
      "type(features) is int and 0 <= features <= 2147483647 and features & 4",
      "type(features) in (int, float) and 0 <= features <= 2147483647 and int(features) & 4"),
