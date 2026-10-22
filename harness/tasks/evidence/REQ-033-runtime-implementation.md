@@ -71,3 +71,10 @@ See the sole [REQ-033](../features/REQ-033.md),
 [TC-033-02](../test-cases/TC-033-02.md),
 [TC-033-03](../test-cases/TC-033-03.md) and
 [TC-033-04](../test-cases/TC-033-04.md) for scope and review state.
+
+## Review handoff
+
+[Draft PR #67](https://github.com/rushwing/ai-family/pull/67) is the external
+combined-review artifact. Subsequent commits add evidence/navigation only;
+runtime and test bytes remain identical to tested source 3630316. Final PR-head
+CI is checked separately. No merge or next increment is authorized.
