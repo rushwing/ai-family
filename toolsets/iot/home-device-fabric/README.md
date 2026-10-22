@@ -1033,3 +1033,61 @@ records PR #65 merge, collection-gate correction and O1–O3 dispositions.
 sdist-derived packages exercise normal/optimized isolated mapper smokes. This
 accepted increment adds no capability inference, state publication, query/API,
 provider action, HA connection or live certification.
+
+## Deterministic HA capability inference (REQ-033 / HI-S015)
+
+`HACapabilityInferrer` describes supported capabilities from the same private
+discovery export and canonical mapping projection. Construction explicitly reads
+the fixed packaged initial catalogue; subsequent inference performs no I/O.
+
+```python
+from home_device_fabric.ha_capabilities import HACapabilityInferrer
+
+engine = HACapabilityInferrer(provider_instance_id="ha-example")
+projection = mapper.map(provider_records).for_adapter()
+result = engine.infer(**projection, discovery=provider_records)
+summary = result.to_redacted_dict()  # fixed counts and rules_version only
+private_capabilities = result.for_adapter()  # trusted adapter consumers only
+```
+
+Rules version 1 supports Switchable for `switch` entities; Positionable for
+`cover` entities with absolute-position feature bit 4; and TemperatureSensor,
+HumiditySensor, PowerMeter and BatteryPowered for `sensor` entities with exact
+device classes and canonical units (`°C`, `%`, `W`, `%`). Other domains/units,
+missing states and incomplete metadata remain unsupported. Multiple eligible
+entities of the same capability type on one Device omit that whole ambiguous
+type. Other supported types remain. No first/last selection or aggregation occurs.
+
+Each capability exports its unchanged canonical descriptor, property source and
+explicit entity/instance/action mappings. The descriptor supplies action input
+schemas, risk, timeout and State convergence semantics. Switch actions select
+turn_on/turn_off from a strict boolean; cover position maps to
+set_cover_position's position parameter. These are descriptions for a future
+dispatcher, with no authorization or execution. Missing current_position remains
+unobserved. Unknown/unavailable states can retain metadata describing support;
+capability inference asserts no physical availability or reported value.
+
+Inference validates complete bounded inputs, accepted inventory/binding
+references, instance isolation and registry membership before returning a fresh
+projection. Removed/stale bindings fail consistency checks rather than silently
+switching endpoints. Disabled or missing bound registry rows reject the call;
+the caller should first recompute the canonical projection from the same export.
+All inventory Devices remain in the result, including those with no selected
+binding or supported capabilities. Other provider/instance bindings advertise
+nothing. Empty successful discovery/inventory remains valid.
+
+The detached raw export contains private provider mappings. Keep it inside the
+adapter boundary. Repr and count summaries are redacted; raw copy/pickle and
+reinitialization are refused. Errors expose only finite codes and discard raw
+exception chains. Shape/identity checks do not establish trusted origin, source
+freshness, permissions or atomic discovery. Existing normalization supports its
+previous explicit profiles only; consuming inferred grouped/measurement mappings
+requires a separate integration increment.
+
+[REQ-033](../../../harness/tasks/features/REQ-033.md) owns the proposed contract,
+unchecked acceptance criteria and source-specific verification. Delivery remains
+req_impl for external combined review. `--require-ha-capabilities-runtime` is the
+fourteenth required runtime flag. Installed direct/sdist packages exercise the
+new smoke in isolated normal/optimized Python. Device writes, query services,
+store publication, reconciliation, live HA and Feature/Stage acceptance retain
+their separate gates.

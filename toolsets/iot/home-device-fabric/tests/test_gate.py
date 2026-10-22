@@ -19,7 +19,7 @@ def isolated_hooks(
     httpx_present=False, ha_websocket_present=False, websockets_present=False,
     ha_health_present=False, ha_subscription_present=False, ha_normalization_present=False,
     state_store_present=False, state_events_present=False, ha_discovery_present=False,
-    ha_mapping_present=False
+    ha_mapping_present=False, ha_capabilities_present=False
 ):
     """Resolve only local stubs; never fall through to an ambient editable install."""
     root = directory / "runtime"
@@ -49,6 +49,10 @@ def isolated_hooks(
             (package / "ha_discovery.py").write_text(
                 "import websockets\nclass HARegistryDiscoveryClient:\n"
                 "    async def discover(self): pass\n    async def aclose(self): pass\n")
+        if ha_capabilities_present:
+            (package / "ha_capabilities.py").write_text(
+                "import state_schema.provider_contracts\nclass HACapabilityInferrer:\n"
+                "    def infer(self): pass\n")
         if ha_mapping_present:
             (package / "ha_mapping.py").write_text(
                 "import state_schema.provider_contracts\nclass HARegistryMapper:\n"
@@ -375,6 +379,7 @@ def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dep
 
 @pytest.mark.tc024_06
 @pytest.mark.tc032_04
+@pytest.mark.tc033_04
 def test_ci_requires_complete_fabric_acceptance():
     root = Path(__file__).resolve().parents[4]
     validate = runpy.run_path(str(root / "tools/check_fabric_ci.py"))["validate"]
@@ -386,7 +391,7 @@ def test_ci_requires_complete_fabric_acceptance():
                  "--require-ha-health-runtime", "--require-ha-subscription-runtime",
                  "--require-ha-normalization-runtime", "--require-state-store-runtime",
                  "--require-state-events-runtime", "--require-ha-discovery-runtime",
-                 "--require-ha-mapping-runtime"):
+                 "--require-ha-mapping-runtime", "--require-ha-capabilities-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -678,6 +683,68 @@ def test_installed_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimiz
     if optimized:
         command.append("-O")
     command.append(str(Path(__file__).with_name("ha_mapping_artifact_smoke.py")))
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout) == {"checks": 16, "offline": True, "rules_version": 1}
+
+
+@pytest.mark.tc033_04
+@pytest.mark.parametrize("module,required,skip,expected", [
+    (False, True, False, 4), ("broken", True, False, 4),
+    ("methods_missing", True, False, 4), ("dependency_missing", True, False, 4),
+    ("broken", False, False, 0), (False, False, False, 0),
+    ("methods_missing", False, False, 0), ("dependency_missing", False, False, 0),
+    (True, True, True, 1), (True, True, False, 0),
+])
+def test_ha_capabilities_required_gate(tmp_path, monkeypatch, module, required, skip, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False,
+        ha_capabilities_present=bool(module), shared_present=module != "dependency_missing"))
+    path = tmp_path / "runtime/home_device_fabric/ha_capabilities.py"
+    if module == "broken":
+        path.write_text("raise AttributeError('private import details')\n")
+    elif module == "methods_missing":
+        path.write_text("class HACapabilityInferrer: pass\n")
+    text = "import pytest\n"
+    if skip:
+        text += "@pytest.mark.skip(reason='mandatory skip probe')\n"
+    text += "def test_probe(): pass\n"
+    filename = "test_probe.py" if required and expected == 4 else "test_ha_capabilities.py"
+    (tmp_path / filename).write_text(text)
+    command = [sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q", "-rs",
+               "--confcutdir", str(tmp_path)]
+    if required:
+        command.append("--require-ha-capabilities-runtime")
+    actual_tests = module is False or module == "broken" or module == "dependency_missing"
+    if actual_tests:
+        # A top-level runtime import would fail collection before the gate could
+        # classify absence or apply optional skips. Exercise the real test module.
+        (tmp_path / filename).unlink()
+        (tmp_path / "test_ha_capabilities.py").write_text(
+            Path(__file__).with_name("test_ha_capabilities.py").read_text())
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+    if expected == 4:
+        diagnosis = "broken" if module == "broken" else "absent"
+        assert "ha-capabilities runtime required but " + diagnosis in result.stderr
+    elif skip or module in (False, "broken", "methods_missing", "dependency_missing"):
+        assert ("127 skipped" if actual_tests else "1 skipped") in result.stdout
+    else:
+        assert "1 passed" in result.stdout
+
+
+
+@pytest.mark.tc033_04
+@pytest.mark.parametrize("optimized", [False, True])
+def test_capabilities_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimized):
+    import sys
+    from pathlib import Path
+
+    command = [sys.executable, "-I"]
+    if optimized:
+        command.append("-O")
+    command.append(str(Path(__file__).with_name("ha_capabilities_artifact_smoke.py")))
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout) == {"checks": 16, "offline": True, "rules_version": 1}

@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-ha-capabilities-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-mapping-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-discovery-runtime", action="store_true", default=False)
     parser.addoption("--require-provider-runtime", action="store_true", default=False)
@@ -207,6 +208,23 @@ def pytest_collection_modifyitems(config, items):
             if item.path.name == "test_ha_mapping.py":
                 item.add_marker(pytest.mark.skip(reason="REQ-032 ha-mapping runtime "
                                                 + mapping_error))
+    try:
+        capabilities = importlib.import_module("home_device_fabric.ha_capabilities")
+        capabilities_class = getattr(capabilities, "HACapabilityInferrer", None)
+        capabilities_error = (None if callable(getattr(capabilities_class, "infer", None))
+                              else "absent")
+    except ImportError:
+        capabilities_error = "absent"
+    except Exception:
+        capabilities_error = "broken"
+    if config.getoption("--require-ha-capabilities-runtime") and capabilities_error:
+        raise pytest.UsageError(
+            "REQ-033 ha-capabilities runtime required but " + capabilities_error)
+    if capabilities_error:
+        for item in items:
+            if item.path.name == "test_ha_capabilities.py":
+                item.add_marker(pytest.mark.skip(reason="REQ-033 ha-capabilities runtime "
+                                                + capabilities_error))
     rest = ha_rest_available()
     if config.getoption("--require-ha-rest-runtime") and not rest:
         raise pytest.UsageError("REQ-023 ha-rest runtime required but absent")
@@ -258,6 +276,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-state-events-runtime")
         or session.config.getoption("--require-ha-discovery-runtime")
         or session.config.getoption("--require-ha-mapping-runtime")
+        or session.config.getoption("--require-ha-capabilities-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
