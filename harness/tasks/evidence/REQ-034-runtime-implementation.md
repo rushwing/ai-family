@@ -54,5 +54,6 @@ separate work. HI-S028 is a future candidate after this delivery's acceptance.
 
 The sole engineering specification is [REQ-034](../features/REQ-034.md).
 Subsequent delivery commits add evidence/navigation only; implementation and
-test code remain at the tested source above. The draft PR supplies the external
+test code remain at the tested source above.
+[Draft PR #69](https://github.com/rushwing/ai-family/pull/69) supplies the external
 combined-review artifact; this delivery does not authorize merge or acceptance.
