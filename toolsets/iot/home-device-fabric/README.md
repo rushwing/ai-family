@@ -1091,7 +1091,8 @@ delivery and local pre-review follow-up through PR #67 merge.
 records exact merge identity and verification limits.
 `--require-ha-capabilities-runtime` is the fourteenth required runtime flag.
 Installed direct/sdist packages exercise the
-new smoke in isolated normal/optimized Python. Device writes, query services,
+new smoke in isolated normal/optimized Python. Scoped query services are
+subsequently delivered through REQ-034. Device writes, HTTP query APIs,
 store publication, reconciliation, live HA and Feature/Stage acceptance retain
 their separate gates.
 
@@ -1152,3 +1153,14 @@ payloads. The required `--require-home-queries-runtime` gate forbids absent/brok
 runtime and skipped acceptance tests. The canonical descriptor snapshot is bounded
 plain JSON; no HTTP routes, dynamic reconciliation, durable policy storage,
 authentication service or device actions are delivered here.
+
+
+REQ-034 / HI-S018 is human-accepted through merged
+[PR #69](https://github.com/rushwing/ai-family/pull/69) and archived
+[REQ-034](../../../harness/tasks/archive/done/features/REQ-034.md).
+[Final acceptance](../../../harness/tasks/evidence/REQ-034-review-acceptance.md)
+records O1–O3 fixes, 1888 passing fabric tests, 185 query cases, thirteen detected
+mutations and four installed query smoke runs of 22 checks each at their tested
+source. Final-head CI passed on Python 3.12/3.13/3.14. The fifteenth required
+runtime flag is `--require-home-queries-runtime`. HTTP/authentication, reconnect
+reconciliation and Feature/Stage acceptance retain their separate gates.
