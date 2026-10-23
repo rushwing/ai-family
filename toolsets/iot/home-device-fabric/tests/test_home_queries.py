@@ -390,6 +390,61 @@ def test_invalid_store(api, bad_store):
 
 
 @pytest.mark.tc034_04
+@pytest.mark.parametrize("data", [object(), {"secret"}, (1, 2), b"secret", {1: "secret"},
+                                  float("nan"), float("inf"), "\ud800", 1 << 4096])
+def test_public_result_rejects_non_json_data(api, data):
+    fail(api, "invalid_configuration", api.QueryResult, "found", data)
+
+
+@pytest.mark.tc034_04
+@pytest.mark.parametrize("kind", ["cycle", "alias", "depth"])
+def test_public_result_rejects_unsafe_containers(api, kind):
+    data = []
+    if kind == "cycle":
+        data.append(data)
+    elif kind == "alias":
+        child = []
+        data = [child, child]
+    else:
+        for _ in range(33):
+            data = [data]
+    fail(api, "invalid_configuration", api.QueryResult, "found", data)
+
+
+@pytest.mark.tc034_04
+def test_public_result_detaches_valid_json(api):
+    data = {"values": [None, False, 0, 1.25, "example"]}
+    result = api.QueryResult("found", data)
+    data["values"].append("changed")
+    projection = result.to_dict()
+    assert projection == {"status": "found", "data": {"values": [None, False, 0, 1.25, "example"]}}
+    projection["data"]["values"].clear()
+    assert result.to_dict()["data"]["values"] == [None, False, 0, 1.25, "example"]
+
+
+@pytest.mark.tc034_04
+@pytest.mark.parametrize("exception", [KeyboardInterrupt, SystemExit])
+def test_public_result_propagates_process_control(api, monkeypatch, exception):
+    def interrupt(value):
+        raise exception()
+
+    monkeypatch.setattr(api, "_json", interrupt)
+    with pytest.raises(exception):
+        api.QueryResult("found", {})
+
+
+@pytest.mark.tc034_04
+def test_store_identifier_error_remains_selector_error(api, setup, monkeypatch):
+    from home_device_fabric.state_store import StateStoreError
+
+    def reject(*args, **kwargs):
+        raise StateStoreError("invalid_identifier", "device_id")
+
+    monkeypatch.setattr(type(setup[0]), "read", reject)
+    fail(api, "invalid_selector", call, setup[1], "state")
+
+
+@pytest.mark.tc034_04
 def test_no_reinitialization_or_serialization(api, setup):
     store, service, _ = setup
     result = call(service, "home")

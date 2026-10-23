@@ -53,7 +53,7 @@ def configuration():
 
 
 def check():
-    from home_device_fabric.home_queries import HomeQueryError, HomeQueryService
+    from home_device_fabric.home_queries import HomeQueryError, HomeQueryService, QueryResult
     from home_device_fabric.state_store import CurrentStateStore
     from state_schema.initial_capabilities import load_initial_capabilities
 
@@ -156,6 +156,13 @@ def check():
         require(error.code == "forbidden")
     else:
         require(False)
+    for invalid_data in (object(), float("nan")):
+        try:
+            QueryResult("found", invalid_data)
+        except HomeQueryError as error:
+            require(error.code == "invalid_configuration" and error.__context__ is None)
+        else:
+            require(False)
     return {"checks": checks, "offline": True}
 
 

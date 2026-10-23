@@ -37,6 +37,12 @@ MUTATIONS = (
      'if hasattr(self, "_payload"):', 'if False:'),
     ("unlocked_snapshot", "state_store.py",
      'with self._lock:\n            return tuple(', 'if True:\n            return tuple('),
+    ("unvalidated_result_data", "home_queries.py",
+     'payload = _json({"status": status, "data": data})',
+     'payload = json.dumps({"status": status, "data": data})'),
+    ("misclassified_identifier", "home_queries.py",
+     '"invalid_identifier": "invalid_selector",',
+     '"invalid_identifier": "invalid_configuration",'),
 )
 
 
@@ -71,7 +77,7 @@ def main():
         log = out / (name + ".log")
         log.write_text(result.stdout + result.stderr)
         valid = result.returncode == (0 if name == "baseline" else 1)
-        results.append({"mutation": name, "exit_code": result.returncode,
+        results.append({"mutation": name, "returncode": result.returncode,
                         "detected_or_baseline_passed": valid, "log_sha256": digest(log)})
         print(name, result.returncode, flush=True)
     report = {"source_revision": subprocess.check_output(

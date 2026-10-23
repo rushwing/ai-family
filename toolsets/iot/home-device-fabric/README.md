@@ -1130,7 +1130,13 @@ metadata return `uninitialized`; explicitly empty metadata returns `found`/`[]`.
 Descriptors describe support, not permission to execute, observed availability or
 freshness. Provider bindings and HA service/entity mappings stay private.
 
-QueryResult exports detached `{status, data}` JSON. State results preserve the
+QueryResult exports detached `{status, data}` JSON. Direct construction validates
+the entire envelope using configuration's bounded plain-JSON rules; unsupported
+objects, nonfinite values, aliases/cycles and limit violations raise redacted
+`HomeQueryError("invalid_configuration")`. Invalid status raises `ValueError`;
+process-control exceptions propagate. Store identifier errors map to
+`invalid_selector`, consistently with service selector validation.
+State results preserve the
 store's complete canonical snapshot and revision/timestamp/freshness fields.
 Unobserved devices retain unknown availability and empty reports. Explicit
 `now_ms`/`max_age_ms` control freshness: age equal to max age is fresh; greater

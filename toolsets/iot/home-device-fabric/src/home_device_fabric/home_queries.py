@@ -83,6 +83,7 @@ def _read(function: Callable[[], T]) -> T:
             "invalid_context": "invalid_context",
             "forbidden": "forbidden",
             "invalid_integer": "invalid_time",
+            "invalid_identifier": "invalid_selector",
             "clock_regression": "clock_regression",
         }.get(error.code, "invalid_configuration")
     raise HomeQueryError(code)
@@ -96,7 +97,11 @@ def _id(value: object) -> str:
 
 @dataclass(frozen=True, slots=True, repr=False, init=False)
 class QueryResult:
-    """Immutable detached JSON result; use to_dict only at an authorized boundary."""
+    """Immutable bounded plain-JSON result; serialize only at an authorized boundary.
+
+    Direct construction validates data with the same limits as configuration.
+    Invalid data raises a redacted HomeQueryError(invalid_configuration).
+    """
 
     _payload: str
 
@@ -105,7 +110,15 @@ class QueryResult:
             raise AttributeError("immutable_query_result")
         if type(status) is not str or status not in ("found", "not_found", "uninitialized"):
             raise ValueError("invalid_result_status")
-        object.__setattr__(self, "_payload", json.dumps({"status": status, "data": data}))
+        failed = False
+        payload = ""
+        try:
+            payload = _json({"status": status, "data": data})
+        except Exception:
+            failed = True
+        if failed:
+            raise HomeQueryError("invalid_configuration")
+        object.__setattr__(self, "_payload", payload)
 
     @property
     def status(self) -> Status:
