@@ -52,7 +52,7 @@ are trusted composition inputs; authentication, HTTP routes, durable policy,
 reconnect reconciliation, device writes and Feature/Stage acceptance remain
 separate work. HI-S028 is a future candidate after this delivery's acceptance.
 
-The sole engineering specification is [REQ-034](../features/REQ-034.md).
+The sole engineering specification is [REQ-034](../archive/done/features/REQ-034.md).
 Delivery commits through 2b973c2 add evidence/navigation only; implementation and
 test code at that head remain at the tested source above. The subsequent
 [local pre-review follow-up](REQ-034-review-fixes.md) records O1–O3 corrections,
