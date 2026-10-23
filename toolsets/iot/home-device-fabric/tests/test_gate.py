@@ -818,4 +818,4 @@ def test_queries_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimized
     command.append(str(Path(__file__).with_name("home_queries_artifact_smoke.py")))
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout) == {"checks": 20, "offline": True}
+    assert json.loads(result.stdout) == {"checks": 22, "offline": True}
