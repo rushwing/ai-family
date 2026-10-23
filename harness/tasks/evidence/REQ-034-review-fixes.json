@@ -1,0 +1,671 @@
+{
+  "source_commit": "ea75814dbae324d8cdae4baa91f17267ef065ef2",
+  "source_dirty": false,
+  "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "test_results": [
+    {
+      "filename": "req034-fixes-fabric.xml",
+      "expected_executed": 1888,
+      "sha256": "e64a42c7d9fc2df034eafd812b2fd5180eed43cce75b0eb528f056b33100ffd0",
+      "totals": {
+        "executed": 1888,
+        "passed": 1888,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "per_tc": {
+        "tc025_02": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_03": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_01": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_02": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_04": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_05": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc021_06": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_02": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_03": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_04": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_05": {
+          "executed": 16,
+          "passed": 16,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc020_06": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_04": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_06": {
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_06": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_06": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_04": {
+          "executed": 13,
+          "passed": 13,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc033_04": {
+          "executed": 13,
+          "passed": 13,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc034_04": {
+          "executed": 100,
+          "passed": 100,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_05": {
+          "executed": 8,
+          "passed": 8,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_05": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_04": {
+          "executed": 12,
+          "passed": 12,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc033_01": {
+          "executed": 13,
+          "passed": 13,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc033_02": {
+          "executed": 63,
+          "passed": 63,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc033_03": {
+          "executed": 51,
+          "passed": 51,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_01": {
+          "executed": 24,
+          "passed": 24,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_02": {
+          "executed": 75,
+          "passed": 75,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_03": {
+          "executed": 25,
+          "passed": 25,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_04": {
+          "executed": 72,
+          "passed": 72,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc022_05": {
+          "executed": 1,
+          "passed": 1,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_01": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_02": {
+          "executed": 73,
+          "passed": 73,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc031_03": {
+          "executed": 31,
+          "passed": 31,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_01": {
+          "executed": 38,
+          "passed": 38,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_02": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_03": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc026_04": {
+          "executed": 10,
+          "passed": 10,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_01": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_02": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc032_03": {
+          "executed": 97,
+          "passed": 97,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_01": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_02": {
+          "executed": 71,
+          "passed": 71,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc028_03": {
+          "executed": 6,
+          "passed": 6,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_01": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_02": {
+          "executed": 56,
+          "passed": 56,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_03": {
+          "executed": 61,
+          "passed": 61,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_04": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc023_05": {
+          "executed": 5,
+          "passed": 5,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_01": {
+          "executed": 18,
+          "passed": 18,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_02": {
+          "executed": 33,
+          "passed": 33,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_03": {
+          "executed": 14,
+          "passed": 14,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc027_04": {
+          "executed": 4,
+          "passed": 4,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_01": {
+          "executed": 7,
+          "passed": 7,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_02": {
+          "executed": 2,
+          "passed": 2,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_03": {
+          "executed": 20,
+          "passed": 20,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_04": {
+          "executed": 17,
+          "passed": 17,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc024_05": {
+          "executed": 11,
+          "passed": 11,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc025_01": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc034_01": {
+          "executed": 9,
+          "passed": 9,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc034_02": {
+          "executed": 60,
+          "passed": 60,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc034_03": {
+          "executed": 29,
+          "passed": 29,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_01": {
+          "executed": 35,
+          "passed": 35,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_02": {
+          "executed": 21,
+          "passed": 21,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_03": {
+          "executed": 19,
+          "passed": 19,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_04": {
+          "executed": 15,
+          "passed": 15,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc019_05": {
+          "executed": 3,
+          "passed": 3,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_01": {
+          "executed": 101,
+          "passed": 101,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_02": {
+          "executed": 36,
+          "passed": 36,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc030_03": {
+          "executed": 27,
+          "passed": 27,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_01": {
+          "executed": 53,
+          "passed": 53,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_02": {
+          "executed": 34,
+          "passed": 34,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        },
+        "tc029_03": {
+          "executed": 50,
+          "passed": 50,
+          "failed": 0,
+          "errors": 0,
+          "skipped": 0
+        }
+      }
+    }
+  ],
+  "source_sha256": {
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/home_queries.py": "9f20c9bad29eb6d68d8221f393079274f8cac29797cfc5771fcf0f1a049b4767",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/state_store.py": "1f22e70229d0bbedc35a3f05338aed73efd9e951610f568b24a458eb569437c1",
+    "toolsets/iot/home-device-fabric/tests/test_home_queries.py": "9fdf3306b67a106654c09de9265903f7fe08f17a4f0c6adc42b3740ee6e6d9a3",
+    "toolsets/iot/home-device-fabric/tests/test_gate.py": "38e5e592b9e14e9827ad1596f8534674335fa58559623a4e40277e9b205c226a",
+    "toolsets/iot/home-device-fabric/tests/home_queries_artifact_smoke.py": "67ba7683ab43cc4b6850dcd6ed3470ecd1feccfeff80dbf1f57ebce3377cb456",
+    "toolsets/iot/home-device-fabric/tests/home_queries_mutations.py": "f3c23215318a0ef29c2731f03356f9f71b505f3957c295fd767469aac3b39b85",
+    ".github/workflows/ci.yml": "a4b68903363c1284d70555e1319363810bf11504a08fe8a36d6b62522d880ca3"
+  },
+  "mutations": {
+    "source_revision": "ea75814dbae324d8cdae4baa91f17267ef065ef2",
+    "source_dirty": false,
+    "runtime_sha256": "9f20c9bad29eb6d68d8221f393079274f8cac29797cfc5771fcf0f1a049b4767",
+    "store_sha256": "1f22e70229d0bbedc35a3f05338aed73efd9e951610f568b24a458eb569437c1",
+    "tests_sha256": "9fdf3306b67a106654c09de9265903f7fe08f17a4f0c6adc42b3740ee6e6d9a3",
+    "results": [
+      {
+        "mutation": "baseline",
+        "returncode": 0,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "4a3c62170382398b042b63e7dab580aedbf739cf01566066e505e5eff89bfd65"
+      },
+      {
+        "mutation": "authorization_bypass",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "2d64d7796a35178854190800e6f8bf72c4b1d38571aefe92729b91294dc26a4c"
+      },
+      {
+        "mutation": "ignore_area_filter",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "4e89bf3b06fd556ffe4e02c6399c37fe354251b5eceb2029013f51a875026b5d"
+      },
+      {
+        "mutation": "reverse_device_order",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "d3c477c3f9412cc67309254051a3d65844426988b8336de8ba2905407ee85f72"
+      },
+      {
+        "mutation": "cross_home_capabilities",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "e5f829deb3bf12c2a0871529a6e88601bd2246a7e5f93ba38f0d29cb2f8a44c1"
+      },
+      {
+        "mutation": "metadata_creates_device",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "8bed0e081a3bc49a0be90a34f034c00f662d3407ee385f36d8f339f174629756"
+      },
+      {
+        "mutation": "absent_metadata_is_empty",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "8e7d13a741bad2f5d40c015665114cf506ff490a4c37238128fb8f32a62a97d7"
+      },
+      {
+        "mutation": "exclusive_freshness_boundary",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "e70997d085ed7d75b7cfb5c1bf751d41b9878c51661b1d9dac9fc324f483adda"
+      },
+      {
+        "mutation": "stale_is_fresh",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "67e1cefbb8fa4c5319646ab980691ccc0b89b22085a03afbb7f4576df346c887"
+      },
+      {
+        "mutation": "duplicate_capability_records",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "39455c6174361f1048036860fe9f8864ead9e6951725768d8c6de06645d255be"
+      },
+      {
+        "mutation": "result_reinitialization",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "6aa034f865ac41cdede25e9bd1f95ad157024e5a94a86d39cc3b296c7fd55658"
+      },
+      {
+        "mutation": "unlocked_snapshot",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "122231a8c20e71cecb1cb26c799a637d9423d431de4f7e79f65b08883447b618"
+      },
+      {
+        "mutation": "unvalidated_result_data",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "0a52ce53a1e4ce49d27edc95f72852cf42f779e9afde3e7d0301a4684ca22518"
+      },
+      {
+        "mutation": "misclassified_identifier",
+        "returncode": 1,
+        "detected_or_baseline_passed": true,
+        "log_sha256": "01cd1cb9fa14c302dfd87da2aabe38cfb13e0c58526da10f93e5a82868bf1318"
+      }
+    ]
+  },
+  "mutation_returncode_field": "returncode",
+  "historical_mutation_returncode_field": "exit_code",
+  "historical_evidence_policy": "Original REQ-034-verification.json is unchanged: baseline exit_code 0, eleven mutants exit_code 1; no returncode:null field exists. New runner records use non-null returncode without translation.",
+  "review_authority": "Human-supplied local pre-review; generator self-verification only, no independent T03/T07/T10/T13 signature.",
+  "limits": [
+    "Linux aarch64 CPython 3.12.12 local execution; final-head CI recorded separately.",
+    "No Windows, live HA, device or long-soak certification."
+  ]
+}

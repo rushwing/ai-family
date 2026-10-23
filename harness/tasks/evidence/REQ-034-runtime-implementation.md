@@ -53,7 +53,9 @@ reconnect reconciliation, device writes and Feature/Stage acceptance remain
 separate work. HI-S028 is a future candidate after this delivery's acceptance.
 
 The sole engineering specification is [REQ-034](../features/REQ-034.md).
-Subsequent delivery commits add evidence/navigation only; implementation and
-test code remain at the tested source above.
+Delivery commits through 2b973c2 add evidence/navigation only; implementation and
+test code at that head remain at the tested source above. The subsequent
+[local pre-review follow-up](REQ-034-review-fixes.md) records O1–O3 corrections,
+changed runtime/test bytes and new source-specific verification.
 [Draft PR #69](https://github.com/rushwing/ai-family/pull/69) supplies the external
 combined-review artifact; this delivery does not authorize merge or acceptance.
