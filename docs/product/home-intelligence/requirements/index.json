@@ -923,13 +923,8 @@
       "title": "Expose canonical home-state query API",
       "parent": "HI-F010",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S028.md",
-      "depends_on": [
-        "HI-S018",
-        "HI-S004"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-035",
       "legacy_refs": [
         "ZW-ST-0301",
         "ZW-ST-1501"
