@@ -38,11 +38,11 @@ Trusted identity and member/device scope, allowed capabilities, parameter valida
 
 The prompt suggests GET /home, /areas, /devices, /devices/{id}, /state and POST /actions. Existing ARCHITECTURE.md proposes /api/twin/snapshot, /api/devices/{device_id}, /api/tasks, task lookup/cancellation and /api/events. Preserve those existing draft boundaries and specify equivalent canonical resources in HI-S028/029. Freeze naming, schemas and compatibility before implementation; do not maintain two aliases accidentally or claim existing routes are deployed.
 
-The HI-S028 / REQ-035 implementation proposal retains `/api/twin/snapshot`
+The human-accepted HI-S028 / REQ-035 delivery (PR #71) retains `/api/twin/snapshot`
 and `/api/devices/{device_id}` and adds only prefixed canonical inventory
 reads. See [proposed ADR-017](../../adr/ADR-017-home-query-http.md) and the
 [HTTP contract](../../../apps/home-intelligence-api/README.md). These read
-routes are reviewable runtime code, not a live deployment or frontend hookup;
+routes are packaged authenticated runtime code awaiting separate live composition and frontend hookup;
 task/event routes below remain future work.
 
 ## Technology Decisions
