@@ -38,6 +38,13 @@ Trusted identity and member/device scope, allowed capabilities, parameter valida
 
 The prompt suggests GET /home, /areas, /devices, /devices/{id}, /state and POST /actions. Existing ARCHITECTURE.md proposes /api/twin/snapshot, /api/devices/{device_id}, /api/tasks, task lookup/cancellation and /api/events. Preserve those existing draft boundaries and specify equivalent canonical resources in HI-S028/029. Freeze naming, schemas and compatibility before implementation; do not maintain two aliases accidentally or claim existing routes are deployed.
 
+The HI-S028 / REQ-035 implementation proposal retains `/api/twin/snapshot`
+and `/api/devices/{device_id}` and adds only prefixed canonical inventory
+reads. See [proposed ADR-017](../../adr/ADR-017-home-query-http.md) and the
+[HTTP contract](../../../apps/home-intelligence-api/README.md). These read
+routes are reviewable runtime code, not a live deployment or frontend hookup;
+task/event routes below remain future work.
+
 ## Technology Decisions
 
 Retain Python/FastAPI, existing MCP trust boundaries, PostgreSQL/RLS, RabbitMQ tasks, local-first device integration and existing LangGraph orchestration direction. Internal normalization may use direct typed calls within a module; that is not a replacement task bus. MQTT remains device-facing. No new NATS/Kafka choice or premature microservice split is introduced. Reuse existing ADRs for the three requested decisions; only create a new proposed ADR when an actual uncovered tradeoff needs review.

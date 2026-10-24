@@ -77,7 +77,12 @@ PostgreSQL / Audit                  Home & Service MCP
 - `GET /api/events`：SSE 或等价事件流；
 - `GET /api/ontology`：授权后的家庭关系视图。
 
-接口名称是产品边界草案，不是已冻结契约。冻结前必须形成 Schema 和 ADR。
+HI-S028 / REQ-035 proposes canonical read projections at the existing snapshot
+and device paths, plus prefixed Home/Area/Device lists. See
+[ADR-017](../../adr/ADR-017-home-query-http.md) (proposed) and
+[query API contract](../../../apps/home-intelligence-api/README.md), with generated
+OpenAPI. Task/event/ontology routes remain product drafts. This increment is
+not a live deployment or frontend integration.
 
 ## 任务模型
 

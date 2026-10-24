@@ -171,3 +171,15 @@ HI-S028 authenticated HTTP query routes and HI-S007 reconnect reconciliation
 remain candidates requiring explicit admission. Dynamic inventory, durable
 policy, device writes, live HA/device certification, BUG-033 and Feature/Stage
 completion retain separate gates. Read engineering state from Harness.
+
+
+## Authenticated HTTP query increment in progress
+
+[HI-S028](requirements/stories/HI-S028.md) is admitted through
+[REQ-035](../../../harness/tasks/features/REQ-035.md) under human-001's
+2026-10-23 “Proceed with HI-S028” instruction. The generator delivery proposes
+an explicitly composed FastAPI app in `apps/home-intelligence-api`, verified
+JWT identity, exact accepted store grants and canonical read-only projections.
+Read status, scope and verification from the REQ. Proposed ADR-017 records
+route compatibility. External review, live HA bootstrap, frontend wiring,
+deployment and Feature/R1 acceptance remain separate gates.
