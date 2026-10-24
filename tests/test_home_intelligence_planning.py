@@ -62,6 +62,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/evidence/REQ-032-review-acceptance.md",
             "harness/tasks/evidence/REQ-033-review-acceptance.md",
             "harness/tasks/evidence/REQ-034-review-acceptance.md",
+            "harness/tasks/evidence/REQ-035-runtime-implementation.md",
             "harness/tasks/bugs/BUG-033.md",
             "harness/tasks/evidence/REQ-023-review-acceptance.md",
             "harness/tasks/evidence/REQ-022-review-acceptance.md",

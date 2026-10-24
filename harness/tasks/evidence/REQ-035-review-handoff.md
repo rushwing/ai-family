@@ -1,5 +1,11 @@
 # REQ-035 external requirement-review handoff
 
+This file preserves the earlier requirement-review handoff and F1–F9 repairs.
+The later 2026-10-24 instruction to complete implementation and stop at
+`req_impl` supersedes its requirement-only boundary. See the current
+[implementation delivery](REQ-035-runtime-implementation.md) and sole
+[REQ](../features/REQ-035.md) for current authority and verification.
+
 ## Authority and review scope
 
 On 2026-10-24 human-001 instructed creating a PR for external `req_review`

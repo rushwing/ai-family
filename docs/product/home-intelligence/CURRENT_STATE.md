@@ -167,8 +167,9 @@ Public results validate bounded JSON; provider mappings are not exposed.
 [Closeout evidence](../../../harness/tasks/evidence/REQ-034-review-acceptance.md)
 records O1–O3 dispositions, final CI and source-specific verification limits.
 RequesterContext remains a trusted composition input, not authentication.
-HI-S028 authenticated HTTP query routes and HI-S007 reconnect reconciliation
-remain candidates requiring explicit admission. Dynamic inventory, durable
+HI-S028 authenticated HTTP query routes are admitted through REQ-035 below;
+HI-S007 reconnect reconciliation remains a candidate requiring explicit
+admission. Dynamic inventory, durable
 policy, device writes, live HA/device certification, BUG-033 and Feature/Stage
 completion retain separate gates. Read engineering state from Harness.
 
@@ -177,9 +178,13 @@ completion retain separate gates. Read engineering state from Harness.
 
 [HI-S028](requirements/stories/HI-S028.md) is admitted through
 [REQ-035](../../../harness/tasks/features/REQ-035.md) under human-001's
-2026-10-23 “Proceed with HI-S028” instruction. The generator delivery proposes
+2026-10-23 “Proceed with HI-S028” instruction and the 2026-10-24 instruction to
+complete implementation and stop at `req_impl` for external review. The generator delivery implements
 an explicitly composed FastAPI app in `apps/home-intelligence-api`, verified
 JWT identity, exact accepted store grants and canonical read-only projections.
 Read status, scope and verification from the REQ. Proposed ADR-017 records
 route compatibility. External review, live HA bootstrap, frontend wiring,
-deployment and Feature/R1 acceptance remain separate gates.
+deployment and Feature/R1 acceptance remain separate gates. The
+[implementation evidence](../../../harness/tasks/evidence/REQ-035-runtime-implementation.md)
+maps the delivery and verified source/artifacts to AC1–AC4. The earlier
+requirement-review-only handoff is superseded; acceptance remains pending.
