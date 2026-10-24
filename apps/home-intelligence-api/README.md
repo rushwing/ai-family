@@ -39,6 +39,14 @@ HTTP calls are not one transaction. `/api/twin/snapshot` is a canonical backend
 projection, not the frontend prototype's fictional graph/nodes or layout.
 Frontend adaptation is a subsequent integration step.
 
+Device and state queries share one fixed `CurrentStateStore` inventory. Its
+constructor creates an uninitialized state row for every registered device;
+public operations retain those rows and the inventory is fixed for the store's
+lifetime. A found device therefore has a StateView even before observations
+arrive. The API accepts the concrete query service/store composition, with no
+separate inventory or state-registration callback. Mutating private store
+internals is unsupported; unexpected failures remain fixed 500 responses.
+
 `/openapi.json`, `/docs` and `/redoc` expose static documentation without tokens
 or household inventory. The checked-in [OpenAPI contract](openapi.json) must equal the schema generated from response models, HTTPBearer
 security and explicit query parameters. There are no unprefixed aliases,

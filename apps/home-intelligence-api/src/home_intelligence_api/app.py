@@ -269,6 +269,9 @@ def create_app(
         result = service.device(context, home_id=home_id, device_id=device_id)
         if result.status == "not_found":
             return _response(result)
+        # Device and state use the same fixed store inventory. Its constructor
+        # creates a state row for every device, even without observations; public
+        # operations never remove rows. No second registration is required here.
         return _found(
             {
                 "device": _data(result),

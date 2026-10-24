@@ -1,5 +1,9 @@
 # REQ-035 implementation delivery for external combined review
 
+The implementation pre-review follow-up below records the latest G1–G4
+dispositions and supersedes the initial source counts and artifact hashes for
+the updated files. Earlier source-specific results remain historical evidence.
+
 ## Authority and stopping boundary
 
 On 2026-10-24 human-001 instructed “Continue to implement, stop after req_impl
@@ -31,7 +35,7 @@ The TC text remains generator-authored and `implemented`, not independently
 approved or `passing`. The [earlier handoff](REQ-035-review-handoff.md) preserves
 all F1–F9 dispositions and historical source/verification limits.
 
-## Source-specific verification
+## Initial source-specific verification
 
 The runtime and tests were completed in repair commit
 `4157d6dcff4882e14f1dcb942287709c42691706`. Documentation head
@@ -78,3 +82,57 @@ Live IdP/HA bootstrap, reconnect reconciliation, dynamic inventory/policy,
 provider execution/device writes, frontend wiring, durable confirmation/audit/
 tasks, deployment, Windows/Termux certification and Feature/R1 acceptance are
 outside this delivery. External review and final human acceptance remain open.
+
+## Implementation pre-review follow-up: G1–G4
+
+On 2026-10-24 human-001 supplied the non-signing report on implementation head
+`1a9f89f9` and instructed “Fix all findings”. The report confirms F1–F9 remain
+resolved and raises G1/G2 as hardening/documentation items; G3/G4 describe
+verification and authority limits. Repairs remain generator-authored under
+`req_impl` / `generator-001`, with unchecked ACs, implemented TCs, proposed
+ADR-017 and draft PR #71. No acceptance or independent signature is inferred.
+
+| Finding | Disposition |
+| --- | --- |
+| G1 | Add an explicit HTTP regression for `/api/devices/INVALID?home_id=home-example`: absent token → fixed 401; valid token and authorized home → fixed 400. Existing unauthorized-home cases preserve 403 before malformed device diagnostics. The installed smoke exercises both new requests under normal/optimized Python as well. |
+| G2 | Confirm and document the existing store invariant in REQ/README and the detail route: the concrete HomeQueryService uses one CurrentStateStore; its constructor creates a state row for every fixed inventory device. Public operations retain those rows. A found device has a StateView even with no observations; separate inventory/state registration and private mutation are unsupported. Runtime behavior is unchanged. |
+| G3 | Preserve the reviewer’s actual limitation: the supplied Termux/Python 3.14 report could not install FastAPI/PyJWT or run API/Ruff/mypy checks. This is not treated as a local pass. Validation below is attributed to Linux aarch64/CPython 3.12 and the PR’s Linux CI matrix; no Termux or live IdP/HA certification is inferred. |
+| G4 | Preserve human-authorized combined delivery and the absence of independent T03/T07/T10/T13 approval. External evaluator disposition and final human acceptance remain pending; this repair session does not self-sign them or move beyond req_impl. |
+
+The [accepted store constructor](../../../toolsets/iot/home-device-fabric/src/home_device_fabric/state_store.py)
+allocates rows from each inventory’s devices, and inventory reads remain fixed
+for the store lifetime. The [accepted query service](../../../toolsets/iot/home-device-fabric/src/home_device_fabric/home_queries.py)
+uses that same store for both device and state lookup. Neither shared package
+is modified by this repair.
+
+Latest local source verification: Linux aarch64 / CPython 3.12.12, **187 API
+cases, zero failures/errors/skips**, with the automatic network guard active
+(5.43 seconds). Marker counts are TC-035-01 **4**, TC-035-02 **146**,
+TC-035-03 **29**, TC-035-04 **8**. Ruff, strict mypy, all governance gates,
+21 planning regressions, legacy requirements, public-data and whitespace
+checks pass. One existing Starlette TestClient/httpx deprecation warning
+remains. Test command:
+
+```sh
+timeout 60s /tmp/req035-env/bin/python -m pytest \
+  -c apps/home-intelligence-api/pytest.ini apps/home-intelligence-api/tests \
+  -q --junitxml=/tmp/req035-review-api.xml
+```
+
+The updated artifact builder passes with the same JUnit file:
+
+```sh
+/tmp/req035-env/bin/python apps/home-intelligence-api/tests/build_artifacts.py \
+  --out-dir /tmp/req035-impl-review-artifacts \
+  --test-results /tmp/req035-review-api.xml
+```
+
+[Implementation-review artifact provenance](REQ-035-impl-review-artifact-provenance.json)
+records dirty base `1a9f89f9`, actual updated source hashes, the 187-case JUnit
+digest and artifact/dependency hashes. All recorded source hashes match the
+delivery: zero mismatches. Four isolated direct/sdist-derived normal/optimized
+smokes each pass **36 checks**, including malformed-path 401/400 ordering.
+OpenAPI remains unchanged, with SHA-256
+`db213eaedc0ec8c42da2c97ecce8561ec8faf9866f5823e0dad4b81058811979`.
+The dirty base remains explicit; new repair-head CI is reported separately
+in the PR body and is not attributed to the earlier reviewed head.

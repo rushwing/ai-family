@@ -133,6 +133,13 @@ def test_authentication_precedes_query_validation(setup, path, authorization):
 
 
 @pytest.mark.tc035_02
+def test_authentication_precedes_malformed_device_path(setup):
+    path = "/api/devices/INVALID"
+    error(get(setup, path, headers={}), 401, "unauthenticated")
+    error(get(setup, path), 400, "invalid_request")
+
+
+@pytest.mark.tc035_02
 @pytest.mark.parametrize(
     "changes",
     [

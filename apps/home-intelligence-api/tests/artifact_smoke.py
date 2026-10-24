@@ -102,6 +102,9 @@ def check():
     require(client.get(path + "&now_ms=0", headers=headers).status_code == 400)
     require(client.get("/api/home?home_id=INVALID", headers=headers).status_code == 400)
     require(client.get("/api/home?home_id=INVALID").status_code == 401)
+    invalid_device = "/api/devices/INVALID?home_id=home-example"
+    require(client.get(invalid_device).status_code == 401)
+    require(client.get(invalid_device, headers=headers).status_code == 400)
     list_token = jwt.encode(
         {**claims, "aud": ["other-api", "home-api"]},
         private, algorithm="RS256", headers={"kid": "smoke"},
