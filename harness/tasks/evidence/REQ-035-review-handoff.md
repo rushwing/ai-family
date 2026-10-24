@@ -128,3 +128,19 @@ Dependencies are downloaded once; installation and smoke runs are offline.
 The dirty base is not presented as a tested clean commit; repair-head CI is
 recorded separately. No live IdP, private HA, Windows, Termux or deployment
 certification is implied.
+
+## Repair-commit CI
+
+[CI run 40056570811](https://github.com/rushwing/ai-family/actions/runs/40056570811)
+targets repair commit `4157d6dcff4882e14f1dcb942287709c42691706`.
+The API, shared-contract and fabric jobs all completed successfully on Python
+3.12/3.13/3.14, including their installed-artifact checks. Changes, GoalAgent,
+MCP and database integration also completed successfully; web and legacy
+requirements jobs were skipped by path filters. At evidence capture, the
+governance job reported successful steps and conclusion with a completion
+timestamp, but its top-level status still read `in_progress`; this is not
+presented as a completed all-jobs run. PR checks provide the final-head status.
+
+This evidence update changes only this Markdown record; repaired API source,
+test/schema files and fresh artifact manifest remain the source verified at
+`4157d6d`. Requirement approval and implementation acceptance remain pending.
