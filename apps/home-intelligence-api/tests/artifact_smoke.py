@@ -100,6 +100,13 @@ def check():
         client.get("/api/devices/device-one?home_id=home-other", headers=headers).status_code == 403
     )
     require(client.get(path + "&now_ms=0", headers=headers).status_code == 400)
+    require(client.get("/api/home?home_id=INVALID", headers=headers).status_code == 400)
+    require(client.get("/api/home?home_id=INVALID").status_code == 401)
+    list_token = jwt.encode(
+        {**claims, "aud": ["other-api", "home-api"]},
+        private, algorithm="RS256", headers={"kid": "smoke"},
+    )
+    require(client.get(path, headers={"Authorization": "Bearer " + list_token}).status_code == 200)
     require(client.post("/api/devices?home_id=home-example", headers=headers).status_code == 405)
     store.put(
         context,
@@ -137,6 +144,14 @@ def check():
         }
     )
     require(all(op["get"]["security"] == [{"HTTPBearer": []}] for op in spec["paths"].values()))
+    for route, methods in spec["paths"].items():
+        require(("404" in methods["get"]["responses"]) == (route in (
+            "/api/devices", "/api/devices/{device_id}"
+        )))
+    require(any(
+        p["name"] == "device_id" and p["schema"].get("pattern") == "^[a-z][a-z0-9_-]{0,63}$"
+        for p in spec["paths"]["/api/devices/{device_id}"]["get"]["parameters"]
+    ))
     return {
         "checks": checks,
         "offline": True,

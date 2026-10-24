@@ -5,7 +5,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, FastAPI, Request
+from fastapi import Depends, FastAPI, Path, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse, Response
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -154,6 +154,9 @@ def create_app(
         if len(homes) != 1:
             raise ApiError(400, "invalid_request")
         home_id = homes[0]
+        # Scope syntax is public; validate it after identity, before grant lookup.
+        if CANONICAL_ID_PATTERN.fullmatch(home_id) is None:
+            raise ApiError(400, "invalid_request")
         # Authorize before diagnostics for device IDs, filters, time or extra fields.
         context = identity.context(home_id)
         await run_in_threadpool(service.home, context, home_id=home_id)
@@ -190,10 +193,10 @@ def create_app(
         400: {"model": Error},
         401: {"model": Error},
         403: {"model": Error},
-        404: {"model": Missing},
         500: {"model": Error},
         503: {"model": Error},
     }
+    missing_responses: dict[int | str, dict[str, object]] = {**responses, 404: {"model": Missing}}
 
     @app.get(
         "/api/home",
@@ -216,7 +219,7 @@ def create_app(
     @app.get(
         "/api/devices",
         response_model=Found[list[Device]],
-        responses=responses,
+        responses=missing_responses,
         openapi_extra=_parameters("home_id", "area_id"),
     )
     def devices(request: Request, caller: Annotated[Scope, Depends(scope)]) -> object:
@@ -255,10 +258,13 @@ def create_app(
     @app.get(
         "/api/devices/{device_id}",
         response_model=Found[DeviceDetail],
-        responses=responses,
+        responses=missing_responses,
         openapi_extra=_parameters("home_id"),
     )
-    def device(device_id: str, caller: Annotated[Scope, Depends(scope)]) -> object:
+    def device(
+        device_id: Annotated[str, Path(pattern=f"^{CANONICAL_ID_PATTERN.pattern}$")],
+        caller: Annotated[Scope, Depends(scope)],
+    ) -> object:
         context, home_id = caller.context, caller.home_id
         result = service.device(context, home_id=home_id, device_id=device_id)
         if result.status == "not_found":

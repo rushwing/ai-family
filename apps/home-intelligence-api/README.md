@@ -86,6 +86,20 @@ must agree on exactly one platform role. Other token policy claims and identity
 headers do not grant access. No token-controlled key URL is followed; there is
 no runtime JWKS fetch. Trusted public key rotation requires a new verifier/app.
 
+The configured issuer must start with `https://`; HTTP issuers, including the
+gateway's development example `http://idp/realms/ai-family`, are rejected at
+composition. There is no HTTP issuer exception in this increment. `aud` may
+be the exact configured audience string or a nonempty list of strings
+containing that audience, matching the gateway's audience behavior. Empty,
+mixed-type and nonmatching lists fail authentication.
+
+Requiring signed integer `iat` and nonempty `family_member_id` during JWT
+verification strengthens the gateway's required-claim list (`exp/sub/aud/iss`).
+Before deployment, the composition owner must configure and verify the target
+IdP's HTTPS issuer, audience and signed claim mappings, including `iat` and
+`family_member_id`. Offline fixtures establish no live IdP compatibility.
+Absent claims fail 401; no member identity or issuance time is inferred.
+
 The API constructs RequesterContext from verified subject/member/role and the
 explicit home selector; the store's exact four-part grant remains the authority.
 An admin has no implicit all-home access. Kid callers need an explicit read
@@ -110,13 +124,17 @@ Errors contain only `{"error":{"code":"..."}}`:
 | 400 | `invalid_request` (missing/duplicate/extra query fields, malformed selector or GET body) |
 | 401 | `unauthenticated` plus `WWW-Authenticate: Bearer` |
 | 403 | `forbidden` (ambiguous/unsupported role or absent exact grant) |
-| 503 | `state_unavailable` (clock regression or unavailable query configuration) |
+| 503 | `state_unavailable` (clock regression or query-service `invalid_configuration`) |
 | 500 | `internal_error` (unexpected failure, with no raw exception body) |
 
 Unknown routes return a fixed `not_found` error and unsupported methods return
 `method_not_allowed`. Authentication precedes query diagnostics; authorization
-precedes resource/filter diagnostics. Duplicate/missing home selectors fail
-400 after authentication because there is no unique scope to authorize.
+precedes device/area and extra-query diagnostics. Missing, duplicate or malformed
+home selectors fail 400 after authentication, before grant lookup. The ID syntax
+is public and reveals no resource existence. Well-formed unknown/unauthorized
+homes both fail 403. Device IDs and area filters are diagnosed only after the
+home grant check. OpenAPI includes the canonical pattern for path `device_id`;
+only device listing (unknown area filter) and device detail declare 404.
 All responses, including errors and docs, set `Cache-Control: no-store` and
 `X-Content-Type-Options: nosniff`. The app exports no cookies and trusts no
 identity override headers. GET bodies are rejected without accumulating them.
@@ -137,6 +155,11 @@ in a clean environment offline. Normal and optimized isolated Python run the
 same real JWT/HTTP smoke and must produce identical OpenAPI digests. Provenance
 records source hashes, artifact hashes, interpreter and required test results.
 CI executes Python 3.12/3.13/3.14 with dependency-sensitive path triggers.
+
+An automatic DNS/socket network guard covers the entire HTTP suite, including
+successful and rejected requests. Any attempted resolution, connection or
+datagram send fails the test even if an error handler catches the injected
+exception. Requests query the supplied local store without provider/HA I/O.
 
 No database migration or live deployment is part of this increment. Rollback
 means removing the app from composition or reverting this package version;

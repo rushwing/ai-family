@@ -6,9 +6,10 @@ from pathlib import Path
 
 import jwt
 import pytest
+from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from fixtures import claims, context, state, token
-from home_device_fabric.home_queries import HomeQueryService
+from home_device_fabric.home_queries import HomeQueryError, HomeQueryService
 from home_intelligence_api import TokenVerifier, create_app
 from home_intelligence_api.auth import AuthenticationError
 from starlette.testclient import TestClient
@@ -137,7 +138,10 @@ def test_authentication_precedes_query_validation(setup, path, authorization):
     [
         {"iss": "https://wrong.example"},
         {"aud": "other-api"},
-        {"aud": ["home-api"]},
+        {"aud": ["other-api"]},
+        {"aud": []},
+        {"aud": ["home-api", 1]},
+        {"aud": 1},
         {"exp": 1},
         {"iat": int(time.time()) + 3600},
         {"nbf": int(time.time()) + 3600},
@@ -164,6 +168,28 @@ def test_missing_required_claim(setup, signing_key, missing):
     del payload[missing]
     encoded = jwt.encode(payload, signing_key, algorithm="RS256", headers={"kid": "test-key"})
     error(get(setup, headers={"Authorization": "Bearer " + encoded}), 401, "unauthenticated")
+
+
+@pytest.mark.tc035_02
+@pytest.mark.parametrize("audience", ["home-api", ["home-api"], ["other-api", "home-api"]])
+def test_gateway_compatible_audience_shapes(setup, signing_key, audience):
+    response = get(setup, headers={"Authorization": "Bearer " + token(signing_key, aud=audience)})
+    assert response.status_code == 200
+
+
+@pytest.mark.tc035_02
+@pytest.mark.parametrize("path", PATHS)
+@pytest.mark.parametrize("home", ["", "INVALID", "../private-value", "h" * 65])
+def test_home_syntax_after_authentication_before_grant_lookup(setup, monkeypatch, path, home):
+    def must_not_lookup(*args, **kwargs):
+        pytest.fail("malformed scope reached grant lookup")
+
+    monkeypatch.setattr(HomeQueryService, "home", must_not_lookup)
+    query = "home_id=" + home
+    error(get(setup, path, query, headers={}), 401, "unauthenticated")
+    response = get(setup, path, query)
+    error(response, 400, "invalid_request")
+    assert "private-value" not in response.text
 
 
 @pytest.mark.tc035_02
@@ -408,6 +434,15 @@ def test_unexpected_exception_is_fixed_and_redacted(setup, monkeypatch):
 
 
 @pytest.mark.tc035_03
+def test_unavailable_query_configuration_is_fixed_503(setup, monkeypatch):
+    def broken(*args, **kwargs):
+        raise HomeQueryError("invalid_configuration")
+
+    monkeypatch.setattr(HomeQueryService, "home", broken)
+    error(get(setup), 503, "state_unavailable")
+
+
+@pytest.mark.tc035_03
 def test_verifier_failure_does_not_retain_token_chain(setup):
     with pytest.raises(AuthenticationError) as caught:
         setup["verifier"].verify("private-token")
@@ -432,7 +467,12 @@ def test_openapi_matches_exact_routes_and_documents_security(setup):
         parameters = {p["name"]: p for p in op["parameters"]}
         assert parameters["home_id"]["required"] is True
         assert "now_ms" not in parameters
-        assert set(op["responses"]) >= {"200", "400", "401", "403", "404", "500", "503"}
+        assert set(op["responses"]) >= {"200", "400", "401", "403", "500", "503"}
+        assert ("404" in op["responses"]) == (path in (
+            "/api/devices", "/api/devices/{device_id}"
+        ))
+        if path == "/api/devices/{device_id}":
+            assert parameters["device_id"]["schema"]["pattern"] == "^[a-z][a-z0-9_-]{0,63}$"
     assert "Fictional" not in json.dumps(spec)
     assert "StateView" in spec["components"]["schemas"]
     assert "freshness" in spec["components"]["schemas"]["StateView"]["properties"]
@@ -464,3 +504,13 @@ def test_explicit_composition_required(setup):
     # App instances do not share a process-global identity/grant registry.
     other = create_app(service=setup["service"], verifier=setup["verifier"])
     assert TestClient(other).get("/api/home?home_id=home-example").status_code == 401
+
+
+@pytest.mark.tc035_04
+@pytest.mark.parametrize("issuer", ["http://idp/realms/ai-family", "idp.example/realm"])
+def test_https_only_issuer_configuration(signing_key, issuer):
+    public = signing_key.public_key().public_bytes(
+        serialization.Encoding.PEM, serialization.PublicFormat.SubjectPublicKeyInfo
+    )
+    with pytest.raises(ValueError, match="invalid_auth_configuration"):
+        TokenVerifier(issuer=issuer, audience="home-api", public_keys={"test-key": public})

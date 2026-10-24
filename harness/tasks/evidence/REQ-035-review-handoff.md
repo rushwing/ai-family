@@ -35,9 +35,8 @@ A 2026-10-24 comparison against that manifest found three changed inputs:
 `apps/home-intelligence-api/src/home_intelligence_api/app.py`, and
 `apps/home-intelligence-api/tests/test_queries.py`.
 The historical installed-artifact results therefore do **not** verify the
-current delivery. Full current-source runtime and artifact verification remains
-an implementation-review obligation; Linux 3.13/3.14 and live HA behavior are
-not established by the historical local results.
+current delivery. Linux 3.13/3.14 and live HA behavior are not established by
+these historical local results. Subsequent head-specific CI is recorded below.
 
 ## Current handoff checks
 
@@ -57,6 +56,75 @@ timeout 60s /tmp/req035-env/bin/python -m pytest \
 
 Starlette emitted one TestClient/httpx deprecation warning. No test was skipped.
 The planning regression suite also passes: 21 tests and eight subtests. Secret
-scan and staged whitespace checks pass. Current installed-artifact verification
-and CI outcomes remain pending; the fresh source run does not update historical
-artifact hashes or establish requirement acceptance.
+scan and staged whitespace checks pass. That source run does not update
+historical artifact hashes or establish requirement acceptance.
+
+## Verified CI for the reviewed head
+
+GitHub confirms [CI run 40054546508](https://github.com/rushwing/ai-family/actions/runs/40054546508)
+targets `2ac9ab5e92faa846d23097fadac01e0a2a360080`, the head assessed by the
+human-supplied pre-review. All 14 applicable jobs succeeded; web and legacy
+requirements jobs were skipped by change detection. The three API matrix jobs
+(Python 3.12/3.13/3.14) include Ruff, mypy, required source tests, and direct /
+sdist-derived installed artifact smokes. Thus API artifact/matrix checks for
+**that head** are complete; the earlier pending claim is superseded.
+That head's CI is distinct from historical dirty-base provenance and does not
+certify subsequent repair sources. `347912d` belongs to the preceding REQ-034
+delivery and is not REQ-035 CI provenance.
+
+## Human-supplied pre-review and authorized repairs
+
+On 2026-10-24 human-001 supplied the local report on `2ac9ab5e` and instructed
+“Fix all findings”. The report explicitly supplies no independent
+T03/T07/T10/T13 signature; its Termux/Python 3.14 environment could not install
+FastAPI or rerun Ruff/mypy. Its runtime assessment relied on Linux CI. These
+repairs retain `req_review` / `evaluator-001`, four unchecked ACs, implemented
+TCs, proposed ADR-017 and draft PR #71. This author acts only on the explicitly
+authorized repairs, not as the independent evaluator.
+
+| Finding | Disposition and verification |
+| --- | --- |
+| F1 | Choose public home syntax validation after authentication and before grant lookup: malformed home → 400; unknown/unauthorized well-formed home → 403. Twenty regressions cover four malformed values across five routes, checking 401 without identity and 400 without any grant lookup. Existing unauthorized device/filter tests preserve 403 ordering. |
+| F2 | Remove strict scalar-only audience matching. Accept the configured string or a nonempty string list containing it, consistent with gateway decoding. Test scalar, singleton and multiple audiences; reject empty, mixed-type, non-string and nonmatching audiences. Document in REQ/ADR/README. |
+| F3 | Retain HTTPS-only issuer configuration without an HTTP development/internal exception. Document the difference from the gateway example; regressions reject HTTP and missing-scheme issuers using a valid RSA public key. |
+| F4 | Document mandatory signed integer `iat` and nonempty `family_member_id` as stronger JWT verification requirements. Existing missing/type/empty-claim tests exercise fail-closed behavior. The trusted composition owner must configure and verify the target IdP mappings before deployment; offline tests do not confirm a live IdP. |
+| F5 | Add the anchored canonical ID pattern to path `device_id` via FastAPI Path; preserve 400 and authentication/authorization ordering. Assert its exact OpenAPI pattern and regenerate the checked-in schema. |
+| F6 | Declare 404 only for device listing and device detail. Assert its presence/absence per route, with no automatic 422. Installed smokes verify the same schema. |
+| F7 | Replace the vacuous provider-call clause in AC2 with absence of request-time provider/HA network I/O. An automatic fixture denies DNS, connection and datagram socket operations throughout every HTTP test and fails teardown even if a handler catches the injected error. This covers accepted and rejected requests, not just one denial case. |
+| F8 | Record the actual reviewed head's successful matrix/artifact CI above, separate from old dirty-base evidence; update the PR body to the repaired source and actual CI run. Repair-head CI is recorded separately once available. |
+| F9 | Explicitly retain query-service `invalid_configuration` → 503 `state_unavailable` in REQ/README. A regression injects that error and asserts fixed body/no-store/nosniff; unexpected errors remain 500. |
+
+Installed smokes additionally exercise malformed-home authentication ordering,
+array audience compatibility, route-specific 404 and the anchored path pattern
+in normal/optimized Python. All runtime/schema/TC changes remain provisional
+supporting artifacts pending external requirement and later implementation
+acceptance.
+
+## Repair source verification
+
+On 2026-10-24 / Linux aarch64 / CPython 3.12.12, the repaired source passes
+**186 API cases, zero failures/errors/skips**, with the automatic network guard
+active (4.81 seconds). One existing Starlette TestClient/httpx deprecation
+warning remains. Ruff and strict mypy pass; `bash scripts/check.sh` passes
+including all 21 planning regressions, as do public-data and legacy requirement
+checks. Whitespace checks pass.
+
+The current-source artifact builder completed successfully:
+
+```sh
+/tmp/req035-env/bin/python apps/home-intelligence-api/tests/build_artifacts.py \
+  --out-dir /tmp/req035-review-fixes-artifacts \
+  --test-results /tmp/req035-review-api.xml
+```
+
+[Repair artifact provenance](REQ-035-review-fixes-artifact-provenance.json)
+records the dirty base `2ac9ab5e`, hashes for the actual repaired source,
+186-case JUnit digest and built artifact/dependency hashes. All source hashes
+were compared with the delivery before committing: zero mismatches.
+Direct and sdist-derived triplets each pass **34 checks** under normal and
+optimized isolated Python, all with generated OpenAPI SHA-256
+`db213eaedc0ec8c42da2c97ecce8561ec8faf9866f5823e0dad4b81058811979`.
+Dependencies are downloaded once; installation and smoke runs are offline.
+The dirty base is not presented as a tested clean commit; repair-head CI is
+recorded separately. No live IdP, private HA, Windows, Termux or deployment
+certification is implied.

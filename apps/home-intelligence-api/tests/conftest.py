@@ -1,5 +1,7 @@
 """Required imports fail at collection; no environment-gated acceptance skips."""
 
+import socket
+
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -8,6 +10,25 @@ from home_device_fabric.home_queries import HomeQueryService
 from home_device_fabric.state_store import CurrentStateStore
 from home_intelligence_api import TokenVerifier, create_app
 from starlette.testclient import TestClient
+
+
+@pytest.fixture(autouse=True)
+def forbid_request_network(monkeypatch):
+    """Every request, including handled errors, must avoid DNS and network I/O."""
+    attempts = []
+
+    def forbidden(*args, **kwargs):
+        attempts.append(True)
+        raise AssertionError("request_network_io_forbidden")
+
+    for name in ("connect", "connect_ex", "sendto", "sendmsg"):
+        if hasattr(socket.socket, name):
+            monkeypatch.setattr(socket.socket, name, forbidden)
+    monkeypatch.setattr(socket, "create_connection", forbidden)
+    monkeypatch.setattr(socket, "getaddrinfo", forbidden)
+    yield
+    # A handler may swallow the injected exception; still fail the test.
+    assert not attempts, "request attempted DNS or socket network I/O"
 
 
 @pytest.fixture(scope="session")

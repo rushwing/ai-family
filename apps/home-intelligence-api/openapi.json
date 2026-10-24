@@ -790,16 +790,6 @@
             },
             "description": "Forbidden"
           },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Missing"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
           "500": {
             "content": {
               "application/json": {
@@ -961,6 +951,7 @@
             "name": "device_id",
             "required": true,
             "schema": {
+              "pattern": "^[a-z][a-z0-9_-]{0,63}$",
               "title": "Device Id",
               "type": "string"
             }
@@ -1120,16 +1111,6 @@
             },
             "description": "Forbidden"
           },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Missing"
-                }
-              }
-            },
-            "description": "Not Found"
-          },
           "500": {
             "content": {
               "application/json": {
@@ -1223,16 +1204,6 @@
               }
             },
             "description": "Forbidden"
-          },
-          "404": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Missing"
-                }
-              }
-            },
-            "description": "Not Found"
           },
           "500": {
             "content": {

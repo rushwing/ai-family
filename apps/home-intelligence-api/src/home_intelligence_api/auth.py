@@ -126,7 +126,6 @@ class TokenVerifier:
                 audience=self._audience,
                 options={
                     "require": ["exp", "iat", "sub", "aud", "iss", "family_member_id"],
-                    "strict_aud": True,
                 },
             )
             if any(type(claims[k]) is not int for k in ("iat", "exp")):
