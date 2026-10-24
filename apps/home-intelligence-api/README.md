@@ -1,10 +1,13 @@
 # Canonical Home Query API
 
 REQ-035 / HI-S028 supplies an explicitly composed FastAPI app over the accepted
-canonical query service. This is an offline-verified HTTP increment awaiting
-external combined review. It is not a deployed/live home integration.
+canonical query service. Human-001 accepted this offline-verified HTTP delivery
+through the explicit PR #71 merge instruction. See the
+[closeout record](../../harness/tasks/evidence/REQ-035-review-acceptance.md)
+for merge identity, verification and limits. Live composition and deployment
+remain separate work.
 
-## Version-1 route proposal
+## Version-1 route contract
 
 All protected routes require `Authorization: Bearer <access-token>` and exactly
 one canonical `home_id` query parameter. IDs use `^[a-z][a-z0-9_-]{0,63}$`.

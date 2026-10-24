@@ -77,7 +77,7 @@ PostgreSQL / Audit                  Home & Service MCP
 - `GET /api/events`：SSE 或等价事件流；
 - `GET /api/ontology`：授权后的家庭关系视图。
 
-HI-S028 / REQ-035 proposes canonical read projections at the existing snapshot
+Human-accepted HI-S028 / REQ-035 (PR #71) delivers canonical read projections at the existing snapshot
 and device paths, plus prefixed Home/Area/Device lists. See
 [ADR-017](../../adr/ADR-017-home-query-http.md) (proposed) and
 [query API contract](../../../apps/home-intelligence-api/README.md), with generated

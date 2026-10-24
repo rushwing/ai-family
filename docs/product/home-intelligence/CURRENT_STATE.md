@@ -1,6 +1,6 @@
 # Current State and Next Coding Session
 
-The original runtime inventory below was inspected at `c595649` on 2026-10-07. Delivery records now include human-accepted REQ-034 / HI-S018 scoped canonical queries, merged in PR #69 on 2026-10-23. Read source-specific verification and current engineering state from Harness. Offline checks do not certify live services or physical devices.
+The original runtime inventory below was inspected at `c595649` on 2026-10-07. Delivery records now include human-accepted REQ-035 / HI-S028 authenticated canonical HTTP queries, merged in PR #71 on 2026-10-24. Read source-specific verification and current engineering state from Harness. Offline checks do not certify live services or physical devices.
 
 ## Already Implemented
 
@@ -19,11 +19,11 @@ The original runtime inventory below was inspected at `c595649` on 2026-10-07. D
 
 ## Not Implemented in the Inspected Runtime
 
-The original `c595649` inspection found no HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, production Home capability executor, three-device Mock Home CLI or Home API. Subsequent PR #40 delivers the packaged three-device offline CLI; PR #49 subsequently delivers bounded authenticated read-only REST runtime metadata; PR #51 delivers bounded authenticated WebSocket lifecycle. PR #56 subsequently delivers bounded subscriptions, PR #57 explicit event normalization, PR #59 scoped in-memory canonical snapshot storage, and PR #61 atomic normalized-event application with explicit epoch fencing. PR #63 delivers bounded read-only registry/state discovery. PR #65 delivers explicit canonical registry mapping. PR #67 delivers deterministic capability inference. PR #69 delivers authorized canonical query services. Reconnect reconciliation, capability execution and Home API remain integration gaps. Architectural descriptions and frontend fixture objects are not these implementations.
+The original `c595649` inspection found no HA REST/WebSocket home adapter, HA registry mapper, scoped Home State Store, production Home capability executor, three-device Mock Home CLI or Home API. Subsequent PR #40 delivers the packaged three-device offline CLI; PR #49 subsequently delivers bounded authenticated read-only REST runtime metadata; PR #51 delivers bounded authenticated WebSocket lifecycle. PR #56 subsequently delivers bounded subscriptions, PR #57 explicit event normalization, PR #59 scoped in-memory canonical snapshot storage, and PR #61 atomic normalized-event application with explicit epoch fencing. PR #63 delivers bounded read-only registry/state discovery. PR #65 delivers explicit canonical registry mapping. PR #67 delivers deterministic capability inference. PR #69 delivers authorized canonical query services. PR #71 delivers authenticated canonical HTTP queries. Reconnect reconciliation, live ingestion/composition, capability execution and action APIs remain integration gaps. Architectural descriptions and frontend fixture objects are not these implementations.
 
 ## Active Feature
 
-R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base and HI-S012 initial-catalogue deliveries; its Feature remains planned until product refinement/execution is explicitly advanced. HI-F006 now has accepted scoped snapshot storage HI-S016, monotonic event application HI-S017 and scoped query services HI-S018 through archived REQ-029/030/034; Feature acceptance retains its separate gate. HI-F005 has accepted discovery HI-S013, explicit canonical mapping HI-S014 and deterministic capability inference HI-S015; Feature acceptance retains its separate gate. Child delivery acceptance alone does not complete a Feature.
+R1 is active. HI-F003 contracts HI-S008/009/010 are accepted through archived REQ-013/014/015. HI-F004 has accepted HI-S011 Capability base and HI-S012 initial-catalogue deliveries; its Feature remains planned until product refinement/execution is explicitly advanced. HI-F006 now has accepted scoped snapshot storage HI-S016, monotonic event application HI-S017 and scoped query services HI-S018 through archived REQ-029/030/034; Feature acceptance retains its separate gate. HI-F005 has accepted discovery HI-S013, explicit canonical mapping HI-S014 and deterministic capability inference HI-S015; Feature acceptance retains its separate gate. HI-F010 now has accepted query API HI-S028 through archived REQ-035; action API and Feature acceptance retain separate gates. Child delivery acceptance alone does not complete a Feature.
 
 ## Dependency-ready Candidates
 
@@ -35,7 +35,7 @@ Read admitted engineering blockers from Harness; no unadmitted candidate is mark
 
 ## Decisions Required
 
-No unresolved decision prevents the first domain/configuration contract stories. Before action execution, reconcile gateway registry extension, durable confirmation/audit ownership and real executor integration with existing REQ-003/004. Before publishing API contracts, freeze route compatibility against the existing API/BFF draft. Before dispatch integration, reconcile ADR-006 frontmatter through its established review process; do not silently select another broker.
+No unresolved decision prevents the first domain/configuration contract stories. Before action execution, reconcile gateway registry extension, durable confirmation/audit ownership and real executor integration with existing REQ-003/004. REQ-035 delivers the query route/schema contract; future action/event API contracts must reconcile compatibility against the existing API/BFF draft. Before dispatch integration, reconcile ADR-006 frontmatter through its established review process; do not silently select another broker.
 
 ## Domain Contract Delivery
 
@@ -67,7 +67,7 @@ HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/d
 
 ## Delivery Order
 
-Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / delivered WebSocket lifecycle HI-S003 (archived REQ-024) → delivered subscriptions HI-S005 (archived REQ-027) → delivered normalization HI-S006 (archived REQ-028). Scoped snapshot storage HI-S016 and monotonic event application HI-S017 are delivered through archived REQ-029/030. Discovery HI-S013 is delivered through archived REQ-031. Canonical mapping HI-S014 is delivered through archived REQ-032. Capability inference HI-S015 is delivered through archived REQ-033. Scoped query services HI-S018 are delivered through archived REQ-034. Reconnect HI-S007 remains a separate integration increment. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 can ship first. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / delivered WebSocket lifecycle HI-S003 (archived REQ-024) → delivered subscriptions HI-S005 (archived REQ-027) → delivered normalization HI-S006 (archived REQ-028). Scoped snapshot storage HI-S016 and monotonic event application HI-S017 are delivered through archived REQ-029/030. Discovery HI-S013 is delivered through archived REQ-031. Canonical mapping HI-S014 is delivered through archived REQ-032. Capability inference HI-S015 is delivered through archived REQ-033. Scoped query services HI-S018 are delivered through archived REQ-034. Reconnect HI-S007 remains a separate integration increment. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 is delivered through archived REQ-035 / PR #71; live composition and frontend wiring remain separate. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
 
 
 ## Home Assistant WebSocket Lifecycle Delivery
@@ -167,24 +167,27 @@ Public results validate bounded JSON; provider mappings are not exposed.
 [Closeout evidence](../../../harness/tasks/evidence/REQ-034-review-acceptance.md)
 records O1–O3 dispositions, final CI and source-specific verification limits.
 RequesterContext remains a trusted composition input, not authentication.
-HI-S028 authenticated HTTP query routes are admitted through REQ-035 below;
+HI-S028 authenticated HTTP query routes are delivered through archived REQ-035 below;
 HI-S007 reconnect reconciliation remains a candidate requiring explicit
 admission. Dynamic inventory, durable
 policy, device writes, live HA/device certification, BUG-033 and Feature/Stage
 completion retain separate gates. Read engineering state from Harness.
 
 
-## Authenticated HTTP query increment in progress
+## Authenticated Canonical HTTP Query Delivery
 
-[HI-S028](requirements/stories/HI-S028.md) is admitted through
-[REQ-035](../../../harness/tasks/features/REQ-035.md) under human-001's
-2026-10-23 “Proceed with HI-S028” instruction and the 2026-10-24 instruction to
-complete implementation and stop at `req_impl` for external review. The generator delivery implements
-an explicitly composed FastAPI app in `apps/home-intelligence-api`, verified
-JWT identity, exact accepted store grants and canonical read-only projections.
-Read status, scope and verification from the REQ. Proposed ADR-017 records
-route compatibility. External review, live HA bootstrap, frontend wiring,
-deployment and Feature/R1 acceptance remain separate gates. The
-[implementation evidence](../../../harness/tasks/evidence/REQ-035-runtime-implementation.md)
-maps the delivery and verified source/artifacts to AC1–AC4. The earlier
-requirement-review-only handoff is superseded; acceptance remains pending.
+[HI-S028](requirements/stories/HI-S028.md) is delivered through human-accepted
+[REQ-035](../../../harness/tasks/archive/done/features/REQ-035.md), merged in
+[PR #71](https://github.com/rushwing/ai-family/pull/71) as `b7e4e9e` on 2026-10-24.
+The packaged FastAPI app exposes five authenticated canonical query routes
+with pinned RS256 identity, exact caller/home grants, explicit state freshness
+and missing semantics, fixed errors and no-store/nosniff headers.
+[Closeout evidence](../../../harness/tasks/evidence/REQ-035-review-acceptance.md)
+records human acceptance, F1–F9/G1–G4 dispositions, final-head CI and
+source-specific verification limits: 187 API cases and four 36-check installed
+smokes, with no skipped acceptance cases. Historical local reports remain
+non-signing. Read current engineering state from the sole archived REQ.
+ADR-017 remains proposed under its separate decision gate. Live IdP/HA bootstrap,
+reconnect reconciliation, dynamic inventory/policy, device writes, durable
+services, frontend wiring, deployment, BUG-033 and Feature/R1 acceptance remain
+separate work. This closeout admits no next implementation.

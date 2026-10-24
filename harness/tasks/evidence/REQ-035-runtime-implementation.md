@@ -10,7 +10,7 @@ On 2026-10-24 human-001 instructed “Continue to implement, stop after req_impl
 and wawit for exiternal review.” This supersedes the earlier requirement-only
 handoff and authorizes generator-001 to complete the corrected specification's
 combined proposed TC text, TC code and runtime delivery. The sole
-[REQ-035](../features/REQ-035.md) records `req_impl` / `generator-001`.
+[REQ-035](../archive/done/features/REQ-035.md) records `req_impl` / `generator-001`.
 
 The authenticated query runtime already delivered and corrected in PR #71
 fully supplies the admitted implementation scope. This increment verifies that
