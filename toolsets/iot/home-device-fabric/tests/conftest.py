@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-reconciliation-runtime", action="store_true", default=False)
     parser.addoption("--require-home-queries-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-capabilities-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-mapping-runtime", action="store_true", default=False)
@@ -85,6 +86,18 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-reconciliation-runtime"):
+        try:
+            from home_device_fabric.reconciliation import ReconnectReconciler
+            from home_device_fabric.state_store import CurrentStateStore
+            if not all(callable(getattr(cls, method, None)) for cls, method in (
+                (ReconnectReconciler, "reconcile"), (CurrentStateStore, "reconcile_home"),
+                (CurrentStateStore, "mark_home_stale"),
+            )):
+                raise ImportError
+        except Exception:
+            raise pytest.UsageError(
+                "REQ-036 reconciliation runtime required but absent or broken") from None
     for item in items:
         groups = sorted({mark.name for mark in item.iter_markers()
                          if mark.name.startswith("tc") and "_" in mark.name})
@@ -296,6 +309,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-mapping-runtime")
         or session.config.getoption("--require-ha-capabilities-runtime")
         or session.config.getoption("--require-home-queries-runtime")
+        or session.config.getoption("--require-reconciliation-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

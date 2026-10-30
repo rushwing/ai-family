@@ -398,7 +398,7 @@ def test_ci_requires_complete_fabric_acceptance():
                  "--require-ha-normalization-runtime", "--require-state-store-runtime",
                  "--require-state-events-runtime", "--require-ha-discovery-runtime",
                  "--require-ha-mapping-runtime", "--require-ha-capabilities-runtime",
-                 "--require-home-queries-runtime"):
+                 "--require-home-queries-runtime", "--require-reconciliation-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -819,3 +819,42 @@ def test_queries_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimized
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout) == {"checks": 22, "offline": True}
+
+
+@pytest.mark.parametrize("mode,expected", [
+    ("absent", 4), ("broken", 4), ("methods_missing", 4), ("store_missing", 4),
+    ("skip", 1), ("ready", 0),
+])
+def test_reconciliation_required_gate(tmp_path, monkeypatch, mode, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False))
+    package = tmp_path / "runtime/home_device_fabric"
+    if mode != "absent":
+        (package / "reconciliation.py").write_text(
+            "raise AttributeError('private import details')\n" if mode == "broken" else
+            "class ReconnectReconciler:\n    def reconcile(self): pass\n")
+        (package / "state_store.py").write_text(
+            "class CurrentStateStore: pass\n" if mode == "store_missing" else
+            "class CurrentStateStore:\n    def reconcile_home(self): pass\n"
+            "    def mark_home_stale(self): pass\n")
+    if mode == "methods_missing":
+        (package / "reconciliation.py").write_text("class ReconnectReconciler: pass\n")
+    (tmp_path / "test_probe.py").write_text(
+        "import pytest\n" + ("@pytest.mark.skip(reason='required skip')\n" if mode == "skip"
+                             else "") + "def test_probe(): pass\n")
+    result = run_probe([sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q",
+                        "--confcutdir", str(tmp_path), "--require-reconciliation-runtime"],
+                       tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("optimized", [False, True])
+def test_reconciliation_smoke_in_isolated_python(tmp_path, monkeypatch, optimized):
+    command = [sys.executable, "-I"]
+    if optimized:
+        command.append("-O")
+    command.append(str(Path(__file__).with_name("reconciliation_artifact_smoke.py")))
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout) == {"checks": 13, "offline": True}
