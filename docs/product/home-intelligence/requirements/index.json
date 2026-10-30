@@ -622,15 +622,8 @@
       "title": "Reconcile current state after reconnect",
       "parent": "HI-F002",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S007.md",
-      "depends_on": [
-        "HI-S002",
-        "HI-S006",
-        "HI-S014",
-        "HI-S017"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-036",
       "legacy_refs": [
         "ZW-ST-0302",
         "ZW-ST-0304"
