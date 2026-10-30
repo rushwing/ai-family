@@ -6,7 +6,7 @@ Full snapshot CAS is distinct from normalized-event application (REQ-030).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from threading import Lock
 from typing import Literal, NoReturn, cast
 
@@ -103,7 +103,7 @@ class _Stored:
 class CurrentStateStore:
     """Thread-safe in-memory snapshots; explicit grants on every operation."""
 
-    __slots__ = ("_inventories", "_grants", "_rows", "_rebuilt", "_epochs", "_lock")
+    __slots__ = ("_inventories", "_grants", "_rows", "_rebuilt", "_epochs", "_stale", "_lock")
 
     def __init__(self, *, inventories: object, grants: object) -> None:
         if type(inventories) is not list or type(grants) is not list:
@@ -161,6 +161,7 @@ class CurrentStateStore:
         self._grants = permissions
         self._rebuilt: set[str] = set()
         self._epochs: dict[str, int] = {}
+        self._stale: set[str] = set()
         self._lock = Lock()
 
     def __repr__(self) -> str:
@@ -197,7 +198,17 @@ class CurrentStateStore:
             row = self._rows.get((home, device))
             if row is None:
                 return StateNotFound(home, device)
-            return row.view(now, age)
+            return self._view(home, row, now, age)
+
+    def _view(self, home: str, row: _Stored, now: int, age: int) -> StateView:
+        view = row.view(now, age)
+        return replace(view, freshness="stale") if home in self._stale else view
+
+    def mark_home_stale(self, context: object, *, home_id: object) -> None:
+        """Explicit invalidation survives live writes and TTL; reconciliation clears it."""
+        home = self._authorize(context, home_id, write=True)
+        with self._lock:
+            self._stale.add(home)
 
     def inventory(self, context: object, *, home_id: object) -> Inventory:
         """Authorized immutable canonical inventory; fixed for this store's lifetime."""
@@ -212,7 +223,7 @@ class CurrentStateStore:
         now, age = _integer(now_ms, "now_ms"), _integer(max_age_ms, "max_age_ms")
         with self._lock:
             return tuple(
-                self._rows[home, device.id].view(now, age)
+                self._view(home, self._rows[home, device.id], now, age)
                 for device in sorted(self._inventories[home].devices, key=lambda item: item.id)
             )
 
@@ -245,7 +256,7 @@ class CurrentStateStore:
                 raise StateStoreError("identity_mismatch", ("state",))
             updated = _Stored(candidate, row.revision + 1, now)
             self._rows[home, device] = updated
-            return updated.view(now, 0)
+            return self._view(home, updated, now, 0)
 
     def rebuild(
         self,
@@ -281,7 +292,85 @@ class CurrentStateStore:
             }
             self._rows.update(updates)
             self._rebuilt.add(home)
-            return tuple(row.view(now, 0) for row in updates.values())
+            return tuple(self._view(home, row, now, 0) for row in updates.values())
+
+    def _epoch_floor(self, home: str) -> int:
+        orders: list[Ordering | None] = []
+        for (row_home, _), row in self._rows.items():
+            if row_home == home:
+                orders.extend(report.ordering for _, report in row.state.reported_state)
+                orders.append(row.state.availability.ordering)
+                if row.state.desired_state is not None:
+                    orders.append(row.state.desired_state.report_baseline)
+        return max(self._epochs.get(home, 0),
+                   max((order.epoch for order in orders if order is not None), default=0))
+
+    def reconcile_home(
+        self, context: object, *, home_id: object, epoch: object,
+        baseline_states: object, buffered_events: object, now_ms: object,
+    ) -> int:
+        """Validate and build privately, then publish one complete home atomically.
+
+        The composition owner must hold its write barrier across snapshot acquisition
+        and this call. Store locking alone cannot protect a pre-attempt read.
+        """
+        home = self._authorize(context, home_id, write=True)
+        generation, now = _integer(epoch, "epoch"), _integer(now_ms, "now_ms")
+        collection = None
+        events: list[DeviceState] = []
+        try:
+            collection = StateCollection.from_dict(
+                baseline_states, inventory=self._inventories[home].to_dict())
+            if type(buffered_events) is list:
+                events = [DeviceState.from_dict(value) for value in buffered_events]
+        except StateError:
+            collection = None
+        if collection is None or type(buffered_events) is not list:
+            raise StateStoreError("invalid_state", ("reconciliation",)) from None
+        candidates = {state.device_id: state for state in collection.states}
+        expected = {device.id for device in self._inventories[home].devices}
+        if set(candidates) != expected:
+            raise StateStoreError("incomplete_snapshot", ("baseline_states",))
+        for state in collection.states:
+            orders = [report.ordering for _, report in state.reported_state]
+            orders.append(state.availability.ordering)
+            if any(order is not None and (order.epoch != generation or order.sequence != 0)
+                   for order in orders):
+                raise StateStoreError("invalid_state", ("baseline_states",))
+        for state in events:
+            orders = [report.ordering for _, report in state.reported_state]
+            orders.append(state.availability.ordering)
+            if (state.home_id != home or state.device_id not in expected
+                    or state.desired_state is not None
+                    or any(order is None or order.epoch != generation or order.sequence <= 0
+                           for order in orders)):
+                raise StateStoreError("invalid_event", ("buffered_events",))
+        with self._lock:
+            if generation <= self._epoch_floor(home):
+                raise StateStoreError("epoch_regression", ("epoch",))
+            for device in expected:
+                row = self._rows[home, device]
+                row.view(now, 0)
+                candidates[device] = replace(
+                    candidates[device], desired_state=row.state.desired_state)
+            valid = True
+            try:
+                for event in events:
+                    candidates[event.device_id] = DeviceState.from_dict(apply_state_update(
+                        candidates[event.device_id].to_dict(), current_epoch=generation,
+                        reported_state={key: value.to_dict()
+                                        for key, value in event.reported_state},
+                        availability=event.availability.to_dict()))
+            except StateError:
+                valid = False
+            if not valid:
+                raise StateStoreError("invalid_event", ("buffered_events",)) from None
+            updates = {(home, device): _Stored(state, self._rows[home, device].revision + 1, now)
+                       for device, state in candidates.items()}
+            self._rows.update(updates)
+            self._epochs[home] = generation
+            self._stale.discard(home)
+            return generation
 
     def advance_epoch(self, context: object, *, home_id: object, epoch: object) -> int:
         """Pin a caller-established home generation without refreshing snapshots."""
@@ -291,19 +380,7 @@ class CurrentStateStore:
             # The bounded process-local store scans all rows and this home's
             # member orders under the publication lock. Computing the floor
             # from current snapshots also covers trusted put/rebuild changes.
-            orders: list[Ordering | None] = []
-            for (row_home, _), row in self._rows.items():
-                if row_home != home:
-                    continue
-                orders.extend(report.ordering for _, report in row.state.reported_state)
-                orders.append(row.state.availability.ordering)
-                if row.state.desired_state is not None:
-                    orders.append(row.state.desired_state.report_baseline)
-            floor = max(
-                (order.epoch for order in orders if order is not None),
-                default=0,
-            )
-            if generation < max(floor, self._epochs.get(home, 0)):
+            if generation < self._epoch_floor(home):
                 raise StateStoreError("epoch_regression", ("epoch",))
             self._epochs[home] = generation
             return generation
@@ -325,7 +402,7 @@ class CurrentStateStore:
             row = self._rows.get((home, device))
             if row is None:
                 return StateNotFound(home, device)
-            view = row.view(now, 0)
+            view = self._view(home, row, now, 0)
             epoch = self._epochs.get(home)
             if epoch is None:
                 raise StateStoreError("epoch_uninitialized", ("epoch",))
@@ -367,4 +444,4 @@ class CurrentStateStore:
                 return view
             updated = _Stored(state, row.revision + 1, now)
             self._rows[home, device] = updated
-            return updated.view(now, 0)
+            return self._view(home, updated, now, 0)
