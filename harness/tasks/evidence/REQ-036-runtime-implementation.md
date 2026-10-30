@@ -67,3 +67,16 @@ runtime or test bytes. Final remote CI on Python 3.12/3.13/3.14 is separate
 validation; local results certify Python 3.12 only. TC design/review, independent
 implementation approval, implementation merge and Feature/Stage acceptance
 remain pending.
+
+## Remote CI verification
+
+[GitHub Actions run 41042122098](https://github.com/rushwing/ai-family/actions/runs/41042122098)
+completed successfully for PR head
+`0a7b8a20664cd316f49468cdb3cf2e5d1eb8770b` on 2026-10-30. All fourteen
+executed jobs passed, including the fabric, canonical schema and Home
+Intelligence API matrices on Python 3.12, 3.13 and 3.14, governance gates,
+REQ-002 integration, goal agent and MCP toolsets. The web and requirements
+jobs were skipped by workflow path selection; they are not claimed as executed.
+The tested head contains the unchanged implementation and test bytes from
+the source-specific local verification above. This records CI success only;
+independent TC design/review and implementation approval remain pending.
