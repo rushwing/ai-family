@@ -17,9 +17,29 @@ The report explicitly disclaims independent T03/T07/T10/T13 approval.
 
 ## Verification
 
-Pending final source-specific test and artifact results. Initial provenance in
-REQ-036-artifact-provenance.json remains historical and unchanged; it certifies
-449aa337, not the fixes. Updated evidence will be recorded separately.
+Verified clean source `07796cc325b22f761f200eefdcfb6b623921135a` on
+2026-11-09, Linux aarch64 / CPython 3.12.12. The full fabric suite passed
+**1,960 tests, zero failures/errors/skips**, with all sixteen required-runtime
+flags. Ruff passed the full fabric package and strict mypy passed all twenty
+runtime modules. Governance, planning/local links and CI wiring checks passed.
+
+[Updated artifact provenance](REQ-036-review-fixes-provenance.json) records
+`source_dirty: false`, the source commit, JUnit digest, runtime hashes,
+direct/sdist-derived wheel hashes and official dependency digests. Fresh offline
+installs of both package pairs passed every smoke family. Reconciliation passed
+18 explicit checks in each of four runs (direct/derived, normal/optimized).
+JUnit per-TC mappings are recorded, including all four tc036 groups; these are
+generator execution mappings and do not approve the draft TC criteria.
+
+[Mutation evidence](REQ-036-review-fixes-mutations.json) records six killed
+mutations. Its runtime and test hashes match this committed source. Initial
+provenance in REQ-036-artifact-provenance.json remains historical and unchanged;
+it certifies 449aa337, not these fixes.
+
+The first artifact build was blocked while downloading dependencies in the
+network-restricted sandbox. The authorized fresh build completed outside that
+sandbox; no verification checks were disabled. Local results certify Python
+3.12; remote CI validation is recorded separately after completion.
 
 ## Remaining approval work
 

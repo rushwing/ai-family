@@ -83,3 +83,13 @@ jobs were skipped by workflow path selection; they are not claimed as executed.
 The tested head contains the unchanged implementation and test bytes from
 the source-specific local verification above. This records CI success only;
 independent TC design/review and implementation approval remain pending.
+
+## Pre-review fix verification
+
+The T1 and F1–F6 fixes are committed at
+`07796cc325b22f761f200eefdcfb6b623921135a`. The fresh full suite passed
+1,960 tests with all sixteen required-runtime flags and no skips; both wheel
+pairs passed all installed smoke families, including four reconciliation runs
+with 18 checks each. See [fix verification](REQ-036-review-fixes.md) and
+[updated provenance](REQ-036-review-fixes-provenance.json) for source-specific
+results and the remaining independent review boundary.
