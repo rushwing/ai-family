@@ -825,6 +825,7 @@ def test_queries_smoke_logic_in_isolated_python(tmp_path, monkeypatch, optimized
     ("absent", 4), ("broken", 4), ("methods_missing", 4), ("store_missing", 4),
     ("skip", 1), ("ready", 0),
 ])
+@pytest.mark.tc036_04
 def test_reconciliation_required_gate(tmp_path, monkeypatch, mode, expected):
     (tmp_path / "conftest.py").write_text(isolated_hooks(
         tmp_path, provider_present=True, demo_present=False))
@@ -850,6 +851,7 @@ def test_reconciliation_required_gate(tmp_path, monkeypatch, mode, expected):
 
 
 @pytest.mark.parametrize("optimized", [False, True])
+@pytest.mark.tc036_04
 def test_reconciliation_smoke_in_isolated_python(tmp_path, monkeypatch, optimized):
     command = [sys.executable, "-I"]
     if optimized:
@@ -857,4 +859,4 @@ def test_reconciliation_smoke_in_isolated_python(tmp_path, monkeypatch, optimize
     command.append(str(Path(__file__).with_name("reconciliation_artifact_smoke.py")))
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
-    assert json.loads(result.stdout) == {"checks": 13, "offline": True}
+    assert json.loads(result.stdout) == {"checks": 18, "offline": True}

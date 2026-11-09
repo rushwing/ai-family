@@ -2,6 +2,7 @@
 
 import copy
 import json
+import pickle
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 
@@ -126,6 +127,7 @@ def store():
         ("2026-10-30T10:00:00.000001Z", False, 1),
     ],
 )
+@pytest.mark.tc036_01
 def test_snapshot_time_filters_before_rebase(store, time, expected, count):
     result = run(store, buffered_events=[envelope(time)])
     assert result.outcome == "reconciled" and result.buffered_event_count == count
@@ -136,6 +138,7 @@ def test_snapshot_time_filters_before_rebase(store, time, expected, count):
     assert view(store, "device-two").state.reported_state == ()
 
 
+@pytest.mark.tc036_01
 def test_dedup_and_sequence_rebase_are_detached(store):
     first = envelope("2026-10-30T10:01:00Z")
     duplicate = {**copy.deepcopy(first), "capture_ordinal": 2}
@@ -148,7 +151,8 @@ def test_dedup_and_sequence_rebase_are_detached(store):
     assert result.outcome == "reconciled"
 
 
-@pytest.mark.parametrize("kind", ["unavailable", "missing", "removed", "unknown"])
+@pytest.mark.parametrize("kind", ["unavailable", "missing", "removed", "unknown", "on"])
+@pytest.mark.tc036_01
 def test_projection_and_intent_preservation(store, kind):
     seed = snapshot(value=False)
     seed["reported_state"]["old_member"] = copy.deepcopy(seed["reported_state"]["is_on"])
@@ -166,8 +170,8 @@ def test_projection_and_intent_preservation(store, kind):
     assert state["desired_state"] == seed["desired_state"]
     if kind == "removed":
         assert state["reported_state"] == {} and state["availability"]["status"] == "unknown"
-    elif kind == "unknown":
-        assert state["reported_state"]["is_on"]["value"] is None
+    elif kind in ("unknown", "on"):
+        assert state["reported_state"]["is_on"]["value"] is (None if kind == "unknown" else True)
         assert "old_member" not in state["reported_state"]
     else:
         assert state["reported_state"]["is_on"]["value"] is False
@@ -176,6 +180,7 @@ def test_projection_and_intent_preservation(store, kind):
         )
 
 
+@pytest.mark.tc036_01
 def test_missing_row_replays_but_removed_or_remapped_entity_does_not(store):
     data = source()
     data["states"] = []
@@ -191,6 +196,7 @@ def test_missing_row_replays_but_removed_or_remapped_entity_does_not(store):
     )
 
 
+@pytest.mark.tc036_02
 def test_repeat_reconnect_replaces_and_retains_current_intent_at_lock(store):
     assert run(store).outcome == "reconciled"
     prior = current(store)
@@ -214,12 +220,14 @@ def test_repeat_reconnect_replaces_and_retains_current_intent_at_lock(store):
         ({"home_id": "home-other"}, "invalid_input"),
     ],
 )
+@pytest.mark.tc036_03
 def test_invalid_admission_does_not_mark_stale(store, changes, code):
     assert run(store, **changes).failure_code == code
     assert view(store).freshness == "uninitialized" and view(store).revision == 0
 
 
 @pytest.mark.parametrize("change", ["time", "identity", "ordering", "ordinal", "extra", "intent"])
+@pytest.mark.tc036_03
 def test_invalid_envelope_fails_without_partial_publication(store, change):
     event = envelope("2026-10-30T10:01:00Z")
     if change == "time":
@@ -245,6 +253,7 @@ def test_invalid_envelope_fails_without_partial_publication(store, change):
 
 
 @pytest.mark.parametrize("attempt,outcome", [(1, "retryable_failure"), (3, "exhausted_failure")])
+@pytest.mark.tc036_03
 def test_retry_ownership_and_recovery(store, attempt, outcome):
     result = run(
         store,
@@ -258,6 +267,7 @@ def test_retry_ownership_and_recovery(store, attempt, outcome):
     assert view(store).freshness == "fresh"
 
 
+@pytest.mark.tc036_03
 def test_retry_refilters_original_events_against_fresh_snapshot(store):
     events = [envelope("2026-10-30T10:01:00Z")]
     before = copy.deepcopy(events)
@@ -295,6 +305,7 @@ def test_retry_refilters_original_events_against_fresh_snapshot(store):
         ("mapping", "mapping_mismatch"),
     ],
 )
+@pytest.mark.tc036_03
 def test_failures_are_bounded_and_stale(store, mode, code):
     data, changes = source(), {}
     engine = coordinator(store, max_buffer_events=1, max_input_bytes=100000)
@@ -343,6 +354,7 @@ def publication(store, epoch=2, events=None, states=None):
 
 
 @pytest.mark.parametrize("epoch", [1, 2])
+@pytest.mark.tc036_02
 def test_epoch_rejection_preserves_entire_publication(store, epoch):
     publication(store)
     before = current(store).to_dict()
@@ -352,6 +364,7 @@ def test_epoch_rejection_preserves_entire_publication(store, epoch):
     assert publication(store, 3) == 3
 
 
+@pytest.mark.tc036_02
 def test_stored_order_floor_includes_intent_and_stale_is_persistent(store):
     seed = snapshot()
     seed["desired_state"] = {
@@ -372,6 +385,7 @@ def test_stored_order_floor_includes_intent_and_stale_is_persistent(store):
     assert view(store).freshness == "fresh" and view(store).state.desired_state.revision == 1
 
 
+@pytest.mark.tc036_02
 def test_atomic_failure_on_late_invalid_event_or_incomplete_baseline(store):
     good = snapshot()
     good["availability"]["ordering"] = good["reported_state"]["is_on"]["ordering"] = {
@@ -387,6 +401,7 @@ def test_atomic_failure_on_late_invalid_event_or_incomplete_baseline(store):
     publication(store)
 
 
+@pytest.mark.tc036_02
 def test_atomic_snapshots_racing_repeated_publications(store):
     barrier = Barrier(2)
 
@@ -408,6 +423,7 @@ def test_atomic_snapshots_racing_repeated_publications(store):
             future.result()
 
 
+@pytest.mark.tc036_04
 def test_unauthorized_store_extensions_and_constructor(store):
     with pytest.raises(ReconciliationError):
         coordinator(store, write_context=context(member="member-reader"))
@@ -425,34 +441,113 @@ def test_unauthorized_store_extensions_and_constructor(store):
     assert view(store).freshness == "uninitialized"
 
 
-def test_stale_write_failure_does_not_claim_stale():
-    class BrokenStore(CurrentStateStore):
-        def mark_home_stale(self, *args, **kwargs):
-            raise RuntimeError("secret")
+@pytest.mark.tc036_04
+def test_stale_write_failure_does_not_claim_stale(store, monkeypatch):
+    def fail(*args, **kwargs):
+        raise RuntimeError("secret")
 
-    store = BrokenStore(**configuration())
+    monkeypatch.setattr(CurrentStateStore, "mark_home_stale", fail)
     result = run(store, discovery_result=HADiscoveryError("timeout"), mapping_result=None)
     assert result.failure_code == "stale_mark_failed" and not result.state_stale
     assert view(store).freshness == "uninitialized"
 
 
-def test_store_failure_never_claims_success():
-    class BrokenStore(CurrentStateStore):
-        def reconcile_home(self, *args, **kwargs):
-            raise RuntimeError("secret")
+@pytest.mark.tc036_03
+def test_store_failure_never_claims_success(store, monkeypatch):
+    def fail(*args, **kwargs):
+        raise RuntimeError("secret")
 
-    store = BrokenStore(**configuration())
+    monkeypatch.setattr(CurrentStateStore, "reconcile_home", fail)
     result = run(store)
     assert result.outcome == "retryable_failure" and result.failure_code == "store_failure"
     assert result.state_stale and view(store).revision == 0
 
 
+@pytest.mark.parametrize("kind", ["duck", "subclass", "object"])
+@pytest.mark.tc036_04
+def test_exact_store_type_required_before_access(store, kind):
+    class DuckStore:
+        def __getattr__(self, name):
+            pytest.fail("untrusted store must not be accessed")
+
+    class DerivedStore(CurrentStateStore):
+        pass
+
+    candidate = {"duck": DuckStore, "subclass": lambda: DerivedStore(**configuration()),
+                 "object": object}[kind]()
+    with pytest.raises(ReconciliationError, match="^invalid_configuration$") as caught:
+        coordinator(candidate)
+    assert caught.value.__context__ is None
+    assert view(store).revision == 0
+
+
+@pytest.mark.parametrize("code", [
+    "invalid_state", "incomplete_snapshot", "invalid_event", "invalid_integer",
+    "invalid_identifier", "invalid_context", "identity_mismatch", "unexpected_intent",
+    "forbidden", "clock_regression", "unexpected_store_code",
+])
+@pytest.mark.tc036_03
+def test_store_error_classification_and_zero_publication(store, monkeypatch, code):
+    def fail(*args, **kwargs):
+        raise StateStoreError(code, ("secret-path",))
+
+    monkeypatch.setattr(CurrentStateStore, "reconcile_home", fail)
+    result = run(store)
+    transient = code == "unexpected_store_code"
+    assert result.outcome == ("retryable_failure" if transient else "terminal_failure")
+    assert result.failure_code == ("store_failure" if transient else "invalid_input")
+    assert result.state_stale and view(store).revision == 0
+    assert view(store).state.reported_state == ()
+    assert "secret" not in repr(result) + json.dumps(result.to_dict())
+
+
+@pytest.mark.parametrize("protocol", [0, pickle.HIGHEST_PROTOCOL])
+@pytest.mark.tc036_04
+def test_result_pickle_forbidden_but_detached_json_supported(store, protocol):
+    for result in (run(store), run(store, epoch=3, discovery_result=HADiscoveryError("timeout"))):
+        with pytest.raises(TypeError, match="^reconciliation_result_serialization_forbidden$"):
+            pickle.dumps(result, protocol=protocol)
+        exported = result.to_dict()
+        assert json.loads(json.dumps(exported)) == exported
+        exported["epoch"] = -1
+        assert result.epoch in (2, 3)
+
+
+@pytest.mark.parametrize("mode,epoch,count", [
+    ("invalid_epoch", None, 0), ("invalid_capture", 7, 0),
+    ("overflow", 7, 10), ("discovery", 7, 2), ("filtered", 7, 0),
+])
+@pytest.mark.tc036_03
+def test_result_epoch_and_count_semantics(store, mode, epoch, count):
+    changes = {"epoch": 7, "buffered_events": [envelope(T), envelope(T, ordinal=2)]}
+    if mode == "invalid_epoch":
+        changes["epoch"] = True
+    elif mode == "invalid_capture":
+        changes["buffered_events"] = None
+    elif mode == "overflow":
+        changes["buffered_events"] = [envelope(T, ordinal=i) for i in range(1, 12)]
+    elif mode == "discovery":
+        changes["discovery_result"] = HADiscoveryError("timeout")
+        changes["attempt_number"] = 3
+    result = run(store, **changes)
+    assert result.epoch == epoch and result.buffered_event_count == count
+    assert result.outcome == {"invalid_epoch": "terminal_failure",
+        "invalid_capture": "terminal_failure", "overflow": "terminal_failure",
+        "discovery": "exhausted_failure", "filtered": "reconciled"}[mode]
+    # Failed epoch 7 was not pinned; the lower, valid candidate can still publish.
+    if mode != "filtered":
+        assert view(store).revision == 0
+        assert run(store, epoch=2).outcome == "reconciled"
+
+
+@pytest.mark.tc036_04
 def test_offline_no_ambient_effects(store, offline):
     assert run(store).outcome == "reconciled"
     assert offline == []
 
 
+@pytest.mark.tc036_04
 def test_smoke_contract_under_offline_guard(offline):
     from reconciliation_artifact_smoke import check
-    assert check() == {"checks": 13, "offline": True}
+    assert check() == {"checks": 18, "offline": True}
     assert offline == []

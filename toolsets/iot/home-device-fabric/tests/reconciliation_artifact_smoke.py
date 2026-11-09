@@ -1,11 +1,12 @@
 """Installed REQ-036 checks, explicit under -I and -O; no checkout imports."""
 import json
+import pickle
 
 
 def check():
     from home_device_fabric.ha_discovery import HADiscoveryError, HADiscoverySnapshot
     from home_device_fabric.ha_mapping import HARegistryMapper
-    from home_device_fabric.reconciliation import ReconnectReconciler
+    from home_device_fabric.reconciliation import ReconciliationError, ReconnectReconciler
     from home_device_fabric.state_store import CurrentStateStore
     from state_schema.canonical_state import StateCollection
 
@@ -56,13 +57,33 @@ def check():
             "current_states": StateCollection(1, (store.read(caller, **args).state,)),
             "now_ms": 100, **changes})
 
-    require(attempt(2).outcome == "reconciled")
+    success = attempt(2)
+    require(success.outcome == "reconciled")
+    require(success.epoch == 2 and success.buffered_event_count == 1)
     row = store.read(caller, **args)
     require(dict(row.state.reported_state)["is_on"].value is False)
     require(row.state.availability.ordering.sequence == 1)
     require(row.revision == 1 and row.freshness == "fresh")
     failed = attempt(3, discovery_result=HADiscoveryError("timeout"), mapping_result=None)
     require(failed.outcome == "retryable_failure" and failed.state_stale)
+    require(failed.epoch == 3 and failed.buffered_event_count == 3)
+    exported = failed.to_dict()
+    exported["epoch"] = -1
+    require(failed.epoch == 3)
+    try:
+        pickle.dumps(failed)
+    except TypeError as error:
+        require(str(error) == "reconciliation_result_serialization_forbidden")
+    else:
+        raise RuntimeError("result_pickle_allowed")
+    try:
+        ReconnectReconciler(store=object(), write_context=caller,
+            registered_inventory=inventory, provider_instance_id="ha-example",
+            profiles=[], max_buffer_events=10, max_input_bytes=100000)
+    except ReconciliationError as error:
+        require(str(error) == "invalid_configuration")
+    else:
+        raise RuntimeError("untrusted_store_allowed")
     require(store.read(caller, **args).revision == 1)
     require(store.read(caller, **args).freshness == "stale")
     require(attempt(4, buffered_events=[]).outcome == "reconciled")

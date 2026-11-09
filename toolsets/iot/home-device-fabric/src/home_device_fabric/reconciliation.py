@@ -35,11 +35,20 @@ class _Failure(Exception):
 
 @dataclass(frozen=True, slots=True)
 class ReconciliationResult:
+    """Epoch is pinned only on success; failure carries the validated request epoch.
+
+    Failure counts are captured input counts capped at configured capacity (zero
+    before capture validation). Success counts only eligible published events.
+    Use to_dict for the supported detached export; pickle is forbidden.
+    """
     outcome: str
     epoch: int | None
     failure_code: str | None
     buffered_event_count: int
     state_stale: bool
+
+    def __reduce__(self) -> NoReturn:
+        raise TypeError("reconciliation_result_serialization_forbidden")
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -99,6 +108,8 @@ class ReconnectReconciler:
     ) -> None:
         valid = True
         try:
+            if type(store) is not CurrentStateStore:
+                raise _Failure("invalid_input")
             inventory = Inventory.from_dict(registered_inventory)
             capacity, size = _positive(max_buffer_events), _positive(max_input_bytes)
             if (
@@ -211,10 +222,15 @@ class ReconnectReconciler:
                     now_ms=now_ms,
                 )
             except StateStoreError as error:
-                raise _Failure(
-                    "epoch_conflict" if error.code == "epoch_regression" else "store_failure",
-                    retryable=error.code != "epoch_regression",
-                ) from None
+                if error.code == "epoch_regression":
+                    raise _Failure("epoch_conflict") from None
+                if error.code in {
+                    "invalid_state", "incomplete_snapshot", "invalid_event",
+                    "invalid_integer", "invalid_identifier", "invalid_context",
+                    "identity_mismatch", "unexpected_intent", "forbidden", "clock_regression",
+                }:
+                    raise _Failure("invalid_input") from None
+                raise _Failure("store_failure", retryable=True) from None
             except Exception:
                 raise _Failure("store_failure", retryable=True) from None
             return ReconciliationResult("reconciled", pinned, None, len(events), False)

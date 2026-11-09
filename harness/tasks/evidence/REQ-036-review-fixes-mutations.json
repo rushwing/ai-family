@@ -1,0 +1,57 @@
+{
+  "generator_verification": true,
+  "independent_approval": false,
+  "method": "Temporary full-package copies; import location verified before pytest; tracked runtime never mutated.",
+  "runtime_sha256": "4ec9bbb24e54345a9499a75d73f993ebebe4a168d25b995753961ae43b734d0a",
+  "test_sha256": "a57b9023c4b62d1e5231d6210e72d8f3281988226f579042b5c8dc1c342cad9d",
+  "mutations": [
+    {
+      "mutation": "exact_store_type",
+      "selected_test": "exact_store_type_required_before_access",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "3e5e15d47a8231ffad8c279cc73528f3b6772b0d565e56f849a064909b56b417"
+    },
+    {
+      "mutation": "result_pickle",
+      "selected_test": "result_pickle_forbidden_but_detached_json_supported",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "0dd41f21fcf3177bfd9e3358d4047b8f2b5493eaba1c5793f6fed4ccceddbce9"
+    },
+    {
+      "mutation": "validation_terminal",
+      "selected_test": "store_error_classification_and_zero_publication",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "6f57201f24ff02c669ef0a1111201cda591b95ed6744ed8fd02e032eb9c14d13"
+    },
+    {
+      "mutation": "failure_count_cap",
+      "selected_test": "result_epoch_and_count_semantics",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "f2b79d700381c47b9c7808ed50713b455fd728cbd4a35a3534664f8a5cb4f0eb"
+    },
+    {
+      "mutation": "failure_epoch",
+      "selected_test": "result_epoch_and_count_semantics",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "25332fbde473e901bb21f02fb9b1290f280d22602e99a29f5d733c1ec8eba673"
+    },
+    {
+      "mutation": "timestamp_equality",
+      "selected_test": "snapshot_time_filters_before_rebase",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "646a7ccba5435273e44f9a16793d7df71521d08904f5b6b54ad11ef172cd5dcc"
+    }
+  ]
+}

@@ -4,7 +4,10 @@ On 2026-10-30 human-001 instructed “merge the pr andstart to implement”.
 Specification PR #73 merged at e421635. The new implementation is generator
 work under that instruction, not an independent T03/T07/T10/T13 signature.
 REQ-036 remains req_impl with all acceptance criteria unchecked. Independent
-TC-036 design and review remain pending; test_case_ref remains empty.
+TC-036 independent design/review remain pending. The later human instruction
+“fix all findings” authorizes generator-authored draft TC documents and explicit
+marker mappings; test_case_ref now links those drafts. They are not independent
+approval. See [review fixes](REQ-036-review-fixes.md) for current verification.
 
 The implementation adds CurrentStateStore.reconcile_home and mark_home_stale,
 plus an offline ReconnectReconciler. Reconciliation validates the complete
@@ -41,7 +44,7 @@ The CI runtime-required flag rejects missing/broken reconciliation methods and
 skips; installed package smoke is wired into both direct and sdist-derived
 wheel checks, with explicit assertions surviving -O. No live HA or hardware result is claimed.
 
-## Source-specific verification
+## Initial source-specific verification (before pre-review fixes)
 
 Clean implementation source `449aa3377be761ab653e175660b8a4b2211b6b3d` (full ID in the provenance below), Linux
 aarch64 / CPython 3.12.12. The full fabric suite ran with all sixteen CI
