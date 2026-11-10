@@ -1,5 +1,9 @@
 # REQ-036 independent review handoff
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-036-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 Prepared on 2026-11-10 for [draft PR #74](https://github.com/rushwing/ai-family/pull/74).
 The review baseline is `98cb612347cb2450fb612aa7e36aff8820a86e4d`, against
 `e4216354fbef5674538b75e7c7bd274579fabc7b`. This handoff adds review navigation;
@@ -12,7 +16,7 @@ later test bytes.
 
 ## Authority and current state
 
-The sole [REQ-036](../features/REQ-036.md) remains `req_impl / generator-001`,
+The sole [REQ-036](../archive/done/features/REQ-036.md) remains `req_impl / generator-001`,
 with AC1–AC5 unchecked. Human-001 authorized implementation and “fix all
 findings”; generator repairs address the supplied T1/F1–F6 pre-review.
 All four TC documents remain generator-authored drafts. Independent TC

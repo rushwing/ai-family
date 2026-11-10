@@ -1,5 +1,9 @@
 # REQ-036 local pre-review fixes
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-036-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 Human-001 supplied a local pre-review of PR #74 at 219ae6a8 and instructed
 “fix all findings”. This extends the generator implementation work while
 preserving req_impl / generator-001, unchecked ACs and draft PR status.

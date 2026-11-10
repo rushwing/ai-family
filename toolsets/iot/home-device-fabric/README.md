@@ -1164,3 +1164,45 @@ mutations and four installed query smoke runs of 22 checks each at their tested
 source. Final-head CI passed on Python 3.12/3.13/3.14. The fifteenth required
 runtime flag is `--require-home-queries-runtime`. HTTP/authentication, reconnect
 reconciliation and Feature/Stage acceptance retain their separate gates.
+
+
+## Offline reconnect reconciliation (REQ-036 / HI-S007)
+
+Human-accepted [REQ-036](../../../harness/tasks/archive/done/features/REQ-036.md)
+delivers `home_device_fabric.reconciliation.ReconnectReconciler` and the store
+extensions `reconcile_home` and `mark_home_stale`. The
+[closeout](../../../harness/tasks/evidence/REQ-036-review-acceptance.md) records
+PR #74 merge, TC acceptance, final-head verification and environment limits.
+Earlier module-specific exclusions describe those modules; this separate
+coordinator now supplies the bounded offline reconciliation step.
+
+Construct the reconciler with an exact `CurrentStateStore`, trusted write
+context, fixed registered inventory, provider instance, explicit normalizer
+profiles and positive event/byte limits. `reconcile` takes a complete typed
+discovery result, its corresponding mapper output, a complete pre-attempt
+`StateCollection`, captured normalized event envelopes, a fresh owner-allocated
+epoch, attempt/max-attempt numbers and explicit `now_ms`. It performs one
+attempt with no network, clock reads, sleep or implicit retry.
+
+Only matching unique events strictly later than each entity's snapshot
+observation replay; retained capture order becomes `(epoch, 1..N)` after
+baseline `(epoch, 0)`. One atomic store publication preserves current desired
+intent, replaces the complete registered home state, advances revisions and
+clears explicit stale. An admitted failure publishes no partial baseline and
+reports stale only after successful stale marking. Explicit stale overrides
+TTL/uninitialized and persists through ordinary writes until successful
+reconciliation.
+
+Use `result.to_dict()` for detached JSON. Success returns the pinned epoch and
+published event count; failure epoch is only a validated request value, never
+a live-path epoch. Failure count is captured input capped at capacity after
+admission/list validation, otherwise zero. Result pickle, shallow copy and deep
+copy raise a fixed TypeError. Diagnostics contain no provider payloads.
+
+The composition owner must serialize attempts per home, hold the capture/write
+barrier across acquisition/retries/publication/drain, persist monotonic epochs,
+apply configured finite retry scheduling and stamp later live events with the
+successful epoch and next sequence. This delivery supports one mapped entity
+per device and fixed inventory only. Live transport composition, durable
+services, device writes, HA/device certification and Feature/Stage acceptance
+remain separate work.
