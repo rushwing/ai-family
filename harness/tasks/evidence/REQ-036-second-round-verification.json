@@ -1,0 +1,41 @@
+{
+  "generator_verification": true,
+  "independent_approval": false,
+  "verified_on": "2026-11-10",
+  "source_base_commit": "3826e87a25dbadae235663c53d61d9d07316d817",
+  "source_dirty": true,
+  "source_identity": "Uncommitted follow-up bytes identified by sha256; not a clean-commit build attestation.",
+  "python": "3.12.12",
+  "platform": "Linux-6.12.62+rpt-rpi-2712-aarch64-with-glibc2.41",
+  "runtime_import_verified": true,
+  "sha256": {
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/reconciliation.py": "4ec9bbb24e54345a9499a75d73f993ebebe4a168d25b995753961ae43b734d0a",
+    "toolsets/iot/home-device-fabric/src/home_device_fabric/state_store.py": "b51a84cbd4fab4d3e358a06527f662fa7ebd381e86e44a471b106719f12f3222",
+    "toolsets/iot/home-device-fabric/tests/test_reconciliation.py": "4d85a36de160601a2f6370f1f6fe6c9ae536ad33727f3dbb87aed7ba748ed234",
+    "harness/tasks/test-cases/TC-036-04.md": "89df980191b5eeec0ff98fadc4f21625008aac7e31b13c153a0ade2bbf7a0cde"
+  },
+  "junit_sha256": "296749430ac1dcedbf003b8d4fe024db992e495c8dc048689f1c448892904178",
+  "fabric": {
+    "executed": 1960,
+    "passed": 1960,
+    "failures": 0,
+    "errors": 0,
+    "skips": 0,
+    "required_runtime_flags": 16,
+    "per_tc": {
+      "tc036_01": 11,
+      "tc036_02": 6,
+      "tc036_03": 38,
+      "tc036_04": 17
+    }
+  },
+  "targeted_reconciliation": {
+    "passed": 64
+  },
+  "ruff": "passed",
+  "mypy": "passed: 20 runtime modules",
+  "governance": "passed, including 21 planning tests",
+  "copy_coverage": "copy.copy and copy.deepcopy on success/failure; fixed TypeError; detached JSON export preserved",
+  "artifact_scope": "Runtime bytes unchanged from 07796cc3; prior artifact and mutation evidence remains historical. Fresh installed-artifact checks run in head-specific CI.",
+  "executable": "/tmp/req036-resume-env/bin/python"
+}
