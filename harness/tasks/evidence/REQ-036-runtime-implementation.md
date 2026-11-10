@@ -1,5 +1,9 @@
 # REQ-036 implementation handoff
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-036-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 On 2026-10-30 human-001 instructed “merge the pr andstart to implement”.
 Specification PR #73 merged at e421635. The new implementation is generator
 work under that instruction, not an independent T03/T07/T10/T13 signature.

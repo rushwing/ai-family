@@ -47,3 +47,16 @@ Use [FEATURE_TEMPLATE.md](FEATURE_TEMPLATE.md) and [STORY_TEMPLATE.md](STORY_TEM
 ## Validation
 
 Run `python tools/check_home_intelligence_planning.py` from the repository root (also included in CI and scripts/check.sh). Before review, validate reciprocal REQ identity, active/archive uniqueness and absence of copied engineering fields/checklists in admitted Stories, then IDs, file/index metadata, parents, stage links, feature child lists, dependencies, cycles, legacy references and local links. Assert 12 stages, 20 features, 30 R1 stories, no R2+ stories and no new persistent tasks. Run existing governance gates and the legacy workbook checker. Keep check commands and results in the PR; required runtime behavior is verified by future linked TC, not this documentation delivery.
+
+
+## Offline reconnect reconciliation delivery
+
+HI-S007 is delivered through human-accepted
+[REQ-036](../../../../harness/tasks/archive/done/features/REQ-036.md), merged in
+[PR #74](https://github.com/rushwing/ai-family/pull/74) as `a64e539`.
+[Closeout evidence](../../../../harness/tasks/evidence/REQ-036-review-acceptance.md)
+records AC1–AC5 and TC-036-01–04 acceptance, final-head CI, actual attribution
+and verification limits. Offline atomic reconciliation does not supply live
+capture/write barriers, epoch persistence or retry scheduling; those remain
+composition-owner responsibilities. Live HA/device and HI-F002/R1 acceptance
+retain separate gates. Read current owner/status directly from Harness.

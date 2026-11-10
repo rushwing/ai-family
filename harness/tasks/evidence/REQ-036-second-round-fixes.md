@@ -1,5 +1,9 @@
 # REQ-036 second-round pre-review repairs
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-036-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 On 2026-11-10 human-001 supplied the second-round local pre-review of
 [PR #74](https://github.com/rushwing/ai-family/pull/74) at
 `3826e87a25dbadae235663c53d61d9d07316d817` and instructed “fix all findings”.
