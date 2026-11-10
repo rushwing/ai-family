@@ -5,6 +5,11 @@ The review baseline is `98cb612347cb2450fb612aa7e36aff8820a86e4d`, against
 `e4216354fbef5674538b75e7c7bd274579fabc7b`. This handoff adds review navigation;
 it does not change runtime, tests or the baseline's verification scope.
 
+The [second-round repairs](REQ-036-second-round-fixes.md) document the later
+copy/deepcopy regression coverage and its verification. The baseline evidence
+below remains source-specific historical evidence; it does not certify those
+later test bytes.
+
 ## Authority and current state
 
 The sole [REQ-036](../features/REQ-036.md) remains `req_impl / generator-001`,

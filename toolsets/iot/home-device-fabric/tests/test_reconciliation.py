@@ -507,6 +507,9 @@ def test_result_pickle_forbidden_but_detached_json_supported(store, protocol):
     for result in (run(store), run(store, epoch=3, discovery_result=HADiscoveryError("timeout"))):
         with pytest.raises(TypeError, match="^reconciliation_result_serialization_forbidden$"):
             pickle.dumps(result, protocol=protocol)
+        for copier in (copy.copy, copy.deepcopy):
+            with pytest.raises(TypeError, match="^reconciliation_result_serialization_forbidden$"):
+                copier(result)
         exported = result.to_dict()
         assert json.loads(json.dumps(exported)) == exported
         exported["epoch"] = -1
