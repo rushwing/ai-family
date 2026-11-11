@@ -1208,13 +1208,17 @@ services, device writes, HA/device certification and Feature/Stage acceptance
 remain separate work.
 
 
-## Registered HA action resolution (REQ-038 / HI-S020, pending review)
+## Registered HA action resolution (REQ-038 / HI-S020)
 
 `home_device_fabric.action_resolution.ActionResolver` joins canonical action
 validation to the exact registered binding and REQ-033 capability mapping.
-See [REQ-038](../../../harness/tasks/features/REQ-038.md) for the full contract.
-This combined implementation remains `req_impl / generator-001` with draft
-TCs, unchecked ACs and external review pending.
+See [REQ-038](../../../harness/tasks/archive/done/features/REQ-038.md) for the full contract.
+Human-001 accepted the combined TC text/code/runtime delivery and authorized
+[PR #78](https://github.com/rushwing/ai-family/pull/78) to merge on 2026-11-11.
+REQ-038 is archived as done / human-001; see
+[final acceptance](../../../harness/tasks/evidence/REQ-038-review-acceptance.md)
+for exact merge, verification and attribution. The local pre-review remains
+non-signing; no independent evaluator signature is claimed.
 
 Construct with raw `registered_inventory`, `bindings`, `capability_projection`
 (the REQ-033 `for_adapter()` projection), canonical `provider_instance_id` alias

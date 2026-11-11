@@ -1,12 +1,17 @@
 # REQ-038 implementation delivery
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-038-review-acceptance.md) supersedes pending approval,
+draft states and req_impl stopping statements below; source-specific evidence
+remains historical.
+
 Historical implementation evidence for source `545be969`; see the later
 [pre-review follow-up](REQ-038-pre-review-fixes.md) for the defensive lookup
 revision and its verification. Counts and hashes here retain their original scope.
 
 Human-001 authorized HI-S020 / REQ-038 combined specification, proposed TC
 text/code, runtime and verification on 2026-11-11, stopping at req_impl for
-external review. The sole [REQ](../features/REQ-038.md) stays
+external review. The sole [REQ](../archive/done/features/REQ-038.md) stays
 `req_impl / generator-001`, AC1–AC4 unchecked, TC-038-01–04 draft, and
 [PR #78](https://github.com/rushwing/ai-family/pull/78) draft. No independent
 criteria approval, evaluator signature, readiness or acceptance is claimed.
