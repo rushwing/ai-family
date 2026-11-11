@@ -1,5 +1,10 @@
 # REQ-038 local pre-review dispositions
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-038-review-acceptance.md) supersedes pending approval,
+draft states and req_impl stopping statements below; source-specific evidence
+remains historical.
+
 Human-001 requested fixes for O1–O5 after a local pre-review of PR #78 head
 `9e0ae41913bd9a661dc44009ce4f039d897a47b1`. That report explicitly supplies
 neither an independent review signature nor approval. This follow-up is
@@ -13,7 +18,7 @@ generator work under the existing `req_impl / generator-001` authorization.
 | O4: independent TC/implementation review pending | Still pending external evaluator action. The review handoff now lists each TC review and the AC1–AC4 implementation assessment required at an exact reviewed head. No independent signature, TC approval, acceptance or lifecycle transition is claimed. |
 | O5: direct access to validated HA binding fields | Retained. An inline comment records the construction-time `BindingCollection` validation on which this access depends. No duplicate binding validator or accepted-schema change is introduced. |
 
-The [REQ](../features/REQ-038.md) and proposed
+The [REQ](../archive/done/features/REQ-038.md) and proposed
 [TC-038-02](../test-cases/TC-038-02.md) now describe the defensive mismatch case.
 The regression deliberately bypasses the frozen snapshot solely for fault
 injection; public construction still guarantees matching validator/entry data.

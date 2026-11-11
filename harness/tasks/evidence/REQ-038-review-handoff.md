@@ -1,5 +1,10 @@
 # REQ-038 external combined review handoff
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-038-review-acceptance.md) supersedes pending approval,
+draft states and req_impl stopping statements below; source-specific evidence
+remains historical.
+
 Prepared on 2026-11-11 for [draft PR #78](https://github.com/rushwing/ai-family/pull/78).
 Implementation baseline: `545be9691db56813208b317e8f2300ef5c5be5c0`, based on
 merged main `117b94fb29a2398be5be7e9fec693cee69ce76dc` (PR #77).
@@ -10,7 +15,7 @@ not verification of the revised runtime.
 
 Human-001 authorized combined specification, proposed TC criteria, runtime
 and verification with an explicit stop at `req_impl` for external review.
-The sole [REQ-038](../features/REQ-038.md) remains
+The sole [REQ-038](../archive/done/features/REQ-038.md) remains
 `req_impl / generator-001`, AC1–AC4 unchecked; all four TCs remain
 generator-authored drafts. This packet supplies no independent TC approval,
 evaluator signature or lifecycle transition. Review criteria independently
