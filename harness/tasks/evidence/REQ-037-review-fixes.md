@@ -1,5 +1,9 @@
 # REQ-037 local pre-review dispositions
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-037-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 Human-001 supplied the local pre-review of PR #76 at
 `121f9dad9c27a3c1c26cfbddee95bc0d42887693` and instructed “Fix all findings”.
 The report explicitly disclaims independent review approval. This generator
