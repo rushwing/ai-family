@@ -1208,6 +1208,48 @@ services, device writes, HA/device certification and Feature/Stage acceptance
 remain separate work.
 
 
+## Registered HA action resolution (REQ-038 / HI-S020, pending review)
+
+`home_device_fabric.action_resolution.ActionResolver` joins canonical action
+validation to the exact registered binding and REQ-033 capability mapping.
+See [REQ-038](../../../harness/tasks/features/REQ-038.md) for the full contract.
+This combined implementation remains `req_impl / generator-001` with draft
+TCs, unchecked ACs and external review pending.
+
+Construct with raw `registered_inventory`, `bindings`, `capability_projection`
+(the REQ-033 `for_adapter()` projection), canonical `provider_instance_id` alias
+and optional `max_input_bytes` (65536 by default). Construction snapshots and
+validates the bounded plain JSON and explicitly loads the packaged initial
+catalogue. Private REQ-032 `_json`/`_canonical` helpers remain internal dependencies.
+Only exact packaged version-1 switch/curtain descriptors and matching fixed
+maps resolve; multiple entities may belong to one device, but each capability
+selects exactly one entity registered to that device in the selected instance.
+
+`resolve(raw_action_request)` always revalidates using REQ-037, then checks the
+binding, selected provider/instance, supported descriptor and full private map.
+Missing bindings, provider mismatch, unsupported operation, null map and invalid
+map have finite `missing_binding`, `provider_mismatch`, `unsupported_operation`,
+`mapping_uninitialized`, `invalid_provider_mapping` reasons respectively.
+Earlier canonical validation failures retain REQ-037 ordering/codes. Configuration
+failure is fixed `ActionResolutionError("invalid_configuration")` without a chain.
+
+The immutable result's `to_redacted_dict()` exports only `status` (`resolved`
+or `rejected`) and `failure_code`. Trusted adapter-only `for_adapter()` adds
+`request` and `operation`; both are null on rejection. A resolved operation has
+provider, provider_instance_id, domain, service, target and service_data.
+Switch true/false resolves to turn_on/turn_off with empty data; curtain integer
+0–100 resolves to set_cover_position with position unchanged. Private identifiers
+never become canonical request fields or public responses. Repr is constant;
+copy/deepcopy/pickle are forbidden. Direct result construction is typed internal
+use, not a validation boundary. Resolve has no provider/ambient effects.
+
+The caller replaces the entire immutable resolver when its configuration changes.
+Resolution is a snapshot description and grants no permission or idempotency
+guarantee. A later execution boundary must verify current binding/availability,
+identity/member policy, confirmation and audit, and use governed durable tasks.
+This delivery adds no physical write, service call, HTTP/MCP route or deployment.
+Rollback consists of removing the unused resolver; no external state is changed.
+
 ## Canonical action preflight (REQ-037 / HI-S024)
 
 `home_device_fabric.action_validation.ActionValidator` validates canonical

@@ -90,6 +90,10 @@ def main():
             "src/home_device_fabric/ha_health.py").read_bytes()).hexdigest(),
         "normalization_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/ha_normalization.py").read_bytes()).hexdigest(),
+        "action_resolution_runtime_sha256": hashlib.sha256((PACKAGES[1] /
+            "src/home_device_fabric/action_resolution.py").read_bytes()).hexdigest(),
+        "action_resolution_tests_sha256": hashlib.sha256((PACKAGES[1] /
+            "tests/test_action_resolution.py").read_bytes()).hexdigest(),
         "action_validation_runtime_sha256": hashlib.sha256((PACKAGES[1] /
             "src/home_device_fabric/action_validation.py").read_bytes()).hexdigest(),
         "reconciliation_runtime_sha256": hashlib.sha256((PACKAGES[1] /
@@ -192,7 +196,8 @@ def main():
                              "ha_discovery_artifact_smoke.py", "ha_mapping_artifact_smoke.py",
                              "ha_capabilities_artifact_smoke.py", "home_queries_artifact_smoke.py",
                              "reconciliation_artifact_smoke.py",
-                             "action_validation_artifact_smoke.py"):
+                             "action_validation_artifact_smoke.py",
+                             "action_resolution_artifact_smoke.py"):
                 shutil.copy2(Path(__file__).with_name(filename), directory / filename)
             conformance = []
             ha_configuration = []
@@ -210,6 +215,7 @@ def main():
             home_queries = []
             reconciliation = []
             action_validation = []
+            action_resolution = []
             for flags in (("-I",), ("-O", "-I")):
                 checked = subprocess.run(
                     [str(interpreter), *flags, str(directory / "conformance_artifact_smoke.py")],
@@ -301,6 +307,12 @@ def main():
                     check=True, cwd=directory, capture_output=True, text=True,
                 )
                 action_validation.append(json.loads(checked_actions.stdout))
+                checked_resolution = subprocess.run(
+                    [str(interpreter), *flags,
+                     str(directory / "action_resolution_artifact_smoke.py")],
+                    check=True, cwd=directory, capture_output=True, text=True,
+                )
+                action_resolution.append(json.loads(checked_resolution.stdout))
             report["smokes"].append(
                 {
                     "pair": label,
@@ -322,6 +334,7 @@ def main():
                     "home_queries": home_queries,
                     "reconciliation": reconciliation,
                     "action_validation": action_validation,
+                    "action_resolution": action_resolution,
                     "installed_distributions": json.loads(installed.stdout),
                 }
             )
