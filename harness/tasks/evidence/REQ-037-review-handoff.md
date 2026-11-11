@@ -5,6 +5,12 @@ Implementation baseline: `f293c9ffc134ef9b2117138dee77644f1f1457c9`, against
 `94a4f6379b7c6db850494a7a5e431728de453d47`. Later delivery evidence changes
 documentation only.
 
+The later [local pre-review dispositions](REQ-037-review-fixes.md) add the
+missing REQ-032 dependency and clarify private-helper/result boundaries.
+Runtime, tests and the original provenance remain unchanged. The supplied
+local report is not an independent review signature; external TC review and
+implementation acceptance remain pending.
+
 Human-001 authorized combined specification, proposed TC criteria, runtime and
 verification with an explicit stop at `req_impl` for external review. The sole
 [REQ-037](../features/REQ-037.md) remains `req_impl / generator-001`, AC1–AC4

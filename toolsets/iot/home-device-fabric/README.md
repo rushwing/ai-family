@@ -1231,3 +1231,10 @@ rebuild the validator to change them. Use to_dict for detached JSON export;
 pickle/copy/deepcopy are forbidden. There is no network, clock, environment,
 provider handle or implicit fallback. Authenticate/authorize and apply the
 later guard, confirmation, audit and dispatch boundaries separately.
+
+REQ-037 depends on REQ-032 for package-internal reuse of `ha_mapping._json`;
+the helper remains private, with its bounded JSON/encoding requirements owned
+by the REQ-037 contract. Obtain checked results through `validate()`.
+Direct `ActionValidationResult` construction is internal typed-record use and
+does not establish that a request passed validation; result status is not an
+authorization or dispatch credential.
