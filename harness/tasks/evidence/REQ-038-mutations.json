@@ -1,0 +1,53 @@
+{
+  "source_commit": "545be9691db56813208b317e8f2300ef5c5be5c0",
+  "source_dirty": false,
+  "runtime_sha256": "6d6d775aeb0026fa5d4fb9c84beffc4561669df64a6e20efb711b1e2135176cd",
+  "tests_sha256": "0d89b799342522288ed0c2824e6ba7098d75ea63042b2af7b6950c81fef4a089",
+  "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+  "environment": "Linux aarch64; per-mutation full package copy; verified import path",
+  "mutations": [
+    {
+      "name": "switch_inversion",
+      "killed": true,
+      "returncode": 1,
+      "summary": "3 failed, 94 passed in 1.09s",
+      "mutant_sha256": "d5864bdeacad21d31965e389b1c2c6cb2b1e186f8ef19853bc0e96bba54149e3"
+    },
+    {
+      "name": "entity_membership",
+      "killed": true,
+      "returncode": 1,
+      "summary": "2 failed, 95 passed in 1.10s",
+      "mutant_sha256": "46e9650ed2b01d59b38c19f65459d375487019ef13193788e0b8ebe41525848d"
+    },
+    {
+      "name": "instance_isolation",
+      "killed": true,
+      "returncode": 1,
+      "summary": "2 failed, 95 passed in 1.00s",
+      "mutant_sha256": "d7e649d24dd23ea2274199cbca0bce865c77065f3179ae242973c79db7593fc3"
+    },
+    {
+      "name": "mapping_allowlist",
+      "killed": true,
+      "returncode": 1,
+      "summary": "12 failed, 85 passed in 1.12s",
+      "mutant_sha256": "85c03b0cc1878ba1a2a99a1f51360d304c08461e441672ae36214905dd8bbbfb"
+    },
+    {
+      "name": "descriptor_revision",
+      "killed": true,
+      "returncode": 1,
+      "summary": "3 failed, 94 passed in 1.03s",
+      "mutant_sha256": "4226359a2e90d66f0ebf72aee58effe1a6405a6a7b7590043b7eae9e15f262a5"
+    },
+    {
+      "name": "missing_binding_diagnostic",
+      "killed": true,
+      "returncode": 1,
+      "summary": "3 failed, 94 passed in 1.09s",
+      "mutant_sha256": "274a490d7d7a2c02da8617b8fcd830611e03217b7712d4216af7dec0ac742b9e"
+    }
+  ],
+  "tracked_runtime_unchanged": true
+}
