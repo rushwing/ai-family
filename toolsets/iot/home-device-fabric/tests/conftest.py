@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-action-validation-runtime", action="store_true", default=False)
     parser.addoption("--require-reconciliation-runtime", action="store_true", default=False)
     parser.addoption("--require-home-queries-runtime", action="store_true", default=False)
     parser.addoption("--require-ha-capabilities-runtime", action="store_true", default=False)
@@ -86,6 +87,16 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-action-validation-runtime"):
+        try:
+            from home_device_fabric.action_validation import ActionValidationResult, ActionValidator
+            if not all(callable(getattr(cls, method, None)) for cls, method in (
+                (ActionValidator, "validate"), (ActionValidationResult, "to_dict"),
+            )):
+                raise ImportError
+        except Exception:
+            raise pytest.UsageError(
+                "REQ-037 action validation runtime required but absent or broken") from None
     if config.getoption("--require-reconciliation-runtime"):
         try:
             from home_device_fabric.reconciliation import ReconnectReconciler
@@ -310,6 +321,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-ha-capabilities-runtime")
         or session.config.getoption("--require-home-queries-runtime")
         or session.config.getoption("--require-reconciliation-runtime")
+        or session.config.getoption("--require-action-validation-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):

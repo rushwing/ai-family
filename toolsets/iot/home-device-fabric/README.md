@@ -1206,3 +1206,35 @@ successful epoch and next sequence. This delivery supports one mapped entity
 per device and fixed inventory only. Live transport composition, durable
 services, device writes, HA/device certification and Feature/Stage acceptance
 remain separate work.
+
+
+## Canonical action preflight (REQ-037 / HI-S024, pending review)
+
+`home_device_fabric.action_validation.ActionValidator` validates canonical
+ActionRequest JSON against an explicit registered Inventory and per-device
+CapabilityDescriptor records. See the sole
+[REQ-037 contract](../../../harness/tasks/features/REQ-037.md) for the API,
+ordered rejection codes and trusted composition boundary, and
+[implementation evidence](../../../harness/tasks/evidence/REQ-037-runtime-implementation.md)
+for verification. The delivery remains req_impl with proposed draft TCs for
+external review.
+
+Construct with `registered_inventory`, `capabilities` (records of home_id,
+device_id, capabilities) and an optional positive `max_input_bytes` (65536 by
+default). `validate(raw_action_request).to_dict()` returns status, failure_code
+and request. Validity means schema/support validation only. Rejected results
+have null request and a finite code; valid requests retain exact arguments.
+No task, authorization, confirmation or provider operation is produced.
+Entirely read-only descriptors always reject writes, even if misconfigured
+metadata declares a setter. Scope and metadata are fixed immutable snapshots;
+rebuild the validator to change them. Use to_dict for detached JSON export;
+pickle/copy/deepcopy are forbidden. There is no network, clock, environment,
+provider handle or implicit fallback. Authenticate/authorize and apply the
+later guard, confirmation, audit and dispatch boundaries separately.
+
+REQ-037 depends on REQ-032 for package-internal reuse of `ha_mapping._json`;
+the helper remains private, with its bounded JSON/encoding requirements owned
+by the REQ-037 contract. Obtain checked results through `validate()`.
+Direct `ActionValidationResult` construction is internal typed-record use and
+does not establish that a request passed validation; result status is not an
+authorization or dispatch credential.
