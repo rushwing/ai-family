@@ -26,6 +26,9 @@ full fabric package/tests; strict mypy passes all **22 runtime modules**.
 Seven isolated full-package mutations are killed, including removing the new
 missing-entry guard (**1 failed / 97 passed**). The six existing semantic faults
 remain detected. The original tracked runtime is unchanged by mutation runs.
+The [updated mutation report](REQ-038-pre-review-mutations.json) binds all seven
+reruns to clean source `12203c2c8ebf1e5c3e1ec9c3fb004141cf3e3913` and the exact
+runtime/test hashes below. This evidence-only follow-up does not alter that source.
 
 The full fabric suite passed **2,163 cases in 91.72 seconds**, with all eighteen
 required-runtime flags and zero failures/errors/skips. Existing wire-transport

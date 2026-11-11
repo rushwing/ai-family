@@ -1,0 +1,60 @@
+{
+  "source_commit": "12203c2c8ebf1e5c3e1ec9c3fb004141cf3e3913",
+  "source_dirty": false,
+  "runtime_sha256": "5c829d6901b69d84e91ba3ab439a1d5953eebbbbade93db51deebaa92968f48a",
+  "tests_sha256": "dcd3adfc3013fc88233e87848f70366152aaa60a5d0524e36ea64b1af1c731f5",
+  "python": "3.12.12 (main, Feb 12 2026, 00:42:57) [Clang 21.1.4 ]",
+  "environment": "Linux aarch64; per-mutation full package copy; verified import path",
+  "mutations": [
+    {
+      "name": "switch_inversion",
+      "killed": true,
+      "returncode": 1,
+      "summary": "3 failed, 95 passed in 1.05s",
+      "mutant_sha256": "bbb267ded7688c67f68490d8d44ade57c5d3ff0bcc46c6adc081310c43d4a81f"
+    },
+    {
+      "name": "entity_membership",
+      "killed": true,
+      "returncode": 1,
+      "summary": "2 failed, 96 passed in 1.03s",
+      "mutant_sha256": "e1fb1888c09f413bde799d133cedc69eba4588c92867b8da0924b3c41e37752d"
+    },
+    {
+      "name": "instance_isolation",
+      "killed": true,
+      "returncode": 1,
+      "summary": "2 failed, 96 passed in 1.02s",
+      "mutant_sha256": "564de7e8cdb5a6f169ab4c3477fa62ff716cddab8ddde071520018dd8677c9de"
+    },
+    {
+      "name": "mapping_allowlist",
+      "killed": true,
+      "returncode": 1,
+      "summary": "12 failed, 86 passed in 1.15s",
+      "mutant_sha256": "498cbdfd72b71891a32fd63ee585c630a580df1a30d712229d35f499a7abc472"
+    },
+    {
+      "name": "descriptor_revision",
+      "killed": true,
+      "returncode": 1,
+      "summary": "3 failed, 95 passed in 1.09s",
+      "mutant_sha256": "782df685be217329053cc81cc1def0bed92844da18f61e156a8856f971a11119"
+    },
+    {
+      "name": "missing_entry_guard",
+      "killed": true,
+      "returncode": 1,
+      "summary": "1 failed, 97 passed in 1.06s",
+      "mutant_sha256": "91209fb73b292edd1191f6b67755f28ec02650ad4e297f184034f90dc252df30"
+    },
+    {
+      "name": "missing_binding_diagnostic",
+      "killed": true,
+      "returncode": 1,
+      "summary": "4 failed, 94 passed in 1.05s",
+      "mutant_sha256": "8e36972072b048e8a3dd13c4b52efe681c74711b65a5e47a77a1a1476acf1504"
+    }
+  ],
+  "tracked_runtime_unchanged": true
+}
