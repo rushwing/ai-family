@@ -45,6 +45,42 @@ regression and missing home isolation. Mutations run in temporary full-package
 copies with import-location verification; tracked runtime bytes were never
 modified. These are generator checks, not independent review signatures.
 
-Direct/sdist-derived artifact checks and head-specific remote CI are recorded
-separately after completion. No live HA, credentials, device writes, Windows
-or Feature/Stage certification is claimed.
+No live HA, credentials, device writes, Windows or Feature/Stage certification
+is claimed.
+
+## Resumed delivery verification
+
+On 2026-11-11, the resumed validator and required-gate suite passed **228 cases,
+zero failures/errors/skips** in 62.52 seconds on Linux aarch64 / CPython 3.12.12.
+Ruff, strict mypy (21 runtime modules), governance, all 21 planning regressions,
+public-data, legacy requirements, RLS and whitespace checks passed again.
+The runtime and validator-test SHA-256 values still match the six killed
+mutations and prior full-suite evidence above; no runtime/test bytes changed.
+
+[Artifact provenance](REQ-037-artifact-provenance.json) records clean committed
+source `f293c9ffc134ef9b2117138dee77644f1f1457c9`, the prior full-suite JUnit
+SHA-256 and exact 2,056-case result, runtime hashes, all six distribution hashes
+and verified official dependency digests. Fresh offline installs of direct and
+sdist-derived schema/fabric wheel pairs passed every smoke family under normal
+and optimized isolated Python. Action validation ran four times with **22
+explicit checks** each. An earlier clean-source attempt stopped on a dependency
+metadata connection reset; the fresh retry completed without bypassing digest
+verification. Artifact acquisition required authorized network access.
+
+[Draft PR #76](https://github.com/rushwing/ai-family/pull/76) delivers combined
+specification, proposed TC criteria, implementation and generator verification
+for external review. REQ-037 stays `req_impl / generator-001`; AC1–AC4 remain
+unchecked and TC-037-01–04 remain draft. No independent approval, readiness or
+merge is asserted.
+
+## Remote CI verification
+
+[GitHub Actions run 42996063008](https://github.com/rushwing/ai-family/actions/runs/42996063008)
+completed successfully on 2026-11-11 for implementation head
+`f293c9ffc134ef9b2117138dee77644f1f1457c9`. All fourteen executed jobs passed,
+including fabric, shared-contract and API matrices on Python 3.12, 3.13 and
+3.14, their installed-artifact checks, governance, MCP, database integration
+and the goal-agent job. Web and requirements jobs were skipped by path
+selection. This certifies the implementation baseline; subsequent provenance,
+PR-number and review-navigation edits change documentation only. CI success
+does not approve the draft TC criteria or grant independent acceptance.
