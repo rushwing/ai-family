@@ -16,6 +16,7 @@ REQUIRED = frozenset((
     "--require-ha-discovery-runtime", "--require-ha-mapping-runtime",
     "--require-ha-capabilities-runtime", "--require-home-queries-runtime",
     "--require-reconciliation-runtime", "--require-action-validation-runtime",
+    "--require-action-resolution-runtime",
 ))
 
 
@@ -45,7 +46,7 @@ def main() -> int:
     for error in errors:
         print(error)
     if not errors:
-        print("Fabric CI wiring passed: complete suite and all seventeen required-runtime flags.")
+        print("Fabric CI wiring passed: complete suite and all eighteen required-runtime flags.")
     return int(bool(errors))
 
 

@@ -785,15 +785,8 @@
       "title": "Resolve actions into registered provider operations",
       "parent": "HI-F007",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S020.md",
-      "depends_on": [
-        "HI-S009",
-        "HI-S015",
-        "HI-S019",
-        "HI-S024"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-038",
       "legacy_refs": [
         "ZW-ST-1302"
       ],

@@ -21,6 +21,7 @@ def available():
 
 
 def pytest_addoption(parser):
+    parser.addoption("--require-action-resolution-runtime", action="store_true", default=False)
     parser.addoption("--require-action-validation-runtime", action="store_true", default=False)
     parser.addoption("--require-reconciliation-runtime", action="store_true", default=False)
     parser.addoption("--require-home-queries-runtime", action="store_true", default=False)
@@ -87,6 +88,17 @@ def ha_rest_available():
 
 
 def pytest_collection_modifyitems(config, items):
+    if config.getoption("--require-action-resolution-runtime"):
+        try:
+            from home_device_fabric.action_resolution import ActionResolutionResult, ActionResolver
+            if not all(callable(getattr(cls, method, None)) for cls, method in (
+                (ActionResolver, "resolve"), (ActionResolutionResult, "for_adapter"),
+                (ActionResolutionResult, "to_redacted_dict"),
+            )):
+                raise ImportError
+        except Exception:
+            raise pytest.UsageError(
+                "REQ-038 action resolution runtime required but absent or broken") from None
     if config.getoption("--require-action-validation-runtime"):
         try:
             from home_device_fabric.action_validation import ActionValidationResult, ActionValidator
@@ -322,6 +334,7 @@ def pytest_sessionfinish(session, exitstatus):
         or session.config.getoption("--require-home-queries-runtime")
         or session.config.getoption("--require-reconciliation-runtime")
         or session.config.getoption("--require-action-validation-runtime")
+        or session.config.getoption("--require-action-resolution-runtime")
     ):
         reporter = session.config.pluginmanager.getplugin("terminalreporter")
         if reporter and reporter.stats.get("skipped"):
