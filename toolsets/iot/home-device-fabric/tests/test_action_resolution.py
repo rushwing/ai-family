@@ -74,6 +74,25 @@ def test_exact_entity_not_first_binding_member_and_correlation(resolver, config)
 
 
 @pytest.mark.tc038_02
+def test_missing_internal_entry_fails_closed_without_changing_precedence(resolver, offline):
+    # Fault injection bypasses the frozen snapshot; public construction cannot
+    # create a validator/entry mismatch. Preserve other entries to catch fallback.
+    object.__setattr__(resolver, "_entries", tuple(
+        row for row in resolver._entries if row[:3] != (
+            "device-example", "home.switchable", 1)))
+    result = resolver.resolve(request())
+    assert result.for_adapter() == {"status": "rejected",
+        "failure_code": "unsupported_operation", "request": None, "operation": None}
+    assert result.to_redacted_dict() == {
+        "status": "rejected", "failure_code": "unsupported_operation"}
+    assert resolver.resolve(request(arguments={"is_on": 1})).failure_code == "invalid_arguments"
+    assert resolver.resolve(request(device_id="device-other")).status == "resolved"
+    object.__setattr__(resolver, "_bindings", ())
+    assert resolver.resolve(request()).failure_code == "missing_binding"
+    assert offline == []
+
+
+@pytest.mark.tc038_02
 @pytest.mark.parametrize("changes,code", [
     ({"home_id": "home-other", "device_id": "missing"}, "unknown_home"),
     ({"device_id": "missing", "capability_id": "vendor.private"}, "unknown_device"),

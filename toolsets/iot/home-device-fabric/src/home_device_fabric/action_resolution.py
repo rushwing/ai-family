@@ -33,7 +33,11 @@ class ActionResolutionError(ValueError):
 
 @dataclass(frozen=True, slots=True, repr=False)
 class ActionResolutionResult:
-    """Internal typed record. Only resolve supplies checked private plans."""
+    """Internal typed record; direct construction performs no validation.
+
+    Trusted callers obtain checked plans through ActionResolver.resolve, never
+    by accepting a caller-supplied result. Even checked plans grant no authority.
+    """
 
     failure_code: Code | None
     _payload: str | None = None
@@ -58,6 +62,7 @@ class ActionResolutionResult:
 
 
 def _expected_mapping(capability: str, instance: str, entity: str) -> dict[str, object]:
+    """REQ-033 v1 shapes; resolve checks the exact packaged descriptor first."""
     if capability == "home.switchable":
         prop = "is_on"
         actions: dict[str, object] = {"set_on": {
@@ -155,15 +160,17 @@ class ActionResolver:
             return ActionResolutionResult("provider_mismatch")
         capability = canonical["capability_id"]
         version = canonical["capability_version"]
-        entry = next(row for row in self._entries if row[:3] == (device, capability, version))
+        entry = next((row for row in self._entries
+                      if row[:3] == (device, capability, version)), None)
         supported = dict(self._descriptors).get(cast(str, capability))
-        if supported is None or entry[3] != supported:
+        if entry is None or supported is None or entry[3] != supported:
             return ActionResolutionResult("unsupported_operation")
         mapping = json.loads(entry[4])
         if mapping is None:
             return ActionResolutionResult("mapping_uninitialized")
         entity = mapping.get("entity_id")
         domain = "switch" if capability == "home.switchable" else "cover"
+        # BindingCollection validates the HA mapping/entity_ids shape at construction.
         if (type(entity) is not str
                 or re.fullmatch(domain + r"\.[a-z0-9_]+", entity, re.ASCII) is None
                 or entity not in binding["mapping"]["entity_ids"]

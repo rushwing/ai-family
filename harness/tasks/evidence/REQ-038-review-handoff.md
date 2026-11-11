@@ -3,7 +3,10 @@
 Prepared on 2026-11-11 for [draft PR #78](https://github.com/rushwing/ai-family/pull/78).
 Implementation baseline: `545be9691db56813208b317e8f2300ef5c5be5c0`, based on
 merged main `117b94fb29a2398be5be7e9fec693cee69ce76dc` (PR #77).
-Later delivery evidence changes documentation only.
+Commit `9e0ae41` adds documentation-only delivery evidence. The later
+[pre-review follow-up](REQ-038-pre-review-fixes.md) changes the defensive entry
+lookup and adds a regression; the baseline counts/hashes below are historical,
+not verification of the revised runtime.
 
 Human-001 authorized combined specification, proposed TC criteria, runtime
 and verification with an explicit stop at `req_impl` for external review.
@@ -13,7 +16,7 @@ generator-authored drafts. This packet supplies no independent TC approval,
 evaluator signature or lifecycle transition. Review criteria independently
 before judging their implementation mappings.
 
-| Proposed criteria | Review focus | JUnit mappings |
+| Proposed criteria | Review focus | Baseline JUnit mappings |
 | --- | --- | --- |
 | [TC-038-01](../test-cases/TC-038-01.md) | Exact switch/curtain plans, grouped resources, canonical correlation and real inference composition | 6 |
 | [TC-038-02](../test-cases/TC-038-02.md) | Validation ordering, binding/instance isolation, fixed descriptors and hostile/missing maps | 51 |
@@ -48,3 +51,21 @@ durable tasks before dispatch. No provider call or physical write is enabled.
 The reviewer should identify reviewed commit, approve or revise criteria,
 assess AC1–AC4 and record findings, execution and environment limits.
 Keep readiness, final acceptance and merge separate from this delivery.
+
+## Independent review still required (O4)
+
+Human-001 supplied a local pre-review explicitly without an independent
+signature or approval. Its informational observations and generator dispositions
+are tracked in the [follow-up](REQ-038-pre-review-fixes.md). The four draft TCs
+must still be reviewed against the REQ before judging implementation coverage.
+An external evaluator must record the exact reviewed head and:
+
+- Approve or revise TC-038-01's exact plans, grouped targets and correlation criteria.
+- Approve or revise TC-038-02's ordered failures, exact maps and defensive-entry criteria.
+- Approve or revise TC-038-03's bounds, privacy, isolation and effect-denial criteria.
+- Approve or revise TC-038-04's mandatory-runtime, artifact and mutation criteria.
+- Assess AC1–AC4 against those reviewed criteria, identify executed checks and
+  environment limits, and record findings and their disposition.
+
+Generator self-checks cannot complete these review actions. The REQ owner/status,
+draft TC states, unchecked ACs and draft PR remain unchanged pending that handoff.
