@@ -386,6 +386,7 @@ def test_ha_websocket_required_gate(tmp_path, monkeypatch, provider, module, dep
 @pytest.mark.tc032_04
 @pytest.mark.tc033_04
 @pytest.mark.tc034_04
+@pytest.mark.tc037_04
 def test_ci_requires_complete_fabric_acceptance():
     root = Path(__file__).resolve().parents[4]
     validate = runpy.run_path(str(root / "tools/check_fabric_ci.py"))["validate"]
@@ -398,7 +399,8 @@ def test_ci_requires_complete_fabric_acceptance():
                  "--require-ha-normalization-runtime", "--require-state-store-runtime",
                  "--require-state-events-runtime", "--require-ha-discovery-runtime",
                  "--require-ha-mapping-runtime", "--require-ha-capabilities-runtime",
-                 "--require-home-queries-runtime", "--require-reconciliation-runtime"):
+                 "--require-home-queries-runtime", "--require-reconciliation-runtime",
+                 "--require-action-validation-runtime"):
         assert validate(workflow.replace(flag, "")) == ["missing fabric acceptance flag: " + flag]
     assert validate(workflow.replace("python -m pytest", "echo python -m pytest"))
     assert validate(workflow.replace("home-device-fabric-tc:", "disabled-fabric:"))
@@ -860,3 +862,41 @@ def test_reconciliation_smoke_in_isolated_python(tmp_path, monkeypatch, optimize
     result = run_probe(command, tmp_path, monkeypatch)
     assert result.returncode == 0, result.stdout + result.stderr
     assert json.loads(result.stdout) == {"checks": 18, "offline": True}
+
+
+@pytest.mark.parametrize("mode,expected", [
+    ("absent", 4), ("broken", 4), ("methods_missing", 4), ("result_missing", 4),
+    ("skip", 1), ("ready", 0),
+])
+@pytest.mark.tc037_04
+def test_action_validation_required_gate(tmp_path, monkeypatch, mode, expected):
+    (tmp_path / "conftest.py").write_text(isolated_hooks(
+        tmp_path, provider_present=True, demo_present=False))
+    package = tmp_path / "runtime/home_device_fabric"
+    if mode != "absent":
+        (package / "action_validation.py").write_text(
+            "raise RuntimeError('private import details')\n" if mode == "broken" else
+            ("class ActionValidator: pass\n" if mode == "methods_missing" else
+             "class ActionValidator:\n    def validate(self): pass\n") +
+            ("class ActionValidationResult: pass\n" if mode == "result_missing" else
+             "class ActionValidationResult:\n    def to_dict(self): pass\n"))
+    (tmp_path / "test_probe.py").write_text(
+        "import pytest\n" + ("@pytest.mark.skip(reason='required skip')\n" if mode == "skip"
+                             else "") + "def test_probe(): pass\n")
+    result = run_probe([sys.executable, "-I", "-m", "pytest", str(tmp_path), "-q",
+                        "--confcutdir", str(tmp_path), "--require-action-validation-runtime"],
+                       tmp_path, monkeypatch)
+    assert result.returncode == expected, result.stdout + result.stderr
+    assert "private import details" not in result.stdout + result.stderr
+
+
+@pytest.mark.parametrize("optimized", [False, True])
+@pytest.mark.tc037_04
+def test_action_validation_smoke_in_isolated_python(tmp_path, monkeypatch, optimized):
+    command = [sys.executable, "-I"]
+    if optimized:
+        command.append("-O")
+    command.append(str(Path(__file__).with_name("action_validation_artifact_smoke.py")))
+    result = run_probe(command, tmp_path, monkeypatch)
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert json.loads(result.stdout) == {"checks": 22, "offline": True}

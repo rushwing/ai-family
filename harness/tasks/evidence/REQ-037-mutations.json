@@ -1,0 +1,57 @@
+{
+  "generator_verification": true,
+  "independent_approval": false,
+  "method": "Temporary full-package copies, import verified before pytest; tracked runtime never modified.",
+  "runtime_sha256": "cc559ffa2877ce752daf45f7b70334625b8341269e61ef627ed60ca0130e03fa",
+  "test_sha256": "8247ae25b9fd22456effbcca2e1be87a08c42af984d0fbecf90c715c931b65e8",
+  "mutations": [
+    {
+      "mutation": "version_fallback",
+      "selected_test": "exact_supported_revisions",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "6f7db5e3148f42ec55d818039cb34eb4275106a1bd813a1cba9bc981c25fbcef"
+    },
+    {
+      "mutation": "sensor_write",
+      "selected_test": "read_only",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "b059864a712db6863d87172584fdefa34823018effb1b57af15406db8e02887f"
+    },
+    {
+      "mutation": "input_schema",
+      "selected_test": "arguments_not_coerced or curtain_does_not",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "f068506029890094ad414f8fb833a731b397e1d81a297b8a8665765cf753ebe5"
+    },
+    {
+      "mutation": "metadata_unknown",
+      "selected_test": "ordered_selection",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "7a1864ec220e13c22aadadf68b916778e1e0cd949da14edffa96aca594ee9051"
+    },
+    {
+      "mutation": "byte_boundary",
+      "selected_test": "byte_limit",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "d49be4b7422ee2ade35a915cfbab7ae0fcebc0ca96122b2d7f7591572eea191e"
+    },
+    {
+      "mutation": "home_scope",
+      "selected_test": "ordered_selection",
+      "exit_code": 1,
+      "killed": true,
+      "runtime_import_verified": true,
+      "log_sha256": "f56ce95e6762bf81e9b7d17a56e374e4eec49652236471e136d06bf7729c7e8a"
+    }
+  ]
+}
