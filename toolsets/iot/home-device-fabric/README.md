@@ -1208,16 +1208,18 @@ services, device writes, HA/device certification and Feature/Stage acceptance
 remain separate work.
 
 
-## Canonical action preflight (REQ-037 / HI-S024, pending review)
+## Canonical action preflight (REQ-037 / HI-S024)
 
 `home_device_fabric.action_validation.ActionValidator` validates canonical
 ActionRequest JSON against an explicit registered Inventory and per-device
 CapabilityDescriptor records. See the sole
-[REQ-037 contract](../../../harness/tasks/features/REQ-037.md) for the API,
+[REQ-037 contract](../../../harness/tasks/archive/done/features/REQ-037.md) for the API,
 ordered rejection codes and trusted composition boundary, and
 [implementation evidence](../../../harness/tasks/evidence/REQ-037-runtime-implementation.md)
-for verification. The delivery remains req_impl with proposed draft TCs for
-external review.
+for source-specific verification. Human-001 accepted the combined delivery
+and merged PR #76 on 2026-11-11; see the
+[final acceptance](../../../harness/tasks/evidence/REQ-037-review-acceptance.md)
+for merge identity, TC acceptance and verification limits.
 
 Construct with `registered_inventory`, `capabilities` (records of home_id,
 device_id, capabilities) and an optional positive `max_input_bytes` (65536 by

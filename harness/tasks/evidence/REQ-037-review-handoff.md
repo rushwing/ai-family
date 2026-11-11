@@ -1,5 +1,9 @@
 # REQ-037 external combined review handoff
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-037-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 Prepared on 2026-11-11 for [draft PR #76](https://github.com/rushwing/ai-family/pull/76).
 Implementation baseline: `f293c9ffc134ef9b2117138dee77644f1f1457c9`, against
 `94a4f6379b7c6db850494a7a5e431728de453d47`. Later delivery evidence changes
@@ -13,7 +17,7 @@ implementation acceptance remain pending.
 
 Human-001 authorized combined specification, proposed TC criteria, runtime and
 verification with an explicit stop at `req_impl` for external review. The sole
-[REQ-037](../features/REQ-037.md) remains `req_impl / generator-001`, AC1–AC4
+[REQ-037](../archive/done/features/REQ-037.md) remains `req_impl / generator-001`, AC1–AC4
 unchecked. All four TC documents remain generator-authored drafts. This packet
 supplies no independent TC approval, evaluator signature or lifecycle transition.
 

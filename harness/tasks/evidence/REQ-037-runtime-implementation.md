@@ -1,8 +1,12 @@
 # REQ-037 implementation delivery
 
+Historical implementation/review record. The later human final disposition in
+[final acceptance](REQ-037-review-acceptance.md) supersedes pending approval
+and req_impl stopping statements below; source-specific evidence remains historical.
+
 Human-001 authorized HI-S024 / REQ-037 combined specification, proposed TC,
 runtime and verification work on 2026-11-10, stopping at req_impl for external
-review. The sole [REQ](../features/REQ-037.md) remains req_impl / generator-001,
+review. The sole [REQ](../archive/done/features/REQ-037.md) remains req_impl / generator-001,
 with AC1–AC4 unchecked and TC-037-01–04 draft. No independent approval or
 merge is asserted.
 

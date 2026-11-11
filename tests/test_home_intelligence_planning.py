@@ -67,6 +67,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/evidence/REQ-035-runtime-implementation.md",
             "harness/tasks/evidence/REQ-035-review-acceptance.md",
             "harness/tasks/evidence/REQ-036-review-acceptance.md",
+            "harness/tasks/evidence/REQ-037-review-acceptance.md",
             "harness/tasks/bugs/BUG-033.md",
             "harness/tasks/evidence/REQ-023-review-acceptance.md",
             "harness/tasks/evidence/REQ-022-review-acceptance.md",
@@ -134,7 +135,9 @@ class PlanningIntegrityTests(unittest.TestCase):
                                              'tasks/archive/done/features/REQ-035.md',
                                              'tasks/features/REQ-035.md').replace(
                                              'tasks/archive/done/features/REQ-036.md',
-                                             'tasks/features/REQ-036.md'))
+                                             'tasks/features/REQ-036.md').replace(
+                                             'tasks/archive/done/features/REQ-037.md',
+                                             'tasks/features/REQ-037.md'))
         self.index = self.root / PRODUCT / "requirements/index.json"
         self.baseline = json.loads(self.index.read_text(encoding="utf-8"))
         self.candidate_index = next(
