@@ -11,8 +11,8 @@ The original runtime inventory below was inspected at `c595649` on 2026-10-07. D
 
 ## Partially Implemented
 
-- REQ-003 is req_impl_review. Its existing implementation evidence must not be mistaken for a complete Home Intelligence backend.
-- The gateway defaults to no executor and fails with 503. Confirmation and audit use bounded process-local storage; durable multi-instance behavior remains work.
+- REQ-003 and REQ-004 remain req_impl / generator-001. Their human-accepted shared prerequisite increment in PR #80 does not complete either full requirement or the Home Intelligence backend.
+- The gateway defaults to no executor and fails with 503. PR #80 supplies durable PostgreSQL confirmation/proof replay protection and a registered authenticated home-tool boundary. Goal-only local mode retains bounded memory confirmation; interim audit remains process-local. Production home policy/handler, durable audit and governed dispatch remain work.
 - agents/goal/app/graph/__init__.py builds a graph with passthrough nodes and an injected checkpointer. It is not a complete household workflow runtime.
 - libs/ has reserved contract/auth packages, while shared production implementations must be inspected before reuse. apps/chatui/ has e2e specifications rather than a delivered application.
 - ADR-006 records a human decision to retain RabbitMQ, but frontmatter is still proposed. ADR-016 is accepted and relies on the task/device-bus distinction.
@@ -34,8 +34,12 @@ HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/d
 Read admitted engineering blockers from Harness; no unadmitted candidate is marked blocked. The remaining stories await explicit Story prerequisites listed in index.json. Future live HA/device validation requires private endpoint/credentials and a controlled existing device. Deployment of device actions also requires real governed dispatch, durable audit/confirmation and task processing; link the relevant REQ-003/004 gaps when admitting those stories rather than claiming blanket readiness.
 
 HI-S022 is admitted as [REQ-039](../../../harness/tasks/features/REQ-039.md).
-Read its shared-platform prerequisite findings and unblock conditions there;
-local schema/action-validation delivery does not establish dispatch readiness.
+The shared-platform prerequisite increment is now human-accepted and merged in
+[PR #80](https://github.com/rushwing/ai-family/pull/80); read the
+[bounded acceptance ledger](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md).
+REQ-039 remains blocked pending explicit human T17 restoration of its design
+handoff. Accepted confirmation/auth infrastructure does not establish guard
+composition or physical dispatch readiness.
 
 ## Decisions Required
 
@@ -214,3 +218,22 @@ and post-capture live drain. Live HA/device validation, dynamic inventory,
 multi-entity aggregation, durable state, device writes, deployment, BUG-033
 and Feature/R1 acceptance retain separate gates. Read engineering state from
 the sole archived REQ. This closeout admits no next implementation.
+
+## Shared Confirmation and Home Boundary Delivery
+
+Human-001 accepted the bounded REQ-003 WP-4 / REQ-004 increment in
+[PR #80](https://github.com/rushwing/ai-family/pull/80), merged as `9315763`
+on 2026-11-14. Atomic PostgreSQL nonce claims and exact-bound one-use tokens
+protect against cross-instance/restart replay; the registered home wrapper
+rechecks JWT and injected policy and supplies member-scoped handler transactions.
+Missing durable storage or wrapper wiring fails closed. The caller must still
+compose transaction-consistent grants/bindings/availability and governed tasks
+before any physical effects.
+
+[Acceptance and verification limits](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md)
+record the 63-case evidence manifest, PG16 CI, failure/revocation regressions
+and human disposition without inventing an independent evaluator signature.
+Full REQ-003/004 remain active; TC-003-11 and TC-004-01/02 are passing within
+this accepted increment. REQ-039 T17, production policy/handler, durable audit,
+provider dispatch, live IdP/HA/device certification and Feature/Stage acceptance
+retain separate gates. No next implementation is admitted by this closeout.

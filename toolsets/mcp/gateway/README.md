@@ -20,7 +20,7 @@
 工具的**功能分发**经 `create_app(executor=...)` 注入；真实分发到 goal-mcp FastMCP 随服务联调
 在 req_impl_review 闭环。未注入 executor 的默认应用对工具请求返回 503，并在 `/readyz` 报未就绪，
 不会伪造成功。内存 confirm/audit 仅用于单实例边界验证，已有 TTL/容量限制。
-共享 PG confirm 增量与 home 注册边界见下文（待评审）；持久化 audit 仍是联调项。
+共享 PG confirm 增量与 home 注册边界已由 human-001 接受并合并至 PR #80；持久化 audit 仍是联调项。
 
 ## 测试与联调
 
@@ -41,7 +41,12 @@ python -m pytest tests/ ../../../tests -q -k "goal_write_boundary or goal_jwt_bo
 未设 `AIFAMILY_GATEWAY_URL` 时外部服务用例 skip（两段式评审：tc_impl 审代码名副其实，
 真实 executor + Keycloak 真跑归 req_impl_review）。
 
-## REQ-003/004 shared prerequisite increment (pending review)
+## REQ-003/004 accepted shared prerequisite increment
+
+[Human bounded acceptance](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md)
+records PR #80, merged as `9315763` on 2026-11-14, all pre-review dispositions
+and source-specific PG16 verification. Full REQ-003/004 completion, the
+REQ-039 production guard/T17 handoff and physical dispatch remain separate.
 
 `gateway.persistence.PostgresConfirmStore` extends the shared `confirm_token`
 platform table through migration `0006_gateway_confirmation.sql`. Apply migrations
