@@ -75,6 +75,9 @@ jobs:
               - 'tools/check_home_intelligence_requirements.py'
             mcp:
               - 'toolsets/mcp/**'
+              - 'data/migrations/**'
+              - 'tools/check_gateway_results.py'
+              - 'tests/test_gateway_results.py'
               - 'agents/goal/app/auth/oidc.py'
               - 'agents/goal/app/main.py'
               - 'agents/goal/app/config.py'
@@ -230,6 +233,15 @@ jobs:
     needs: changes
     if: ${{ needs.changes.outputs.mcp == 'true' }}
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -245,7 +257,21 @@ jobs:
       - name: Lint MCP toolsets
         run: ruff check toolsets/mcp/goal-mcp toolsets/mcp/gateway
       - name: Test manifest and gateway boundary
-        run: pytest toolsets/mcp/goal-mcp/tests toolsets/mcp/gateway/tests -q
+        env:
+          AIFAMILY_CONFIRMATION_TEST_DSN: postgresql://postgres:postgres@localhost:5432/postgres
+          AIFAMILY_REQUIRE_CONFIRMATION_PG: "1"
+        run: >-
+          pytest toolsets/mcp/goal-mcp/tests toolsets/mcp/gateway/tests -q
+          --junitxml=/tmp/mcp-boundary-results.xml
+      - name: Require executed shared confirmation and home-tool evidence
+        run: |
+          python -m unittest discover -s tests -p test_gateway_results.py
+          python tools/check_gateway_results.py /tmp/mcp-boundary-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mcp-boundary-results
+          path: /tmp/mcp-boundary-results.xml
       - name: Test GoalAgent legacy routes remain disabled
         run: pytest agents/goal/tests/integration/test_legacy_direct_disabled.py -q
 

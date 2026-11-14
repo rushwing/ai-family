@@ -7,8 +7,8 @@ confirm token 的红线（与 WP-7 kid Draft-First 同源理念）：
     tool 与规范化业务参数；跨会话、跨成员、换工具或确认后替换参数一律拒。
   - **一次性**：消费即作废（consumed），重放拒。
 
-M1 边界测试使用有 TTL 和容量上限的进程内存储；多实例 / 持久化随平台状态表
-（confirm_token 表，已在 data/migrations/0005）在后续联调接 PG。
+本模块保留有 TTL 和容量上限的单实例边界测试存储。
+共享持久化见 gateway.persistence.PostgresConfirmStore；home 写入禁用本内存路径。
 """
 from __future__ import annotations
 
@@ -106,7 +106,7 @@ class ConfirmStore:
         Missing, forged, expired, replayed, cross-session, cross-member,
         cross-tool, or payload-mutated confirmations all fail closed.
         """
-        if not token:
+        if type(token) is not str or not token or len(token) > 128:
             return False
         now = time.time()
         with self._lock:

@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import inspect
+import json
 import os
 import time
 from collections import deque
@@ -23,12 +24,19 @@ from typing import Any, Callable
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from goal_mcp import tool_registry
 from starlette.concurrency import run_in_threadpool
 
 from gateway.auth import AuthenticationError, AuthorizationError, verify_bearer
 from gateway.confirm import ConfirmStore, confirmation_payload
 from gateway.interaction import InteractionProofError, InteractionVerifier
+from gateway.persistence import ConfirmationUnavailable, PostgresConfirmStore, ProofReplay
+from gateway.tools import (
+    HOME_ACTION_TOOL,
+    AuthenticatedTool,
+    ToolDenied,
+    ToolUnavailable,
+    gateway_registry,
+)
 
 ToolExecutor = Callable[[str, str, dict], dict]
 
@@ -37,11 +45,17 @@ def create_app(
     executor: ToolExecutor | None = None,
     *,
     confirmation_secret: str | None = None,
+    confirmation_store: PostgresConfirmStore | None = None,
+    home_tool: AuthenticatedTool | None = None,
 ) -> FastAPI:
     app = FastAPI(title="ai-family MCP Gateway", version="0.1.0")
-    registry = tool_registry()
+    if home_tool is not None and home_tool.name != HOME_ACTION_TOOL:
+        raise ValueError("home tool registration mismatch")
+    registry = gateway_registry()
     tools = {t.name: t for t in registry.list_tools()}
-    confirm = ConfirmStore()
+    database = os.getenv("AIFAMILY_GATEWAY_PG_DSN", "")
+    confirm = confirmation_store or (PostgresConfirmStore(database) if database else ConfirmStore())
+    durable = isinstance(confirm, PostgresConfirmStore)
     interaction = InteractionVerifier(
         confirmation_secret
         if confirmation_secret is not None
@@ -74,10 +88,27 @@ def create_app(
         value = claims.get("sid") or claims.get("session_state")
         return value if isinstance(value, str) and value.strip() else None
 
+    async def _home_boundary(request: Request, body: dict) -> JSONResponse | None:
+        if not durable or home_tool is None:
+            return JSONResponse({"error": "home_boundary_unavailable"}, status_code=503)
+        try:
+            await run_in_threadpool(
+                home_tool.authorize, _bearer(request), confirmation_payload(body),
+            )
+        except ToolDenied:
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        except ToolUnavailable:
+            return JSONResponse({"error": "home_boundary_unavailable"}, status_code=503)
+        return None
+
     @app.post("/tools/{tool}")
     async def call_tool(tool: str, request: Request) -> JSONResponse:
         try:
-            body = await request.json()
+            raw = await request.body()
+            if len(raw) > 65536:
+                raise ValueError("body too large")
+            body = json.loads(raw)
+            json.dumps(body, allow_nan=False)
         except Exception:
             _record(tool, "deny", None, "invalid_json")
             return JSONResponse({"error": "invalid_json"}, status_code=400)
@@ -115,12 +146,17 @@ def create_app(
 
         # No runtime dispatcher means this process is a boundary-only build.
         # Reject both reads and write prepares before issuing confirmation state.
-        if executor is None:
+        if tool == HOME_ACTION_TOOL:
+            denied = await _home_boundary(request, body)
+            if denied is not None:
+                _record(tool, "deny", member, "home_boundary_denied")
+                return denied
+        elif executor is None:
             _record(tool, "deny", member, "executor_unavailable")
             return JSONResponse({"error": "executor_unavailable"}, status_code=503)
 
         # ④ write 类两段式
-        if spec.risk == "write":
+        if spec.risk in ("write", "high"):
             if body.get("prepare") is True:
                 _record(tool, "deny", member, "ordinary_channel_cannot_confirm")
                 return JSONResponse({"error": "use_user_confirmation_channel"}, status_code=403)
@@ -128,25 +164,34 @@ def create_app(
             if session is None:
                 _record(tool, "deny", member, "missing_session")
                 return JSONResponse({"error": "session_required"}, status_code=401)
-            ok = confirm.consume(
-                body.get("confirm_token"),
-                member=member,
-                session=session,
-                tool=tool,
-                params=body,
-            )
+            try:
+                ok = await run_in_threadpool(
+                    confirm.consume, body.get("confirm_token"), member=member,
+                    session=session, tool=tool, params=body,
+                )
+            except ConfirmationUnavailable:
+                _record(tool, "deny", member, "confirmation_unavailable")
+                return JSONResponse({"error": "confirmation_unavailable"}, status_code=503)
             if not ok:
                 _record(tool, "deny", member, "bad_confirm_token")
                 return JSONResponse({"error": "confirm_required"}, status_code=400)
 
         params = confirmation_payload(body)
         try:
-            if inspect.iscoroutinefunction(executor):
+            if tool == HOME_ACTION_TOOL:
+                result = await run_in_threadpool(home_tool, _bearer(request), params)
+            elif inspect.iscoroutinefunction(executor):
                 result = await executor(tool, member, params)
             else:
                 result = await run_in_threadpool(executor, tool, member, params)
                 if inspect.isawaitable(result):
                     result = await result
+        except ToolDenied:
+            _record(tool, "deny", member, "tool_policy_denied")
+            return JSONResponse({"error": "forbidden"}, status_code=403)
+        except ToolUnavailable:
+            _record(tool, "deny", member, "tool_unavailable")
+            return JSONResponse({"error": "home_boundary_unavailable"}, status_code=503)
         except Exception:
             _record(tool, "deny", member, "executor_failed")
             return JSONResponse({"error": "executor_failed"}, status_code=502)
@@ -157,7 +202,11 @@ def create_app(
     async def create_confirmation(tool: str, request: Request) -> JSONResponse:
         """Mint a token only from the independently authenticated ChatUI/BFF channel."""
         try:
-            body = await request.json()
+            raw = await request.body()
+            if len(raw) > 65536:
+                raise ValueError("body too large")
+            body = json.loads(raw)
+            json.dumps(body, allow_nan=False)
         except Exception:
             _record(tool, "deny", None, "invalid_confirmation_json")
             return JSONResponse({"error": "invalid_json"}, status_code=400)
@@ -174,7 +223,7 @@ def create_app(
         if spec is None:
             _record(tool, "deny", member, "unknown_tool")
             return JSONResponse({"error": "unknown_tool"}, status_code=404)
-        if spec.risk != "write" or claims["role"] not in spec.roles:
+        if spec.risk not in ("write", "high") or claims["role"] not in spec.roles:
             _record(tool, "deny", member, "confirmation_forbidden")
             return JSONResponse({"error": "forbidden"}, status_code=403)
         req_member = body.get("family_member_id")
@@ -185,11 +234,17 @@ def create_app(
         if session is None:
             _record(tool, "deny", member, "missing_session")
             return JSONResponse({"error": "session_required"}, status_code=401)
-        if executor is None:
+        if tool == HOME_ACTION_TOOL:
+            denied = await _home_boundary(request, body)
+            if denied is not None:
+                _record(tool, "deny", member, "home_boundary_denied")
+                return denied
+        elif executor is None:
             _record(tool, "deny", member, "executor_unavailable")
             return JSONResponse({"error": "executor_unavailable"}, status_code=503)
         try:
-            interaction.verify(
+            verifier = interaction.verify_signature if durable else interaction.verify
+            verifier(
                 timestamp=request.headers.get("x-ai-family-interaction-timestamp"),
                 nonce=request.headers.get("x-ai-family-interaction-nonce"),
                 signature=request.headers.get("x-ai-family-interaction-signature"),
@@ -201,12 +256,21 @@ def create_app(
         except InteractionProofError:
             _record(tool, "deny", member, "invalid_user_interaction_proof")
             return JSONResponse({"error": "user_confirmation_required"}, status_code=403)
-        token = confirm.issue(
-            member=member,
-            session=session,
-            tool=tool,
-            params=body,
-        )
+        try:
+            if durable:
+                token = await run_in_threadpool(
+                    confirm.issue_confirmed, member=member, session=session, tool=tool,
+                    params=body, nonce=request.headers["x-ai-family-interaction-nonce"],
+                    timestamp=int(request.headers["x-ai-family-interaction-timestamp"]),
+                )
+            else:
+                token = confirm.issue(member=member, session=session, tool=tool, params=body)
+        except ProofReplay:
+            _record(tool, "deny", member, "replayed_user_interaction_proof")
+            return JSONResponse({"error": "user_confirmation_required"}, status_code=403)
+        except ConfirmationUnavailable:
+            _record(tool, "deny", member, "confirmation_unavailable")
+            return JSONResponse({"error": "confirmation_unavailable"}, status_code=503)
         _record(tool, "allow", member, "user_confirmed")
         return JSONResponse({"confirm_token": token}, status_code=200)
 
@@ -244,6 +308,8 @@ def create_app(
             "issuer": bool(os.getenv("AIFAMILY_OIDC_ISSUER")),
             "executor_configured": executor is not None,
             "confirmation_channel_configured": interaction.configured,
+            "durable_confirmation_configured": durable,
+            "home_boundary_configured": durable and home_tool is not None,
         }
 
     @app.get("/readyz")

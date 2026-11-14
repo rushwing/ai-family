@@ -131,11 +131,11 @@ class ToolRegistry:
     @staticmethod
     def _validate(tool: Tool) -> None:
         m = tool.manifest
-        if tool.risk not in (READ, WRITE):
+        if tool.risk not in (READ, WRITE, "draft", "high"):
             raise RegistrationError(f"{tool.name} risk 非法：{tool.risk!r}")
         # 防「写工具被误标为 read」：mutates 与 risk 必须一致
         mutates = bool(m.get("mutates", tool.risk == WRITE))
-        if mutates and tool.risk != WRITE:
+        if mutates and tool.risk not in (WRITE, "high"):
             raise RegistrationError(f"{tool.name} 会写库但 risk 标为 read（误标）")
         roles = frozenset(m.get("roles", ()))
         if not roles:
@@ -145,8 +145,12 @@ class ToolRegistry:
             raise RegistrationError(f"{tool.name} 含未知角色：{sorted(unknown_roles)}")
         if m.get("tenant_scope") not in (MEMBER, SHARED):
             raise RegistrationError(f"{tool.name} tenant_scope 非法：{m.get('tenant_scope')!r}")
+        if m.get("auth") != "oidc-jwt":
+            raise RegistrationError(f"{tool.name} 缺可信工具侧 auth")
+        if not isinstance(m.get("test_ref"), str) or not m["test_ref"].strip():
+            raise RegistrationError(f"{tool.name} 缺鉴权测试引用")
         # write 类：工具侧 auth + 测试引用 + 两段式 + 用户来源 confirm（BUG-017）
-        if tool.risk == WRITE:
+        if tool.risk in (WRITE, "high"):
             if not m.get("auth"):
                 raise RegistrationError(f"{tool.name} 写类 tool 缺工具侧 auth")
             if not m.get("test_ref"):
