@@ -50,3 +50,18 @@ Governance gates and all 21 planning regressions passed again. Final CI uses
 PostgreSQL 16 and must be attributed to its own PR head, separately from this
 source-specific PostgreSQL 17 evidence. Later evidence/docs-only commits do not
 relabel the implementation artifacts.
+
+## Second-round review follow-up
+
+F4: the combined-delivery paragraph now links the committed runtime handoff
+and artifact provenance above. Active Harness requirement links are checked by
+local governance and CI against committed paths, so an untracked local evidence
+file cannot hide a missing delivery artifact. No historical evidence is rewritten.
+
+I9/I10: this slice holds one store-wide publication lock across all homes for
+a bounded wait of up to five seconds; contention can block unrelated home reads
+and writes. Each authorization preflight opens a PostgreSQL connection and
+authority lease, repeated at app boundary, wrapper authorization and protected
+final entry. Connection and latency optimization and finer lock granularity are
+future work and must retain the final-entry guarantees. I7/I8/I11/I12 require no
+behavior change; the review and acceptance boundary remains unchanged.

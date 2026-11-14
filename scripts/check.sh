@@ -23,5 +23,7 @@ echo "► 迁移 RLS 扫描 gate（TC-002-05 / BUG-002）"
 echo "► Home Intelligence planning integrity gate (REQ-012)"
 "$PY" tools/check_home_intelligence_planning.py
 "$PY" -m unittest discover -s tests -p test_home_intelligence_planning.py
+"$PY" tools/check_harness_links.py
+"$PY" -m unittest discover -s tests -p test_harness_links.py
 "$PY" tools/check_fabric_ci.py
 echo "✓ 治理门全过"
