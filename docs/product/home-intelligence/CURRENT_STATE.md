@@ -38,9 +38,10 @@ The shared-platform prerequisite increment is now human-accepted and merged in
 [PR #80](https://github.com/rushwing/ai-family/pull/80); read the
 [bounded acceptance ledger](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md).
 Human-001 subsequently authorized T17 on 2026-11-14. The sole REQ records
-the restored design handoff and refined guard composition; read its current
-owner/status there. Accepted confirmation/auth infrastructure and a design
-draft do not establish implemented guard or physical dispatch readiness.
+the restored design handoff and the subsequent human-authorized combined
+guard implementation in draft PR #82; read its current owner/status and
+review evidence there. The generator delivery is not accepted guard runtime
+or physical dispatch readiness.
 
 ## Decisions Required
 
@@ -236,7 +237,9 @@ record the 63-case evidence manifest, PG16 CI, failure/revocation regressions
 and human disposition without inventing an independent evaluator signature.
 Full REQ-003/004 remain active; TC-003-11 and TC-004-01/02 are passing within
 this accepted increment. REQ-039 T17 has been authorized and its guard design
-is now handed off for requirement review; implementation is not delivered.
+has progressed under a later explicit combined-delivery instruction to
+req_impl for external review in draft PR #82. Guard eligibility and registered
+no-dispatch composition are implemented; final acceptance remains pending.
 Production policy/handler, durable audit,
 provider dispatch, live IdP/HA/device certification and Feature/Stage acceptance
 retain separate gates. No next implementation is admitted by this closeout.

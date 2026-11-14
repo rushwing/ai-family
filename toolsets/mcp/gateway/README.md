@@ -49,7 +49,8 @@ and source-specific PG16 verification. Full REQ-003/004 completion, the
 REQ-039 production guard and physical dispatch remain separate. Human-001
 has since authorized REQ-039 T17/design refinement; read the current design
 and handoff in [REQ-039](../../../harness/tasks/features/REQ-039.md). No guard
-runtime is delivered by that design-only change.
+runtime was delivered by the initial design-only change; the later combined
+implementation is described below and remains pending external review.
 
 `gateway.persistence.PostgresConfirmStore` extends the shared `confirm_token`
 platform table through migration `0006_gateway_confirmation.sql`. Apply migrations
@@ -160,3 +161,53 @@ external Goal/IdP cases still report their own environment skips and are not
 relabeled as new prerequisite evidence. Fixture RS256 verification is distinct
 from live IdP certification. `/healthz` reports configured durable/home wiring;
 these flags describe configuration, not a passing persistence health probe.
+
+## REQ-039 shared home guard (pending external review)
+
+`gateway.home_guard.HomeActionGuard` assesses the original bearer and an exact
+raw canonical ActionRequest, with server-owned inventory/bindings/descriptors,
+a selected provider alias/configuration generation, authority, CurrentStateStore,
+UTC clock and mandatory max_availability_age_ms. Configure a 1–300000 ms age
+budget and finite 1–5 second resource wait. `assess()` exports only
+status/reason: eligibility is not a permission token and consumes no confirmation.
+`as_tool()` supplies the authenticated registered wrapper for existing gateway
+composition with PostgresConfirmStore and the independent BFF secret. The
+default application still has no home guard/handler and stays unavailable.
+
+Only exact single_store_v1 authority composition tied to that store is supported.
+The trusted authority's lease holds real PG grant/binding/generation locks on
+the supplied member-scoped connection; its revokers/rebind writers must use the
+same rows. The guard then takes `CurrentStateStore.capture_lease()` v1, holding
+the existing publication lock used by put/apply/rebuild/reconcile/stale/epoch
+writers. All capture access expires at exit. Acquire DB before state, never
+reverse that order; release state before ending the DB transaction. Existing
+read/snapshot calls alone do not satisfy this retained barrier. No production
+policy adapter/table or distributed state fence is supplied. Fixture adapters
+are test-only; unsupported distributed composition is unavailable.
+
+Pre-grant unknown/ungranted targets return forbidden without descriptive lookup.
+An existing grant contradicting the configured inventory/generation is
+guard_unavailable. Capability/action/argument failures become visible only
+after exact grants; unknown_home/unknown_device never escape as guard reasons.
+The exact reason vocabulary is specified in REQ-039. Availability must be online,
+fresh in the current committed epoch, not invalidated by reconnect, and within
+its own observation-age budget. Recent unrelated properties do not refresh it.
+Future observations deny; trusted clock regression/failure is unavailable.
+
+Both confirmation issuance and execution run fresh preflight. Final tool entry
+rechecks identity/grants/configuration/semantics/availability under the retained
+lease after durable token consumption. There is no executor/task sink option:
+even eligible confirmed requests return fixed 503 while physical execution is
+absent, never a fabricated accepted task or success. Final failures keep the
+confirmation consumed and roll back the handler transaction. No guarded
+provider call, durable audit or task idempotency is claimed.
+
+CI pins the original 63 prerequisite identities plus 86 guard cases, checks
+strict guard/fabric types and the complete source regressions, and builds
+direct and sdist-derived schema/fabric/goal/gateway wheels. Four fresh-venv
+installed PG smokes run outside the checkout with -I, both ordinary and -O.
+Run `tests/build_guard_artifacts.py --out-dir <outside-checkout-dir>` with a
+dedicated AIFAMILY_CONFIRMATION_TEST_DSN and build/hatchling/pip installed.
+The script downloads dependency wheels once, installs them offline into each
+smoke environment and records artifact hashes. Tests create/drop random test
+databases; fixture RS256/JWKS substitution is not live IdP certification.
