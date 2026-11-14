@@ -290,8 +290,10 @@ def test_memory_confirmation_cannot_enable_home_tool(pg_dsn, signed_identity, mo
 @pytest.mark.parametrize("kind", ["missing", "kid", "member", "home", "device", "signature"])
 def test_http_denials_never_call_home_handler(pg_dsn, signed_identity, kind):
     calls = []
+
     def policy(c, p):
         return (p.get("home_id"), p.get("device_id")) == ("home-fixture", "device-fixture")
+
     tool = home_handler(pg_dsn, calls, policy=policy)
     client = TestClient(
         create_app(
@@ -407,9 +409,7 @@ def test_policy_changes_at_tool_entry_fail_closed(pg_dsn, signed_identity, broke
         headers=headers(token),
     )
     assert response.status_code == (503 if broken else 403)
-    assert response.json() == {
-        "error": "home_boundary_unavailable" if broken else "forbidden"
-    }
+    assert response.json() == {"error": "home_boundary_unavailable" if broken else "forbidden"}
     assert len(checks) == 3
     assert calls == []
 
@@ -441,8 +441,122 @@ def test_changed_user_proof_cannot_issue_token(pg_dsn, signed_identity, change):
     assert calls == []
     # A failed proof must not claim the nonce or prevent the genuine approval.
     response = client.post(
-        f"/confirmations/{HOME_ACTION_TOOL}", json=params, headers=proof_headers(
-            token, params, nonce=proof["x-ai-family-interaction-nonce"]
-        )
+        f"/confirmations/{HOME_ACTION_TOOL}",
+        json=params,
+        headers=proof_headers(token, params, nonce=proof["x-ai-family-interaction-nonce"]),
     )
     assert response.status_code == 200
+
+
+@pytest.mark.parametrize("failure", ["denied", "unavailable", "unexpected"])
+def test_handler_failure_rolls_back_but_consumes_confirmation(pg_dsn, signed_identity, failure):
+    import psycopg
+
+    from gateway.tools import ToolUnavailable
+
+    member = "failure-" + uuid.uuid4().hex
+    calls = []
+
+    def handler(claims, params, conn):
+        calls.append(True)
+        conn.execute(
+            "INSERT INTO member_note (family_member_id,body) VALUES (%s,'rollback')", (member,)
+        )
+        error = {"denied": ToolDenied, "unavailable": ToolUnavailable, "unexpected": RuntimeError}[
+            failure
+        ]
+        raise error("private-handler-details")
+
+    tool = AuthenticatedTool(
+        gateway_registry().get(HOME_ACTION_TOOL),
+        dsn=pg_dsn,
+        policy=lambda c, p: True,
+        handler=handler,
+    )
+    client = TestClient(
+        create_app(
+            confirmation_secret=SECRET,
+            confirmation_store=PostgresConfirmStore(pg_dsn),
+            home_tool=tool,
+        )
+    )
+    token, params = signed_identity(family_member_id=member), {"home_id": "home-fixture"}
+    response = client.post(
+        f"/confirmations/{HOME_ACTION_TOOL}",
+        json=params,
+        headers=proof_headers(token, params, member=member),
+    )
+    assert response.status_code == 200
+    body = params | {"confirm_token": response.json()["confirm_token"]}
+    response = client.post(f"/tools/{HOME_ACTION_TOOL}", json=body, headers=headers(token))
+    assert response.status_code == (403 if failure == "denied" else 503)
+    assert response.json() == {
+        "error": "forbidden" if failure == "denied" else "home_boundary_unavailable"
+    }
+    assert "private-handler-details" not in response.text
+    with psycopg.connect(pg_dsn) as conn:
+        assert conn.execute(
+            "SELECT count(*) FROM member_note WHERE family_member_id=%s", (member,)
+        ).fetchone() == (0,)
+    response = client.post(f"/tools/{HOME_ACTION_TOOL}", json=body, headers=headers(token))
+    assert response.status_code == 400
+    assert calls == [True]
+
+
+def test_handler_rechecks_revoked_grant_in_transaction(pg_dsn, signed_identity):
+    import psycopg
+
+    member = "revocation-" + uuid.uuid4().hex
+    effects, checks = [], []
+    with psycopg.connect(pg_dsn) as conn:
+        conn.execute(
+            "INSERT INTO member_note (family_member_id,body) VALUES (%s,'granted')", (member,)
+        )
+
+    def policy(claims, params):
+        # Revoke after the last preflight read and before handler transaction entry.
+        checks.append(True)
+        with psycopg.connect(pg_dsn) as conn:
+            grant = conn.execute(
+                "SELECT body FROM member_note WHERE family_member_id=%s", (member,)
+            ).fetchone()
+            if len(checks) == 3:
+                conn.execute(
+                    "UPDATE member_note SET body='revoked' WHERE family_member_id=%s", (member,)
+                )
+        return grant == ("granted",)
+
+    def handler(claims, params, conn):
+        # Same-transaction lock and recheck; revokers must update this locked row.
+        grant = conn.execute("SELECT body FROM member_note FOR SHARE").fetchone()
+        if grant != ("granted",):
+            raise ToolDenied("forbidden")
+        effects.append(True)
+        return {"accepted": True}
+
+    tool = AuthenticatedTool(
+        gateway_registry().get(HOME_ACTION_TOOL), dsn=pg_dsn, policy=policy, handler=handler
+    )
+    client = TestClient(
+        create_app(
+            confirmation_secret=SECRET,
+            confirmation_store=PostgresConfirmStore(pg_dsn),
+            home_tool=tool,
+        )
+    )
+    token, params = signed_identity(family_member_id=member), {"home_id": "home-fixture"}
+    response = client.post(
+        f"/confirmations/{HOME_ACTION_TOOL}",
+        json=params,
+        headers=proof_headers(token, params, member=member),
+    )
+    assert response.status_code == 200
+    response = client.post(
+        f"/tools/{HOME_ACTION_TOOL}",
+        json=params | {"confirm_token": response.json()["confirm_token"]},
+        headers=headers(token),
+    )
+    assert response.status_code == 403
+    assert response.json() == {"error": "forbidden"}
+    assert len(checks) == 3
+    assert effects == []

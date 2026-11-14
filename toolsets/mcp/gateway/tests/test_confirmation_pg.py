@@ -203,3 +203,37 @@ def test_database_unavailable_is_redacted():
     with pytest.raises(ConfirmationUnavailable, match="^confirmation_unavailable$") as caught:
         issue(store)
     assert caught.value.__cause__ is None
+
+
+@pytest.mark.parametrize("operation", ["issue", "consume"])
+@pytest.mark.parametrize("stage", ["connect", "setup", "query", "commit"])
+def test_database_value_errors_are_redacted(monkeypatch, operation, stage):
+    class Connection:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *exc):
+            if stage == "commit":
+                raise ValueError("private database commit details")
+
+        def execute(self, query, params=None):
+            if stage == "setup" or (stage == "query" and not query.startswith(("SET", "SELECT"))):
+                raise ValueError("private database query details")
+            return self
+
+        def fetchone(self):
+            return (1,)
+
+    def connect(*args, **kwargs):
+        if stage == "connect":
+            raise ValueError("private database connection details")
+        return Connection()
+
+    monkeypatch.setattr(psycopg, "connect", connect)
+    store = PostgresConfirmStore("dbname=private_fixture")
+    with pytest.raises(ConfirmationUnavailable, match="^confirmation_unavailable$") as caught:
+        if operation == "issue":
+            issue(store)
+        else:
+            store.consume("cf_fixture", **binding())
+    assert caught.value.__cause__ is None

@@ -76,9 +76,24 @@ internal tool implementation, never a separate public route bypassing the
 gateway's confirmation check. Do not expose its callable as another endpoint.
 Applying the wrapper to all Goal runtime handlers remains REQ-003/004 closeout.
 
+The JWT/policy preflight runs before the handler transaction. RLS isolates
+members; it does not serialize changes to home/device grants. A production
+handler MUST recheck mutable grants, device binding and current availability
+on the supplied connection before recording an authorized write/task intent.
+Lock the authoritative grant/binding rows (for example SELECT ... FOR SHARE)
+until that transaction commits; revocation writers must update those same
+rows, or use an equivalent shared version/locking protocol. A second unlocked
+policy read does not close the race. Missing transactional policy composition
+must keep production home execution unavailable. The REQ-039 design handoff
+must specify this protocol and test concurrent revocation. A fixture regression
+here revokes a grant after preflight and demonstrates a handler-side locked
+recheck denying execution. It is not production guard certification.
+Handler ToolDenied/ToolUnavailable failures preserve redacted 403/503 responses
+and roll back that handler transaction; unexpected failures become fixed 503.
+
 A valid HMAC signature is necessary before the gateway calls `issue_confirmed`.
 That low-level method is trusted composition, not a public issuance route.
-The database independently rechecks proof age and claims the nonce permanently;
+The database independently rechecks proof age and persists the nonce claim until its safe operator retention expiry;
 restarted processes and other gateway instances cannot mint another token from
 that proof. Nonce capacity is never evicted to admit a replay. An operator may
 clean expired token rows and nonce claims only after their full acceptance
@@ -86,8 +101,29 @@ window (including allowed future clock skew) has passed; runtime aifam_app has
 no nonce DELETE/UPDATE grant. Keep instance clocks synchronized. Nonces must be
 random and globally unique across the shared BFF channel.
 
+Retention runbook: retain nonce claims for at least 24 hours from database
+claimed_at. This exceeds twice the store's enforced maximum proof age of 3600
+seconds (a future-dated proof can remain acceptable after its initial claim).
+Run maintenance daily as a separate operator/migration principal, with alerts
+on oldest eligible row age, retained row count and database capacity. Pause
+confirmation issuance on every instance and drain in-flight issuance
+transactions before pruning; use database time, never a host clock. In bounded
+batches, delete nonce rows with claimed_at < clock_timestamp() - interval
+'24 hours', then resume issuance. Expired version-1 token rows may be pruned
+separately using database expiry; never delete legacy check-in rows as part
+of this job. At larger volumes index claimed_at before scheduling cleanup.
+The application role must retain no nonce UPDATE/DELETE privilege. If clock
+integrity, maximum proof age or draining cannot be established, retain claims
+and suspend issuance on capacity pressure; never evict live claims. No operator
+job or scheduler is installed by this increment.
+
 Once consumed, a token stays consumed even if the handler fails or the process
-crashes. Retry requires a new user confirmation. This does not implement durable
+crashes. Retry requires a new user confirmation. The caller must show that the
+attempt failed and request a fresh explicit confirmation; it must not silently
+retry the consumed token or automatically mint another approval. A lost response
+has an unknown outcome: reconcile through the future governed task/idempotency
+contract before offering another write, because re-confirmation alone does not
+prevent duplicate effects. This does not implement durable
 task idempotency, provider delivery, physical convergence or durable audit;
 those gates still precede physical integration. Roll back by disabling the home
 handler/database configuration, retaining new columns/tables and replay records;
@@ -106,7 +142,12 @@ python tools/check_gateway_results.py /tmp/mcp-boundary-results.xml
 The fixture creates/drops a random test database, applies all migrations twice,
 and tests actual RLS, atomic proof claims, concurrent consumption, independent
 processes, rollback and authenticated HTTP composition. CI provides PG16 and
-fails if either new prerequisite suite is absent, skipped or failing. Legacy
+requires every case identity in tools/gateway_required_cases.json exactly once
+and passing. The manifest retains all original 51 case identities plus the
+pre-review regressions; missing, renamed, duplicated, skipped or failing cases
+fail the gate. New required cases must be explicitly added to that manifest;
+changing it triggers MCP CI. Historical provenance remains an immutable record
+of the earlier run, rather than the live acceptance manifest. Legacy
 external Goal/IdP cases still report their own environment skips and are not
 relabeled as new prerequisite evidence. Fixture RS256 verification is distinct
 from live IdP certification. `/healthz` reports configured durable/home wiring;

@@ -77,6 +77,7 @@ jobs:
               - 'toolsets/mcp/**'
               - 'data/migrations/**'
               - 'tools/check_gateway_results.py'
+              - 'tools/gateway_required_cases.json'
               - 'tests/test_gateway_results.py'
               - 'agents/goal/app/auth/oidc.py'
               - 'agents/goal/app/main.py'

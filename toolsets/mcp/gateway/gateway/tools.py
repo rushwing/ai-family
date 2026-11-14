@@ -96,7 +96,13 @@ class AuthenticatedTool:
                 conn.execute(
                     "SELECT set_config('app.member_id', %s, true)", (claims["family_member_id"],)
                 )
+                # Mutable grants must be locked/rechecked by the trusted handler
+                # on this connection before any write (see README).
                 return self._handler(copy.deepcopy(claims), copy.deepcopy(params), conn)
+        except ToolDenied:
+            raise ToolDenied("forbidden") from None
+        except ToolUnavailable:
+            raise ToolUnavailable("tool_unavailable") from None
         except Exception:
             raise ToolUnavailable("tool_unavailable") from None
 

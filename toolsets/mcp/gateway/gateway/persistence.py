@@ -47,7 +47,7 @@ class PostgresConfirmStore:
                 conn.execute("SET LOCAL lock_timeout = '5s'")
                 conn.execute("SELECT set_config('app.member_id', %s, true)", (member,))
                 yield conn
-        except (ProofReplay, ValueError):
+        except ProofReplay:
             raise
         except Exception:
             raise ConfirmationUnavailable("confirmation_unavailable") from None
