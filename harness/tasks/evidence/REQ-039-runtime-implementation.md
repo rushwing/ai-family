@@ -1,0 +1,52 @@
+# REQ-039 implementation handoff
+
+Human-001 authorized fixes and combined implementation, stopping at
+`req_impl / generator-001` for external review in [draft PR #82](https://github.com/rushwing/ai-family/pull/82).
+[REQ-039](../features/REQ-039.md) retains eight unchecked ACs and four draft TCs.
+No independent evaluator signature, acceptance or merge is asserted.
+
+## Delivered behavior
+
+F1/F2 now define the ordered pre-grant/post-grant state machine and finite
+reason vocabulary. F3 declares REQ-013; direct JSON reuse also declares REQ-032.
+HomeActionGuard verifies the original bearer, exact scoped authority, canonical
+request and allowlist, current binding/generation, independent availability age
+and committed epoch. Final entry repeats checks while retaining PostgreSQL
+row protections and the CurrentStateStore publication lock, acquired DB first.
+The version-1 capture lease expires on exit and shares the existing writer lock.
+Authority fixtures support one explicitly fenced store; distributed authority
+and production policy adapters remain deployment gates.
+
+The registered wrapper composes shared PostgreSQL confirmation consumption with
+final checks. Revoke, rebind, generation changes and disconnects after preflight
+are rejected. Consumed tokens remain consumed after final rejection. Eligible
+production entry still returns fixed 503: physical dispatch, governed task and
+durable audit composition remain unavailable.
+
+## Executed source evidence
+
+[Provenance](REQ-039-artifact-provenance.json) identifies implementation commit
+`903e8138c0e593d1638580c4858b4b03fad67665`, exact source and JUnit hashes,
+required test identities, five killed mutations and installed artifact digests.
+Source runs used CPython 3.12.12 / Linux aarch64 / PostgreSQL 17.12 and fixture
+RS256 tokens; external JWKS retrieval was replaced.
+
+- MCP: 228 passed, 14 legacy external gateway/IdP cases skipped, no failures/errors.
+- Required gateway cases: all original 63 plus 86 guard cases, 149 passed without skips.
+- Fabric: 2,163 passed, no failures/errors/skips.
+- Five killed faults: skipped exact grant, skipped final entry, ignored availability
+  age, inferred epoch from snapshot and accepted forged descriptor.
+- Direct and sdist-derived wheel sets: normal and optimized Python, four runs
+  from outside checkout, 19 explicit checks each, dispatch disabled throughout.
+
+Tests exercise real PostgreSQL grant/binding row locks and confirmation storage,
+concurrent revoke/rebind and state publication, wait-time aging/JWT expiration,
+exact confirmation binding/replay and no physical calls. These are generator
+checks against draft criteria, not independent approval.
+
+On session recovery the retained JUnit reports, required-case manifest, mutation
+clean-source hashes and every packaged artifact digest were rechecked.
+Governance gates and all 21 planning regressions passed again. Final CI uses
+PostgreSQL 16 and must be attributed to its own PR head, separately from this
+source-specific PostgreSQL 17 evidence. Later evidence/docs-only commits do not
+relabel the implementation artifacts.
