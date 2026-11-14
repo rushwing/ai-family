@@ -28,6 +28,7 @@ from starlette.concurrency import run_in_threadpool
 
 from gateway.auth import AuthenticationError, AuthorizationError, verify_bearer
 from gateway.confirm import ConfirmStore, confirmation_payload
+from gateway.home_audit import AuditUnavailable, PostgresHomeAudit, elapsed_ms
 from gateway.interaction import InteractionProofError, InteractionVerifier
 from gateway.persistence import ConfirmationUnavailable, PostgresConfirmStore, ProofReplay
 from gateway.tools import (
@@ -47,6 +48,7 @@ def create_app(
     confirmation_secret: str | None = None,
     confirmation_store: PostgresConfirmStore | None = None,
     home_tool: AuthenticatedTool | None = None,
+    home_audit: PostgresHomeAudit | None = None,
 ) -> FastAPI:
     app = FastAPI(title="ai-family MCP Gateway", version="0.1.0")
     if home_tool is not None and home_tool.name != HOME_ACTION_TOOL:
@@ -64,6 +66,53 @@ def create_app(
     # Temporary WP-4 boundary buffer.  Durable audit.event integration remains
     # a req_impl_review task, but the interim process must still be bounded.
     audit: deque[dict[str, Any]] = deque(maxlen=1_000)
+
+    if home_audit is not None:
+        if not isinstance(home_audit, PostgresHomeAudit):
+            raise ValueError("durable_home_audit_required")
+
+        @app.middleware("http")
+        async def durable_home_evidence(request: Request, call_next):
+            paths = {
+                f"/tools/{HOME_ACTION_TOOL}": "execution",
+                f"/confirmations/{HOME_ACTION_TOOL}": "confirmation",
+            }
+            phase = paths.get(request.url.path)
+            if phase is None or request.method != "POST":
+                return await call_next(request)
+            start = time.monotonic()
+            raw = await request.body()
+            try:
+                params = json.loads(raw) if len(raw) <= 65536 else None
+            except Exception:
+                params = None
+            attempt = await run_in_threadpool(
+                home_audit.attempt, _bearer(request), params, phase=phase,
+            )
+            try:
+                # Independent durable commit precedes any route/handler/proof call.
+                await run_in_threadpool(home_audit.record, attempt,
+                                        outcome="started", reason="started")
+            except AuditUnavailable:
+                return JSONResponse({"error": "audit_unavailable"}, status_code=503)
+            try:
+                response = await call_next(request)
+            except Exception:
+                response = JSONResponse({"error": "home_boundary_unavailable"}, status_code=503)
+                reason = "interrupted"
+            else:
+                reason = ("accepted" if response.status_code < 400 else "rejected"
+                          if response.status_code < 500 else "boundary_unavailable")
+            outcome = ("allowed" if response.status_code < 400 else "denied"
+                       if response.status_code < 500 else "unavailable")
+            try:
+                await run_in_threadpool(
+                    home_audit.record, attempt, outcome=outcome, reason=reason,
+                    duration_ms=elapsed_ms(start), http_status=response.status_code,
+                )
+            except AuditUnavailable:
+                return JSONResponse({"error": "audit_unavailable"}, status_code=503)
+            return response
 
     def _record(action: str, result: str, member: str | None, reason: str = "") -> None:
         audit.append(
@@ -310,6 +359,7 @@ def create_app(
             "confirmation_channel_configured": interaction.configured,
             "durable_confirmation_configured": durable,
             "home_boundary_configured": durable and home_tool is not None,
+            "durable_home_audit_configured": home_audit is not None,
         }
 
     @app.get("/readyz")

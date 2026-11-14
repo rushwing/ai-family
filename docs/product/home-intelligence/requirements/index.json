@@ -831,13 +831,8 @@
       "title": "Persist append-only action audit evidence",
       "parent": "HI-F008",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S023.md",
-      "depends_on": [
-        "HI-S019",
-        "HI-S022"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-040",
       "legacy_refs": [
         "ZW-ST-1504",
         "ZW-ST-1601"

@@ -162,6 +162,76 @@ relabeled as new prerequisite evidence. Fixture RS256 verification is distinct
 from live IdP certification. `/healthz` reports configured durable/home wiring;
 these flags describe configuration, not a passing persistence health probe.
 
+## REQ-040 durable home action audit (pending external review)
+
+`gateway.home_audit.PostgresHomeAudit` supplies a bounded append-only home ledger
+under `audit.home_action_event` (migration `0007_home_action_audit.sql`). Apply
+the ordered migrations with the separate migration owner. Application credentials
+must have no ownership, DDL, superuser or BYPASSRLS powers and must be able to
+assume only their approved runtime roles. Never use the test superuser DSN in
+production. Existing generic `audit.event` records and Goal tooling are unchanged.
+
+Explicit trusted composition injects the audit store:
+
+```python
+from gateway.home_audit import PostgresHomeAudit
+
+home_audit = PostgresHomeAudit(
+    audit_dsn, key=private_audit_key, key_id="audit-v1",
+)
+app = create_app(
+    confirmation_store=durable_confirmation_store,
+    confirmation_secret=private_bff_secret,
+    home_tool=guard.as_tool(),
+    home_audit=home_audit,
+)
+```
+
+The key is 32–128 private bytes, never an environment example or request value.
+HMAC references are separated by key ID, verified member and field domain.
+Persist key provenance outside the public repository; rotating the key changes
+references. Only verified family_member_id is kept as raw tenant metadata for
+RLS. Requester/home/device/capability/action/task/trace/idempotency use opaque
+references; arguments, JWT/session/proof/token, provider IDs and private errors
+are omitted. Request references describe submitted values, never verified target
+existence or permission. Task IDs can come only from trusted internal code;
+request-body task_id is ignored.
+
+For exact home execution and confirmation POST routes, configured audit commits
+`started` before route delegation, then appends `allowed`, `denied` or
+`unavailable` from the actual boundary result with elapsed duration and DB time.
+Audit DB/schema/permission/timeout failure returns fixed 503 `audit_unavailable`
+with no fallback. A terminal-write failure preserves started evidence and
+returns 503; it may follow a committed confirmation issuance. The proof/nonce
+is not restored and a hidden confirmation token is not reused automatically.
+A lone started row is interrupted/unknown, never successful completion.
+
+`home_audit.recent(original_bearer, limit=50)` re-verifies RS256 and reads only
+that member's rows, even for admin. Limit is 1–100. Anonymous evidence is only
+visible through approved oversight. Oversight additionally requires configured
+`oversight_dsn`, `approve_oversight(verified_claims) is True`, and adult/admin;
+the connection assumes the existing SELECT-only `aifam_audit_reader` role.
+That approved role can inspect the whole home ledger, matching existing platform
+parent oversight. No public HTTP audit-read route is added; `/audit/recent`
+still serves the transient Goal/shared buffer and does not query this ledger.
+All app/kid/oversight roles lack UPDATE/DELETE/TRUNCATE on the home table.
+
+Omitting `home_audit` preserves accepted boundary-only compatibility; its
+in-memory buffer is not durable home audit. `/healthz` reports only whether
+audit is configured, not database health or physical-execution readiness.
+The production guard still returns fixed 503 after confirmed eligible entry.
+No executor, task or provider is supplied here. A later admitted dispatcher must
+retain guard protections through durable authorized task/outbox intent and
+recheck at dispatch; this middleware alone is not an authorized physical-write
+transaction. Terminal audit failure after a future physical effect must be
+treated as uncertain and reconciled rather than blindly retried.
+
+[REQ-040](../../../harness/tasks/features/REQ-040.md) remains
+req_impl / generator-001 with draft TCs and unchecked ACs for combined external
+review. Required real-PG source cases extend the existing gateway result gate;
+the artifact builder runs installed guard and audit smokes for direct and
+sdist-derived wheel sets under ordinary and optimized Python.
+
 ## REQ-039 accepted shared home guard (PR #82)
 
 Human-001 accepted the combined criteria/code/runtime delivery on 2026-11-14.
