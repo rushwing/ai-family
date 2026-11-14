@@ -65,3 +65,17 @@ authority lease, repeated at app boundary, wrapper authorization and protected
 final entry. Connection and latency optimization and finer lock granularity are
 future work and must retain the final-entry guarantees. I7/I8/I11/I12 require no
 behavior change; the review and acceptance boundary remains unchanged.
+
+## Third-round review follow-up
+
+F5/I16: removed the two unreferenced implementation-named evidence duplicates.
+This runtime handoff and its linked artifact provenance remain the single
+REQ-linked evidence pair. The original artifact provenance is preserved byte
+for byte, including historical local JUnit paths; its source commit and hashes
+identify the recorded evidence. No parallel provenance copy is maintained.
+
+I13/I14: the link gate intentionally covers inline local links in the ten active
+requirement files and requires a Git checkout. Evidence, TC and story links and
+source tarballs without Git metadata remain outside that gate's stated scope.
+I15: the existing contention and connection-cost notes above remain applicable;
+no runtime behavior or lifecycle status changes in this follow-up.
