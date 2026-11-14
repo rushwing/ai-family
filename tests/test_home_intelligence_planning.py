@@ -58,6 +58,7 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/features/REQ-038.md",
             "harness/tasks/features/REQ-039.md",
             "harness/tasks/evidence/REQ-039-prerequisite-inspection.md",
+            "harness/tasks/evidence/REQ-003-004-pr80-acceptance.md",
             "apps/home-intelligence-api/README.md",
             "harness/tasks/evidence/REQ-024-review-acceptance.md",
             "harness/tasks/evidence/REQ-025-review-acceptance.md",

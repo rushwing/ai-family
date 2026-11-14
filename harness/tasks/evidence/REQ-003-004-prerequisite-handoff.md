@@ -1,5 +1,12 @@
 # REQ-003/004 shared prerequisite review handoff
 
+Historical source-specific delivery record. The later
+[human bounded acceptance and merge](REQ-003-004-pr80-acceptance.md) supersedes draft TC, pending
+acceptance and unmerged-PR statements for this increment. Full REQ-003/004
+completion, an independent evaluator signature and REQ-039 T17 restoration
+are not asserted. Execution counts and source hashes below remain historical.
+
+
 Prepared by generator-001 on 2026-11-14. Runtime and proposed criteria commit:
 `0599c9f6ae8abb6437ff5a5e21e0d6ecab927ae6`, after REQ-039 admission commit
 `ddb254d` on merged main `fec13be`. This document and the linked provenance

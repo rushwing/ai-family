@@ -1,5 +1,12 @@
 # PR #80 local pre-review fixes
 
+Historical source-specific delivery record. The later
+[human bounded acceptance and merge](REQ-003-004-pr80-acceptance.md) supersedes draft TC, pending
+acceptance and unmerged-PR statements for this increment. Full REQ-003/004
+completion, an independent evaluator signature and REQ-039 T17 restoration
+are not asserted. Execution counts and source hashes below remain historical.
+
+
 Generator-001 delivered the human-requested fixes at `ac49fc9b5bbed8e60b6fdd2abd5d010a59e50723`.
 The supplied local pre-review is not an independent review signature. REQ-003
 and REQ-004 remain req_impl / generator-001; all proposed TCs remain draft;
