@@ -16,7 +16,7 @@ Human-001 authorized bounded shared work under
 [REQ-003](../features/REQ-003.md) and [REQ-004](../features/REQ-004.md).
 Both remain `req_impl / generator-001`; new criteria remain generator-authored
 drafts. No independent TC approval, evaluator signature or full REQ acceptance
-is asserted. [REQ-039](../features/REQ-039.md) remains blocked pending the shared
+is asserted. [REQ-039](../archive/done/features/REQ-039.md) remains blocked pending the shared
 evidence review and human restoration of its design handoff.
 
 ## Delivered behavior

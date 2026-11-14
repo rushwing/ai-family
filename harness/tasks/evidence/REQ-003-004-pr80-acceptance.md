@@ -1,5 +1,9 @@
 # REQ-003/004 shared prerequisite increment — human acceptance and merge
 
+Current REQ-039 disposition: [human acceptance and merge ledger](REQ-039-review-acceptance.md).
+The earlier lifecycle, blocker and pending-review statements below are historical
+and are superseded for REQ-039 by that final human disposition.
+
 [human-001][2026-11-14] Instructed “no more findings. merge PR and do ledger
 and housekeeping in another PR”. This accepts the bounded shared prerequisite
 specification, proposed TC text/code/runtime and G1/M1/M2/I1–I6 dispositions

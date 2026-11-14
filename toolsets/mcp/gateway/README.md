@@ -46,11 +46,11 @@ python -m pytest tests/ ../../../tests -q -k "goal_write_boundary or goal_jwt_bo
 [Human bounded acceptance](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md)
 records PR #80, merged as `9315763` on 2026-11-14, all pre-review dispositions
 and source-specific PG16 verification. Full REQ-003/004 completion, the
-REQ-039 production guard and physical dispatch remain separate. Human-001
-has since authorized REQ-039 T17/design refinement; read the current design
-and handoff in [REQ-039](../../../harness/tasks/features/REQ-039.md). No guard
-runtime was delivered by the initial design-only change; the later combined
-implementation is described below and remains pending external review.
+REQ-039 production policy and physical dispatch remain separate. Human-001
+subsequently accepted the combined shared guard delivery in merged PR #82;
+read archived [REQ-039](../../../harness/tasks/archive/done/features/REQ-039.md)
+and its [acceptance ledger](../../../harness/tasks/evidence/REQ-039-review-acceptance.md).
+The accepted eligibility and protected no-dispatch composition are described below.
 
 `gateway.persistence.PostgresConfirmStore` extends the shared `confirm_token`
 platform table through migration `0006_gateway_confirmation.sql`. Apply migrations
@@ -93,8 +93,8 @@ Lock the authoritative grant/binding rows (for example SELECT ... FOR SHARE)
 until that transaction commits; revocation writers must update those same
 rows, or use an equivalent shared version/locking protocol. A second unlocked
 policy read does not close the race. Missing transactional policy composition
-must keep production home execution unavailable. The REQ-039 design handoff
-must specify this protocol and test concurrent revocation. A fixture regression
+must keep production home execution unavailable. The accepted REQ-039 guard
+specifies this protocol and tests concurrent revocation. A fixture regression
 here revokes a grant after preflight and demonstrates a handler-side locked
 recheck denying execution. It is not production guard certification.
 Handler ToolDenied/ToolUnavailable failures preserve redacted 403/503 responses
@@ -162,7 +162,11 @@ relabeled as new prerequisite evidence. Fixture RS256 verification is distinct
 from live IdP certification. `/healthz` reports configured durable/home wiring;
 these flags describe configuration, not a passing persistence health probe.
 
-## REQ-039 shared home guard (pending external review)
+## REQ-039 accepted shared home guard (PR #82)
+
+Human-001 accepted the combined criteria/code/runtime delivery on 2026-11-14.
+[Acceptance and verification limits](../../../harness/tasks/evidence/REQ-039-review-acceptance.md)
+record the merge, final-head PG16 CI, source-specific evidence and findings.
 
 `gateway.home_guard.HomeActionGuard` assesses the original bearer and an exact
 raw canonical ActionRequest, with server-owned inventory/bindings/descriptors,

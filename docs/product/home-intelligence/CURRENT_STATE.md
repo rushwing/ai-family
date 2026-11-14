@@ -33,15 +33,17 @@ HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/d
 
 Read admitted engineering blockers from Harness; no unadmitted candidate is marked blocked. The remaining stories await explicit Story prerequisites listed in index.json. Future live HA/device validation requires private endpoint/credentials and a controlled existing device. Deployment of device actions also requires real governed dispatch, durable audit/confirmation and task processing; link the relevant REQ-003/004 gaps when admitting those stories rather than claiming blanket readiness.
 
-HI-S022 is admitted as [REQ-039](../../../harness/tasks/features/REQ-039.md).
+HI-S022 is delivered through archived [REQ-039](../../../harness/tasks/archive/done/features/REQ-039.md).
 The shared-platform prerequisite increment is now human-accepted and merged in
 [PR #80](https://github.com/rushwing/ai-family/pull/80); read the
 [bounded acceptance ledger](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md).
-Human-001 subsequently authorized T17 on 2026-11-14. The sole REQ records
-the restored design handoff and the subsequent human-authorized combined
-guard implementation in draft PR #82; read its current owner/status and
-review evidence there. The generator delivery is not accepted guard runtime
-or physical dispatch readiness.
+Human-001 subsequently authorized T17 and accepted the combined guard delivery
+on 2026-11-14. [PR #82](https://github.com/rushwing/ai-family/pull/82) merged as
+`e0f3a7e`; the sole archived REQ records done / human-001, eight accepted ACs
+and four passing TCs. Read the
+[guard acceptance ledger](../../../harness/tasks/evidence/REQ-039-review-acceptance.md).
+The accepted guard composes eligibility and protected no-dispatch entry;
+production policy, audit/task integration and physical execution remain separate.
 
 ## Decisions Required
 
@@ -77,7 +79,7 @@ HI-S001 is delivered through archived [REQ-022](../../../harness/tasks/archive/d
 
 ## Delivery Order
 
-Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / delivered WebSocket lifecycle HI-S003 (archived REQ-024) → delivered subscriptions HI-S005 (archived REQ-027) → delivered normalization HI-S006 (archived REQ-028). Scoped snapshot storage HI-S016 and monotonic event application HI-S017 are delivered through archived REQ-029/030. Discovery HI-S013 is delivered through archived REQ-031. Canonical mapping HI-S014 is delivered through archived REQ-032. Capability inference HI-S015 is delivered through archived REQ-033. Scoped query services HI-S018 are delivered through archived REQ-034. Offline reconnect reconciliation HI-S007 is delivered through archived REQ-036 / PR #74; live owner composition remains separate. Invalid-action validation HI-S024 precedes guard HI-S022 and durable audit HI-S023; only then enable HA execution HI-S021 and action API HI-S029. Query API HI-S028 is delivered through archived REQ-035 / PR #71; live composition and frontend wiring remain separate. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
+Delivered contracts HI-S008/009/010/011 and schemas HI-S012 → delivered action contracts HI-S019 → delivered provider/mock HI-S025 → delivered mock devices/offline CLI HI-S026 → delivered conformance HI-S027 (archived REQ-021). Independently: delivered offline config HI-S001 (archived REQ-022) → delivered bounded REST HI-S002 (archived REQ-023) / delivered WebSocket lifecycle HI-S003 (archived REQ-024) → delivered subscriptions HI-S005 (archived REQ-027) → delivered normalization HI-S006 (archived REQ-028). Scoped snapshot storage HI-S016 and monotonic event application HI-S017 are delivered through archived REQ-029/030. Discovery HI-S013 is delivered through archived REQ-031. Canonical mapping HI-S014 is delivered through archived REQ-032. Capability inference HI-S015 is delivered through archived REQ-033. Scoped query services HI-S018 are delivered through archived REQ-034. Offline reconnect reconciliation HI-S007 is delivered through archived REQ-036 / PR #74; live owner composition remains separate. Invalid-action validation HI-S024 and shared guard HI-S022 are delivered through archived REQ-037/039; durable audit HI-S023 and the remaining production authority/task gates must precede HA execution HI-S021 and action API HI-S029. Query API HI-S028 is delivered through archived REQ-035 / PR #71; live composition and frontend wiring remain separate. HI-S030 closes the full read/action demo. Use the dependency graph, not numbering, as execution order.
 
 
 ## Home Assistant WebSocket Lifecycle Delivery
@@ -236,10 +238,10 @@ before any physical effects.
 record the 63-case evidence manifest, PG16 CI, failure/revocation regressions
 and human disposition without inventing an independent evaluator signature.
 Full REQ-003/004 remain active; TC-003-11 and TC-004-01/02 are passing within
-this accepted increment. REQ-039 T17 has been authorized and its guard design
-has progressed under a later explicit combined-delivery instruction to
-req_impl for external review in draft PR #82. Guard eligibility and registered
-no-dispatch composition are implemented; final acceptance remains pending.
+this accepted increment. REQ-039 / HI-S022 is now human-accepted and archived
+through merged PR #82; its
+[acceptance ledger](../../../harness/tasks/evidence/REQ-039-review-acceptance.md)
+records guard eligibility and protected registered no-dispatch composition.
 Production policy/handler, durable audit,
 provider dispatch, live IdP/HA/device certification and Feature/Stage acceptance
 retain separate gates. No next implementation is admitted by this closeout.

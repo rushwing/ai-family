@@ -1,8 +1,12 @@
 # REQ-039 implementation handoff
 
+Current REQ-039 disposition: [human acceptance and merge ledger](REQ-039-review-acceptance.md).
+The earlier lifecycle, blocker and pending-review statements below are historical
+and are superseded for REQ-039 by that final human disposition.
+
 Human-001 authorized fixes and combined implementation, stopping at
 `req_impl / generator-001` for external review in [draft PR #82](https://github.com/rushwing/ai-family/pull/82).
-[REQ-039](../features/REQ-039.md) retains eight unchecked ACs and four draft TCs.
+[REQ-039](../archive/done/features/REQ-039.md) retains eight unchecked ACs and four draft TCs.
 No independent evaluator signature, acceptance or merge is asserted.
 
 ## Delivered behavior
