@@ -1,5 +1,9 @@
 # REQ-039 / HI-S022 prerequisite inspection
 
+Current REQ-039 disposition: [human acceptance and merge ledger](REQ-039-review-acceptance.md).
+The earlier lifecycle, blocker and pending-review statements below are historical
+and are superseded for REQ-039 by that final human disposition.
+
 [planner-001][2026-11-14] Source inspected: merged main
 `fec13be` (REQ-038 housekeeping PR #79), on Linux aarch64.
 GitHub readback confirms PR #79 merged at 2026-11-11T11:42:56Z; PR #78's
@@ -57,7 +61,7 @@ blocked, and AC1–AC4 remain unchecked.
 ## Disposition
 
 The source Story requires remaining blocked if verified shared persistence is
-unavailable. [REQ-039](../features/REQ-039.md) records T16 and concrete unblock
+unavailable. [REQ-039](../archive/done/features/REQ-039.md) records T16 and concrete unblock
 conditions. Runtime integration stops here. Reuse the shared implementation
 once its owner supplies exact-commit passing evidence; do not introduce a
 second confirmation store or enable physical writes under this admission.
