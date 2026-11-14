@@ -33,6 +33,10 @@ HI-S019 is delivered through archived [REQ-018](../../../harness/tasks/archive/d
 
 Read admitted engineering blockers from Harness; no unadmitted candidate is marked blocked. The remaining stories await explicit Story prerequisites listed in index.json. Future live HA/device validation requires private endpoint/credentials and a controlled existing device. Deployment of device actions also requires real governed dispatch, durable audit/confirmation and task processing; link the relevant REQ-003/004 gaps when admitting those stories rather than claiming blanket readiness.
 
+HI-S022 is admitted as [REQ-039](../../../harness/tasks/features/REQ-039.md).
+Read its shared-platform prerequisite findings and unblock conditions there;
+local schema/action-validation delivery does not establish dispatch readiness.
+
 ## Decisions Required
 
 No unresolved decision prevents the first domain/configuration contract stories. Before action execution, reconcile gateway registry extension, durable confirmation/audit ownership and real executor integration with existing REQ-003/004. REQ-035 delivers the query route/schema contract; future action/event API contracts must reconcile compatibility against the existing API/BFF draft. Before dispatch integration, reconcile ADR-006 frontmatter through its established review process; do not silently select another broker.

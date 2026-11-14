@@ -817,14 +817,8 @@
       "title": "Provide shared action guard entry point",
       "parent": "HI-F008",
       "stage": "R1",
-      "status": "draft",
       "path": "stories/HI-S022.md",
-      "depends_on": [
-        "HI-S012",
-        "HI-S019",
-        "HI-S024"
-      ],
-      "harness_ref": null,
+      "harness_ref": "REQ-039",
       "legacy_refs": [
         "ZW-ST-1501",
         "ZW-ST-1502",
