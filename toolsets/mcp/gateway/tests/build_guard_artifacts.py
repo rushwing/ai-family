@@ -69,7 +69,7 @@ def main():
         check=True,
         capture_output=True,
     )
-    results = []
+    results, audit_results = [], []
     for kind, wheels in (("direct", direct), ("derived", derived)):
         directory = out / (kind + "-env")
         venv.EnvBuilder(with_pip=True).create(directory)
@@ -105,12 +105,27 @@ def main():
             if result["checks"] != 19 or result["dispatch_enabled"] is not False:
                 raise RuntimeError("incomplete_installed_guard_evidence")
             results.append({"wheel_set": kind, "optimized": optimized, **result})
+            audit_command = command[:-1] + [
+                str(Path(__file__).with_name("installed_audit_smoke.py"))
+            ]
+            audit_run = subprocess.run(
+                audit_command,
+                input=json.dumps({"dsn": dsn, "root": str(ROOT)}),
+                text=True, capture_output=True, cwd=out, timeout=90,
+            )
+            if audit_run.returncode:
+                raise RuntimeError("installed_audit_smoke_failed")
+            audit_result = json.loads(audit_run.stdout)
+            if audit_result["checks"] != 25 or audit_result["dispatch_enabled"] is not False:
+                raise RuntimeError("incomplete_installed_audit_evidence")
+            audit_results.append({"wheel_set": kind, "optimized": optimized, **audit_result})
     report = {
         "source_commit": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
         ).strip(),
         "python": sys.version,
         "smokes": results,
+        "audit_smokes": audit_results,
         "sha256": {
             str(p.relative_to(out)): hashlib.sha256(p.read_bytes()).hexdigest()
             for folder in ("direct", "sdist", "derived", "dependencies")
@@ -120,7 +135,8 @@ def main():
     }
     (out / "provenance.json").write_text(json.dumps(report, indent=2) + "\n")
     print(
-        json.dumps({"smokes": results, "distributions": len(direct) + len(derived) + len(PACKAGES)})
+        json.dumps({"smokes": results, "audit_smokes": audit_results,
+                    "distributions": len(direct) + len(derived) + len(PACKAGES)})
     )
 
 

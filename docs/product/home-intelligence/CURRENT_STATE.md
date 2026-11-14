@@ -47,6 +47,14 @@ production policy, audit/task integration and physical execution remain separate
 
 ## Decisions Required
 
+HI-S023 is admitted through [REQ-040](../../../harness/tasks/features/REQ-040.md)
+under the 2026-11-14 instruction to implement and stop at req_impl with a draft
+PR for external review. Its combined generator delivery adds append-only
+PostgreSQL home-action audit, scoped verified reads and explicitly configured
+gateway evidence; read current implementation/verification and ownership in the
+REQ. This is pending acceptance. Production policy, tasks/outbox/idempotency,
+physical dispatch and full REQ-003/004 completion remain separate work.
+
 No unresolved decision prevents the first domain/configuration contract stories. Before action execution, reconcile gateway registry extension, durable confirmation/audit ownership and real executor integration with existing REQ-003/004. REQ-035 delivers the query route/schema contract; future action/event API contracts must reconcile compatibility against the existing API/BFF draft. Before dispatch integration, reconcile ADR-006 frontmatter through its established review process; do not silently select another broker.
 
 ## Domain Contract Delivery

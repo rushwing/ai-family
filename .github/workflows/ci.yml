@@ -276,11 +276,12 @@ jobs:
         run: |
           python -m unittest discover -s tests -p test_gateway_results.py
           python tools/check_gateway_results.py /tmp/mcp-boundary-results.xml
-      - name: Type-check guard and build installed artifacts
+      - name: Type-check guard and audit and build installed artifacts
         env:
           AIFAMILY_CONFIRMATION_TEST_DSN: postgresql://postgres:postgres@localhost:5432/postgres
         run: |
           mypy --follow-imports=silent --strict toolsets/mcp/gateway/gateway/home_guard.py
+          mypy --follow-imports=silent --strict toolsets/mcp/gateway/gateway/home_audit.py
           python toolsets/mcp/gateway/tests/build_guard_artifacts.py --out-dir /tmp/guard-artifacts
       - uses: actions/upload-artifact@v4
         if: always()
