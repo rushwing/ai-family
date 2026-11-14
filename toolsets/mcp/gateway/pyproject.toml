@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn>=0.29",
     "pyjwt[crypto]>=2.8",
     "goal-mcp",
+    "ai-family-home-device-fabric>=0.1.0,<0.2",
     "psycopg[binary]>=3.2",
 ]
 

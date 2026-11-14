@@ -6,6 +6,8 @@ Full snapshot CAS is distinct from normalized-event application (REQ-030).
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from threading import Lock
 from typing import Literal, NoReturn, cast
@@ -98,6 +100,50 @@ class _Stored:
             "uninitialized" if updated is None else "fresh" if now - updated <= max_age else "stale"
         )
         return StateView(self.state, self.revision, updated, freshness)
+
+
+class StateCapture:
+    """Version-1 live capture, valid only inside capture_lease(). No write API."""
+
+    __slots__ = ("_inventory", "_epoch", "_row", "_stale", "_active", "_device")
+
+    def __init__(self, inventory: Inventory, epoch: int | None, row: _Stored | None,
+                 stale: bool, device: str) -> None:
+        self._inventory, self._epoch, self._row = inventory, epoch, row
+        self._stale, self._device, self._active = stale, device, True
+
+    def _check(self) -> None:
+        if not self._active:
+            raise StateStoreError("expired_capture", ("capture",))
+
+    @property
+    def version(self) -> int:
+        self._check()
+        return 1
+
+    @property
+    def inventory(self) -> Inventory:
+        self._check()
+        return self._inventory
+
+    @property
+    def epoch(self) -> int | None:
+        self._check()
+        return self._epoch
+
+    def view(self, *, now_ms: object, max_age_ms: object) -> StateView | StateNotFound:
+        self._check()
+        now, age = _integer(now_ms, "now_ms"), _integer(max_age_ms, "max_age_ms")
+        if self._row is None:
+            return StateNotFound(self._inventory.home.id, self._device)
+        view = self._row.view(now, age)
+        return replace(view, freshness="stale") if self._stale else view
+
+    def __repr__(self) -> str:
+        return "StateCapture()"
+
+    def __reduce__(self) -> NoReturn:
+        raise TypeError("state_capture_serialization_forbidden")
 
 
 class CurrentStateStore:
@@ -199,6 +245,33 @@ class CurrentStateStore:
             if row is None:
                 return StateNotFound(home, device)
             return self._view(home, row, now, age)
+
+    @contextmanager
+    def capture_lease(
+        self, context: object, *, home_id: object, device_id: object,
+        timeout_seconds: object = 5,
+    ) -> Iterator[StateCapture]:
+        """Hold the publication lock; callers acquire any DB authority locks first.
+
+        All put/apply/rebuild/reconcile/epoch/invalidation writers use this lock.
+        Never call another store method inside this scope (it is not reentrant).
+        This fences one store only, not a distributed deployment.
+        """
+        home = self._authorize(context, home_id, write=False)
+        device = _identifier(device_id)
+        if type(timeout_seconds) is not int or not 1 <= timeout_seconds <= 5:
+            raise StateStoreError("invalid_integer", ("timeout_seconds",))
+        if not self._lock.acquire(timeout=timeout_seconds):
+            raise StateStoreError("scope_timeout", ("capture",))
+        capture = None
+        try:
+            capture = StateCapture(self._inventories[home], self._epochs.get(home),
+                                   self._rows.get((home, device)), home in self._stale, device)
+            yield capture
+        finally:
+            if capture is not None:
+                capture._active = False
+            self._lock.release()
 
     def _view(self, home: str, row: _Stored, now: int, age: int) -> StateView:
         view = row.view(now, age)
