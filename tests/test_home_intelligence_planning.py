@@ -29,6 +29,8 @@ class PlanningIntegrityTests(unittest.TestCase):
         for rel in (
             "harness/tasks/archive/done/features/REQ-012.md",
             "harness/tasks/archive/done/features/REQ-011.md",
+            "harness/tasks/features/REQ-003.md",
+            "harness/tasks/features/REQ-004.md",
             "harness/tasks/features/REQ-013.md",
             "harness/tasks/features/REQ-014.md",
             "harness/tasks/features/REQ-015.md",
@@ -54,6 +56,8 @@ class PlanningIntegrityTests(unittest.TestCase):
             "harness/tasks/features/REQ-036.md",
             "harness/tasks/features/REQ-037.md",
             "harness/tasks/features/REQ-038.md",
+            "harness/tasks/features/REQ-039.md",
+            "harness/tasks/evidence/REQ-039-prerequisite-inspection.md",
             "apps/home-intelligence-api/README.md",
             "harness/tasks/evidence/REQ-024-review-acceptance.md",
             "harness/tasks/evidence/REQ-025-review-acceptance.md",

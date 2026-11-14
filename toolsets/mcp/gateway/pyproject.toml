@@ -10,6 +10,7 @@ dependencies = [
     "uvicorn>=0.29",
     "pyjwt[crypto]>=2.8",
     "goal-mcp",
+    "psycopg[binary]>=3.2",
 ]
 
 [project.optional-dependencies]

@@ -1,0 +1,306 @@
+{
+  "implementation_commit": "0599c9f6ae8abb6437ff5a5e21e0d6ecab927ae6",
+  "baseline_commit": "fec13be",
+  "date": "2026-11-14",
+  "role": "generator-001; self-check evidence only",
+  "environment": {
+    "python": "3.12.12",
+    "postgresql": "17.12",
+    "psycopg": "3.3.9",
+    "platform": "Linux aarch64",
+    "jwt": "fixture RS256 keys; external JWKS fetch replaced"
+  },
+  "junit": {
+    "sha256": "d2f1e5db748a3548c6dc80d891845a23c5b41920b0c4762520a32b5346cf1111",
+    "tests": 144,
+    "passed": 130,
+    "skipped": 14
+  },
+  "required_cases": [
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_restart_and_replay",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change0]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change1]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change2]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change3]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_concurrent_consumption_one_winner",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_concurrent_proof_claim_one_token",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_proof_replay_after_new_process",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_expiry_and_database_clock",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_issue_failure_rolls_back_nonce",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_rls_raw_token_privacy_and_checkin_compatibility",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_unavailable_is_redacted",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_home_registered_but_unwired_and_memory_only_fail_closed",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_high_risk_cannot_drop_confirmation_metadata",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[garbage]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity2]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity3]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity4]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity5]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity6]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_persisted_home_confirmation_across_apps",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_current_policy_rechecked_before_consume_and_handler",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_database_outage_no_fallback_or_secret_error",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_memory_confirmation_cannot_enable_home_tool",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[missing]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[kid]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[member]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[home]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[device]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[signature]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_member_transaction_isolation_and_detachment",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_broken_policy_fails_closed",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_policy_changes_at_tool_entry_fail_closed[False]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_policy_changes_at_tool_entry_fail_closed[True]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[payload]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[session]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[member]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[signature]",
+      "outcome": "passed"
+    }
+  ],
+  "source_sha256": {
+    ".github/workflows/ci.yml": "34a77ef20070cab42240b2527008d959dfcedfb4ab87bf9ec6939c3e84d9cf04",
+    "data/migrations/0006_gateway_confirmation.sql": "b4a3af31ce3b6a0a1ac4199090844ed843e0374860472c5a2f1b83b99b96dde6",
+    "tests/test_gateway_results.py": "f880995eb33c699f90f3203e783f3c73773ceb7743845c5ddd439b12778641c1",
+    "tools/check_gateway_results.py": "3e7c857689235a2d9e7098de2bd356e75ee00d7de83a738934af2a221f079244",
+    "toolsets/mcp/gateway/gateway/__init__.py": "d9baa5b856f8f89e6944b64fee12312a513706cbe5982616f7a0fc7a17c0e7d6",
+    "toolsets/mcp/gateway/gateway/app.py": "0025f9f94f3d4b005e23d1d3179cc38ffe1fb96b29a35e75a9e251d7622b65e0",
+    "toolsets/mcp/gateway/gateway/auth.py": "f90fa499a492655fd4392f4742863cf2cf31229e113844a76628aec85124780f",
+    "toolsets/mcp/gateway/gateway/confirm.py": "5299bd560af908c319b84e48626a95e3575c073b93b7c1200b24c6ed673750d3",
+    "toolsets/mcp/gateway/gateway/interaction.py": "c4b4238c61603be1e47bd842048bc00d9243ae761effdf74ace1b6c6f4981dfb",
+    "toolsets/mcp/gateway/gateway/persistence.py": "ddba36b8c9f19f390700a5b001aa6b82fa2a259e05e285abb7c1a43078528091",
+    "toolsets/mcp/gateway/gateway/tools.py": "b87cb2d1f14cdc53789eacbb974fd78d51bb74f695bed9ee9d1f729ec39027d9",
+    "toolsets/mcp/gateway/tests/test_confirmation_pg.py": "d079605abf49ba77b0690a6c5a703b8ac5d037d9ea37dc83691c95dccaf23d28",
+    "toolsets/mcp/gateway/tests/test_registered_home.py": "6299606d27757310438861ea1db9ccbc0105cc87060a4a9ef9215eae6a9a242d",
+    "toolsets/mcp/goal-mcp/goal_mcp/manifest.py": "5526c524b87168b92ff39713f2fff0fedbd7cc7e528937ce3e273b4b823a912b"
+  },
+  "artifact_sha256": {
+    "gateway/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+    "gateway/mcp_gateway-0.1.0-py3-none-any.whl": "3cb42cd6e09b381056836e75d8b7b83167c9fe9f3902a81cc2608b89b3eb9679",
+    "gateway/mcp_gateway-0.1.0.tar.gz": "fe6735df5dfb8a055ff1d8495646e9d8ff796a02bb4e3f3b8a275f6e7d36bb56",
+    "goal-mcp/.gitignore": "684888c0ebb17f374298b65ee2807526c066094c701bcc7ebbe1c1095f494fc1",
+    "goal-mcp/goal_mcp-0.1.0-py3-none-any.whl": "44d7d5468e77c80e5fd04002aba81c297d6546f3736ceb9c0c016a9afdf96f21",
+    "goal-mcp/goal_mcp-0.1.0.tar.gz": "65839efe545a897edf233b4882d9c48405697d1fb1d3ea98c1e7aed0e81fd8e3"
+  },
+  "limits": [
+    "14 legacy external gateway/IdP cases skipped",
+    "PG16 configured in CI; local execution PG17.12",
+    "No physical provider or production home handler",
+    "No independent approval or REQ-039 unblock"
+  ]
+}

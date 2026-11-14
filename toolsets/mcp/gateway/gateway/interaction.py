@@ -53,7 +53,7 @@ class InteractionVerifier:
     def configured(self) -> bool:
         return len(self._secret.encode()) >= 32
 
-    def verify(
+    def verify_signature(
         self,
         *,
         timestamp: str | None,
@@ -88,6 +88,12 @@ class InteractionVerifier:
         )
         if not hmac.compare_digest(expected, signature):
             raise InteractionProofError("invalid interaction signature")
+
+    def verify(self, **proof) -> None:
+        """Process-local boundary mode for existing Goal tests only."""
+        self.verify_signature(**proof)
+        nonce = proof["nonce"]
+        now = time.time()
         with self._lock:
             expired = [
                 key for key, seen in self._nonces.items() if now - seen > self._max_age

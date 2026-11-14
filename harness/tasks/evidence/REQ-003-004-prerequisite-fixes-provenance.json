@@ -1,0 +1,362 @@
+{
+  "implementation_commit": "ac49fc9b5bbed8e60b6fdd2abd5d010a59e50723",
+  "reviewed_baseline": "ba7a8e225a1ba8582e3ed20ea8e57c1b800b1de9",
+  "date": "2026-11-14",
+  "role": "generator-001; self-check only, no independent evaluator approval",
+  "environment": {
+    "python": "3.12.12",
+    "postgresql": "17.12",
+    "psycopg": "3.3.9",
+    "platform": "Linux aarch64",
+    "jwt": "fixture RS256, external JWKS fetch replaced"
+  },
+  "junit": {
+    "sha256": "06afec26d05990149daf388d7eb72f760eefa8933d4183e58201192d51c14caf",
+    "tests": 156,
+    "passed": 142,
+    "skipped": 14
+  },
+  "required_cases": [
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_restart_and_replay",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change0]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change1]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change2]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_exact_binding_denies_without_consuming[change3]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_concurrent_consumption_one_winner",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_concurrent_proof_claim_one_token",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_proof_replay_after_new_process",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_expiry_and_database_clock",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_issue_failure_rolls_back_nonce",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_rls_raw_token_privacy_and_checkin_compatibility",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_unavailable_is_redacted",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[connect-issue]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[connect-consume]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[setup-issue]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[setup-consume]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[query-issue]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[query-consume]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[commit-issue]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_confirmation_pg",
+      "name": "test_database_value_errors_are_redacted[commit-consume]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_home_registered_but_unwired_and_memory_only_fail_closed",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[read-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[write-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-auth-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-auth-trust-agent]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-test_ref-None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_registration_requires_auth_and_test_reference[high-test_ref-]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_high_risk_cannot_drop_confirmation_metadata",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[None]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[garbage]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity2]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity3]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity4]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity5]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_tool_side_auth_zero_handler_calls[identity6]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_persisted_home_confirmation_across_apps",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_current_policy_rechecked_before_consume_and_handler",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_database_outage_no_fallback_or_secret_error",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_memory_confirmation_cannot_enable_home_tool",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[missing]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[kid]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[member]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[home]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[device]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_http_denials_never_call_home_handler[signature]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_member_transaction_isolation_and_detachment",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_broken_policy_fails_closed",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_policy_changes_at_tool_entry_fail_closed[False]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_policy_changes_at_tool_entry_fail_closed[True]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[payload]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[session]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[member]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_changed_user_proof_cannot_issue_token[signature]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_handler_failure_rolls_back_but_consumes_confirmation[denied]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_handler_failure_rolls_back_but_consumes_confirmation[unavailable]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_handler_failure_rolls_back_but_consumes_confirmation[unexpected]",
+      "outcome": "passed"
+    },
+    {
+      "module": "test_registered_home",
+      "name": "test_handler_rechecks_revoked_grant_in_transaction",
+      "outcome": "passed"
+    }
+  ],
+  "source_sha256": {
+    ".github/workflows/ci.yml": "b1e105a52ae10b2d711fdf26fd431ec2447873e9fa0b0ec175cd51bea6fbd5a1",
+    "harness/tasks/features/REQ-003.md": "466b133adc7d38c9414a9758673927198720962cecfb3cee879097ed4774c381",
+    "harness/tasks/features/REQ-004.md": "a208a17127d909d95e0d0c199af6546d6a3f2dbdb0d88a7f9dcd70aad53bcd81",
+    "harness/tasks/features/REQ-039.md": "b97feb35e38e24aca30dbb7393d6488574542a61a84c23d0084a5a548cb92866",
+    "harness/tasks/test-cases/TC-003-11.md": "3b8c0fba1241c5b62ae35b29bc1ccea97ea250f016ae5eecdcd05c814dac8263",
+    "harness/tasks/test-cases/TC-004-02.md": "78149358fcf2707f62ed9e872b63489d595b49a4fb2fffbdd43574e633365e2b",
+    "tests/test_gateway_results.py": "0adab5e0ed4364a72c0c063dca7752aad4d7d44bf9dd493212db2bfe485db98f",
+    "tools/check_gateway_results.py": "0771038d98ad8a484eeb2ec6383de9f25354cf9e64c8e42c71da7d1b6185af9f",
+    "tools/gateway_required_cases.json": "de138e6d685a421fed6bccb494a00bd8232f1a0b8fead6b4b04c2c262f698281",
+    "toolsets/mcp/gateway/README.md": "9b3a4992b70fc7625fa0529d0a9336c3c0c2145a916b418426b4d3779dec41dd",
+    "toolsets/mcp/gateway/gateway/persistence.py": "9b67036d6cae80b1cb27f86462741c61ddd6fd453d91fc0700347c803ee81c3c",
+    "toolsets/mcp/gateway/gateway/tools.py": "68f6fd61d1d72c7611801fc2f7328cb21becde4e91432e2e4bab938b744bd061",
+    "toolsets/mcp/gateway/tests/test_confirmation_pg.py": "f301c7b448c917135e02977468b48df0d62d16f9141b8950bffeecc9c7e75fc2",
+    "toolsets/mcp/gateway/tests/test_registered_home.py": "a2c098c770e4ecdecf8de2616f5b5917691cc37584a63400ab59e3778d6572c6"
+  },
+  "artifact_sha256": {
+    "gateway/mcp_gateway-0.1.0-py3-none-any.whl": "077e1b0d90bc5b401cd96cb8a6b571b63f7418af557d68ee08cda3a6ef31a455",
+    "gateway/mcp_gateway-0.1.0.tar.gz": "d9349c23ca85f8171d61d81d2f654a50d75f9ddc2c4460cfd38a02bd76c5563c"
+  },
+  "limits": [
+    "Historical provenance remains unchanged and describes its original commit",
+    "Fixture grant locking is an example, not a production REQ-039 guard",
+    "Nonce pruning is an operator runbook, not an installed scheduled job",
+    "No physical dispatch, live IdP certification, independent review, REQ acceptance or T17 restoration"
+  ]
+}
