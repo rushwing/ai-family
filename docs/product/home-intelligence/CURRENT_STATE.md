@@ -37,9 +37,10 @@ HI-S022 is admitted as [REQ-039](../../../harness/tasks/features/REQ-039.md).
 The shared-platform prerequisite increment is now human-accepted and merged in
 [PR #80](https://github.com/rushwing/ai-family/pull/80); read the
 [bounded acceptance ledger](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md).
-REQ-039 remains blocked pending explicit human T17 restoration of its design
-handoff. Accepted confirmation/auth infrastructure does not establish guard
-composition or physical dispatch readiness.
+Human-001 subsequently authorized T17 on 2026-11-14. The sole REQ records
+the restored design handoff and refined guard composition; read its current
+owner/status there. Accepted confirmation/auth infrastructure and a design
+draft do not establish implemented guard or physical dispatch readiness.
 
 ## Decisions Required
 
@@ -234,6 +235,8 @@ before any physical effects.
 record the 63-case evidence manifest, PG16 CI, failure/revocation regressions
 and human disposition without inventing an independent evaluator signature.
 Full REQ-003/004 remain active; TC-003-11 and TC-004-01/02 are passing within
-this accepted increment. REQ-039 T17, production policy/handler, durable audit,
+this accepted increment. REQ-039 T17 has been authorized and its guard design
+is now handed off for requirement review; implementation is not delivered.
+Production policy/handler, durable audit,
 provider dispatch, live IdP/HA/device certification and Feature/Stage acceptance
 retain separate gates. No next implementation is admitted by this closeout.

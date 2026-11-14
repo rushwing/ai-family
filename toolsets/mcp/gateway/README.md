@@ -46,7 +46,10 @@ python -m pytest tests/ ../../../tests -q -k "goal_write_boundary or goal_jwt_bo
 [Human bounded acceptance](../../../harness/tasks/evidence/REQ-003-004-pr80-acceptance.md)
 records PR #80, merged as `9315763` on 2026-11-14, all pre-review dispositions
 and source-specific PG16 verification. Full REQ-003/004 completion, the
-REQ-039 production guard/T17 handoff and physical dispatch remain separate.
+REQ-039 production guard and physical dispatch remain separate. Human-001
+has since authorized REQ-039 T17/design refinement; read the current design
+and handoff in [REQ-039](../../../harness/tasks/features/REQ-039.md). No guard
+runtime is delivered by that design-only change.
 
 `gateway.persistence.PostgresConfirmStore` extends the shared `confirm_token`
 platform table through migration `0006_gateway_confirmation.sql`. Apply migrations
